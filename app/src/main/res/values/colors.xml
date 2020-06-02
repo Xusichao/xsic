@@ -1,6 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorAccent">#03DAC5</color>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="black">#000000</color>
+    <color name="gray">#333333</color>
+    <color name="mainGreen">#57BF6A</color>
+    <!--主色调-->
+    <color name="mainColor">#EDEDED</color>
+    <!--tabNavigation颜色-->
+    <color name="tabNav">#F6F6F6</color>
+    <!--绿色-->
+    <color name="green">#57BF6A</color>
+    <!--白色-->
+    <color name="white">#FFFFFFFF</color>
+    <!--长按的颜色-->
+    <color name="darkGray">#E5E5E5</color>
+    <!--线的颜色-->
+    <color name="borderColor">#E1E1E1</color>
+    <!--红色  未读数-->
+    <color name="red">#FF3B30</color>
+    <!--浅灰色  最新一条聊天记录-->
+    <color name="lightGray">#d0d0d0</color>
+    <!--文字颜色   黑-->
+    <color name="textColor">#000000</color>
+    <!--文字颜色   灰-->
+    <color name="textColorGray">#8F8F8F</color>
+    <!--状态栏 透明色-->
+    <color name="transparent">#00FFFFFF</color>
+    <!--黑色  透明-->
+    <color name="blackTransparent">#B3000000</color>
+    <!--选择器 on 颜色-->
+    <color name="switchOn">#4EDA62</color>
+    <!--选择器 off 颜色-->
+    <color name="switchOff">#E3E3E3</color>
+    <!--蒙层-->
+    <color name="modal">#4C4C4C</color>
+    <!--me gallery颜色-->
+    <color name="gallery">#181818</color>
+    <!--聊天气泡-->
+    <color name="chatBuble">#A9E97B</color>
+    <!--聊天界面-->
+    <color name="chatScreen">#EDEDED</color>
+    <!--未激活绿色按钮-->
+    <color name="unactivieGreenBtn">#ACE4C1</color>
+    <!--激活的绿色按钮-->
+    <color name="activeGreenBtn">#4FAB60</color>
+    <!--加载圈-->
+    <color name="loading">#66242424</color>
+    <!--Toast-->
+    <color name="toast">#B3696969</color>
+    <!--图片占位符颜色-->
+    <color name="placeHolder">#D6D6D6</color>
 </resources>

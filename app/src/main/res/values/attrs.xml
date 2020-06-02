@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<!--  ImageViewer  -->
+    <declare-styleable name="ImageViewer">
+        <attr name="src" format="integer"/>
+    </declare-styleable>
+</resources>
