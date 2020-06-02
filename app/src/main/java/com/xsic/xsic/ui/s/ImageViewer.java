@@ -98,11 +98,22 @@ public class ImageViewer extends View {
     private void setBitmapCenter(){
         int mBitmapHeight = mBitmap.getHeight();
         int mBitmapWidth = mBitmap.getWidth();
-
-        float scaleTime = Math.min(((float) ScreenUtil.getScreenHeight()/(float) mBitmapHeight),((float) ScreenUtil.getScreenWidth()/(float) mBitmapWidth));
-        mMatrix.setScale(scaleTime,scaleTime);
-        //mMatrix.setTranslate();
-
+        //高度的放大系数
+        float heightScaleTime = (float) ScreenUtil.getScreenHeight()/(float) mBitmapHeight;
+        //宽度的放大系数
+        float widthScaleTime = (float) ScreenUtil.getScreenWidth()/(float) mBitmapWidth;
+        float scaleTime = Math.min(heightScaleTime,widthScaleTime);
+        //图片放大之后的尺寸
+        float mHeightAfterScale = mBitmapHeight * scaleTime;
+        float mWidthAfterScale = mBitmapWidth * scaleTime;
+        mMatrix.preScale(scaleTime,scaleTime);
+        if (heightScaleTime >= widthScaleTime){
+            //1、宽度铺满
+            mMatrix.postTranslate(0, (ScreenUtil.getScreenHeight() - mHeightAfterScale)/2);
+        }else {
+            //2、高度铺满
+            mMatrix.postTranslate((ScreenUtil.getScreenWidth() - mWidthAfterScale)/2,0);
+        }
     }
 
     @Override
@@ -117,6 +128,9 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_MOVE:
+                break;
+
+            default:
                 break;
         }
         return super.onTouchEvent(event);
