@@ -1,5 +1,8 @@
 package com.xsic.xsic.ui.s;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -226,17 +229,23 @@ public class ImageViewer extends View {
         return true;
     }
 
+    @SuppressLint("ObjectAnimatorBinding")
     private void springBackAnimation(boolean isBigger){
         if (isBigger){
-            ScaleAnimation scaleAnimation = new ScaleAnimation((float)mScaleTime,(float)MAX_SCALE,(float)mScaleTime,(float)MAX_SCALE);
-            scaleAnimation.setDuration(ANIMATION_DURATION);
-            scaleAnimation.setFillAfter(true);
+            ObjectAnimator scaleX = ObjectAnimator.ofFloat(mBitmap, "scaleX", (float) mScaleTime,(float) MAX_SCALE);
+            ObjectAnimator scaleY = ObjectAnimator.ofFloat(mBitmap, "scaleY", (float) mScaleTime,(float) MAX_SCALE);
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(scaleX,scaleY);
+            animatorSet.setDuration(ANIMATION_DURATION);
+            animatorSet.start();
 
         }else {
-            ScaleAnimation scaleAnimation = new ScaleAnimation((float)mScaleTime,(float)MIN_SCALE,(float)mScaleTime,(float)MIN_SCALE);
-            scaleAnimation.setDuration(ANIMATION_DURATION);
-            scaleAnimation.setFillAfter(true);
-            scaleAnimation.start();
+            ObjectAnimator scaleX = ObjectAnimator.ofFloat(mBitmap, "scaleX", (float) mScaleTime,(float) MIN_SCALE);
+            ObjectAnimator scaleY = ObjectAnimator.ofFloat(mBitmap, "scaleY", (float) mScaleTime,(float) MIN_SCALE);
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(scaleX,scaleY);
+            animatorSet.setDuration(ANIMATION_DURATION);
+            animatorSet.start();
         }
     }
 
