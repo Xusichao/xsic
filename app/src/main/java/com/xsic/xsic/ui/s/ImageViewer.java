@@ -13,6 +13,7 @@ import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.ScaleAnimation;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -22,9 +23,11 @@ import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
 
 public class ImageViewer extends View {
+    private final double MAX_SCALE = 2.5;
+    private final double MIN_SCALE = 1.0;
+    private final int ANIMATION_DURATION = 300;
+
     private Context mContext;
-    private final double maxScale = 2.5;
-    private final double minScale = 0.8;
     private Paint mPaint;
     private Drawable mDrawable;
     private Bitmap mBitmap;
@@ -54,6 +57,8 @@ public class ImageViewer extends View {
     private boolean isFullHeight;
     //记录上次缩放后的矩阵
     private Matrix mMatrixLast;
+    //记录每一次的放大倍数
+    private double mScaleTime;
 
     public ImageViewer(Context context) {
         this(context, null, 0, 0);
@@ -192,6 +197,17 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
+                if (mScaleTime < MIN_SCALE){
+                    //设置回弹
+                    springBackAnimation(false);
+                    mMatrix.postScale((float) MIN_SCALE,(float) MIN_SCALE);
+                    invalidate();
+                }else if (mScaleTime > MAX_SCALE){
+                    //设置回弹
+                    springBackAnimation(true);
+                    mMatrix.postScale((float)MAX_SCALE,(float)MAX_SCALE);
+                    invalidate();
+                }
                 assginMatrixToMatrixLast();
                 break;
 
@@ -208,6 +224,20 @@ public class ImageViewer extends View {
                 break;
         }
         return true;
+    }
+
+    private void springBackAnimation(boolean isBigger){
+        if (isBigger){
+            ScaleAnimation scaleAnimation = new ScaleAnimation((float)mScaleTime,(float)MAX_SCALE,(float)mScaleTime,(float)MAX_SCALE);
+            scaleAnimation.setDuration(ANIMATION_DURATION);
+            scaleAnimation.setFillAfter(true);
+
+        }else {
+            ScaleAnimation scaleAnimation = new ScaleAnimation((float)mScaleTime,(float)MIN_SCALE,(float)mScaleTime,(float)MIN_SCALE);
+            scaleAnimation.setDuration(ANIMATION_DURATION);
+            scaleAnimation.setFillAfter(true);
+            scaleAnimation.start();
+        }
     }
 
     private GestureDetector.OnGestureListener mOnGestureListener = new GestureDetector.OnGestureListener() {
@@ -282,6 +312,7 @@ public class ImageViewer extends View {
      */
     private void zoom(){
         double scaleTime = mDistanceOfPointNow/mDistanceOfPointFirst;
+        mScaleTime = scaleTime;
         mMatrix.reset();
         mMatrix.setConcat(mMatrixLast,mMatrix);
         mMatrix.postScale((float) scaleTime,(float) scaleTime,mCenterPoint_X,mCenterPoint_Y);
