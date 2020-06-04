@@ -1,7 +1,9 @@
 package com.xsic.xsic.ui.s;
 
+import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -12,10 +14,12 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.view.animation.ScaleAnimation;
 
 import androidx.annotation.Nullable;
@@ -61,7 +65,7 @@ public class ImageViewer extends View {
     //记录上次缩放后的矩阵
     private Matrix mMatrixLast;
     //记录每一次的放大倍数
-    private double mScaleTime;
+    private double mScaleTime = 1.0;
 
     public ImageViewer(Context context) {
         this(context, null, 0, 0);
@@ -203,15 +207,10 @@ public class ImageViewer extends View {
                 if (mScaleTime < MIN_SCALE){
                     //设置回弹
                     springBackAnimation(false);
-                    mMatrix.postScale((float) MIN_SCALE,(float) MIN_SCALE);
-                    invalidate();
                 }else if (mScaleTime > MAX_SCALE){
                     //设置回弹
                     springBackAnimation(true);
-                    mMatrix.postScale((float)MAX_SCALE,(float)MAX_SCALE);
-                    invalidate();
                 }
-                assginMatrixToMatrixLast();
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
@@ -229,23 +228,45 @@ public class ImageViewer extends View {
         return true;
     }
 
-    @SuppressLint("ObjectAnimatorBinding")
+    /**
+     * 回弹动画
+     * @param isBigger  是否放大到比最大限度还大。反之是缩小到比最小限度还小
+     *
+     */
     private void springBackAnimation(boolean isBigger){
         if (isBigger){
-            ObjectAnimator scaleX = ObjectAnimator.ofFloat(mBitmap, "scaleX", (float) mScaleTime,(float) MAX_SCALE);
-            ObjectAnimator scaleY = ObjectAnimator.ofFloat(mBitmap, "scaleY", (float) mScaleTime,(float) MAX_SCALE);
-            AnimatorSet animatorSet = new AnimatorSet();
-            animatorSet.playTogether(scaleX,scaleY);
-            animatorSet.setDuration(ANIMATION_DURATION);
-            animatorSet.start();
-
+            ValueAnimator valueAnimator = ValueAnimator.ofFloat((float) mScaleTime,(float) MAX_SCALE);
+            valueAnimator.setInterpolator(new LinearInterpolator());
+            valueAnimator.setDuration(ANIMATION_DURATION);
+            valueAnimator.start();
+            valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    mScaleTime = (float)animation.getAnimatedValue();
+                    LogUtil.d("sdaasdada","Update === "+mScaleTime+"");
+                    mMatrix.reset();
+                    mMatrix.postScale((float)animation.getAnimatedValue(),(float)animation.getAnimatedValue(),mCenterPoint_X,mCenterPoint_Y);
+                    mMatrix.setConcat(mMatrix,mMatrixLast);
+                    invalidate();
+                }
+            });
         }else {
-            ObjectAnimator scaleX = ObjectAnimator.ofFloat(mBitmap, "scaleX", (float) mScaleTime,(float) MIN_SCALE);
-            ObjectAnimator scaleY = ObjectAnimator.ofFloat(mBitmap, "scaleY", (float) mScaleTime,(float) MIN_SCALE);
-            AnimatorSet animatorSet = new AnimatorSet();
-            animatorSet.playTogether(scaleX,scaleY);
-            animatorSet.setDuration(ANIMATION_DURATION);
-            animatorSet.start();
+            ValueAnimator valueAnimator = ValueAnimator.ofFloat((float) mScaleTime,(float) MIN_SCALE);
+            valueAnimator.setInterpolator(new LinearInterpolator());
+            valueAnimator.setDuration(ANIMATION_DURATION);
+            valueAnimator.start();
+            valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    mScaleTime = (float)animation.getAnimatedValue();
+                    LogUtil.d("sdaasdada","Update === "+mScaleTime+"");
+                    mMatrix.reset();
+                    mMatrix.postScale((float) mScaleTime,(float) mScaleTime,(float) ScreenUtil.getScreenWidth()/2,(float)ScreenUtil.getScreenHeight()/2);
+                    mMatrix.setConcat(mMatrix,mMatrixLast);
+                    invalidate();
+
+                }
+            });
         }
     }
 
@@ -322,6 +343,7 @@ public class ImageViewer extends View {
     private void zoom(){
         double scaleTime = mDistanceOfPointNow/mDistanceOfPointFirst;
         mScaleTime = scaleTime;
+        LogUtil.d("sdaasdada","Move === "+mScaleTime+"");
         mMatrix.reset();
         mMatrix.setConcat(mMatrixLast,mMatrix);
         mMatrix.postScale((float) scaleTime,(float) scaleTime,mCenterPoint_X,mCenterPoint_Y);
