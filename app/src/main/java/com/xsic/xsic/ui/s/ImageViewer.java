@@ -120,7 +120,10 @@ public class ImageViewer extends View {
     private void assginMatrixToMatrixLast(){
         float[] values = new float[9];
         mMatrix.getValues(values);
+        LogUtil.d("sdaasdada","mMatrix === "+mMatrix+"");
         mMatrixLast.setValues(values);
+        LogUtil.d("sdaasdada","mMatrixLast === "+mMatrixLast+"");
+
     }
 
     @Override
@@ -210,6 +213,9 @@ public class ImageViewer extends View {
                 }else if (mScaleTime > MAX_SCALE){
                     //设置回弹
                     springBackAnimation(true);
+                }else if (mScaleTime > MIN_SCALE && mScaleTime <MAX_SCALE){
+                    LogUtil.d("sdaasdada","true");
+                    assginMatrixToMatrixLast();
                 }
                 break;
 
@@ -242,13 +248,26 @@ public class ImageViewer extends View {
             valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
+                    LogUtil.d("sdaasdada","Update : animation === "+animation.getAnimatedValue()+"");
                     mScaleTime = (float)animation.getAnimatedValue();
-                    LogUtil.d("sdaasdada","Update === "+mScaleTime+"");
+                    LogUtil.d("sdaasdada","Update : mScale === "+mScaleTime+"");
                     mMatrix.reset();
                     mMatrix.postScale((float)animation.getAnimatedValue(),(float)animation.getAnimatedValue(),mCenterPoint_X,mCenterPoint_Y);
                     mMatrix.setConcat(mMatrix,mMatrixLast);
                     invalidate();
                 }
+            });
+            valueAnimator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {}
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    assginMatrixToMatrixLast();
+                }
+                @Override
+                public void onAnimationCancel(Animator animation) {}
+                @Override
+                public void onAnimationRepeat(Animator animation) {}
             });
         }else {
             ValueAnimator valueAnimator = ValueAnimator.ofFloat((float) mScaleTime,(float) MIN_SCALE);
@@ -258,14 +277,27 @@ public class ImageViewer extends View {
             valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
+                    LogUtil.d("sdaasdada","Update : animation === "+animation.getAnimatedValue()+"");
                     mScaleTime = (float)animation.getAnimatedValue();
-                    LogUtil.d("sdaasdada","Update === "+mScaleTime+"");
+                    LogUtil.d("sdaasdada","Update : mScale === "+mScaleTime+"");
                     mMatrix.reset();
                     mMatrix.postScale((float) mScaleTime,(float) mScaleTime,(float) ScreenUtil.getScreenWidth()/2,(float)ScreenUtil.getScreenHeight()/2);
                     mMatrix.setConcat(mMatrix,mMatrixLast);
                     invalidate();
 
                 }
+            });
+            valueAnimator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {}
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    assginMatrixToMatrixLast();
+                }
+                @Override
+                public void onAnimationCancel(Animator animation) {}
+                @Override
+                public void onAnimationRepeat(Animator animation) {}
             });
         }
     }
