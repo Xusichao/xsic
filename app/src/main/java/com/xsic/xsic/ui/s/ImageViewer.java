@@ -132,7 +132,7 @@ public class ImageViewer extends View {
         float[] values = new float[9];
         mMatrix.getValues(values);
         mMatrixLast.setValues(values);
-        LogUtil.d("sdaasdada","mScaleTimeDone === "+mScaleTimeDone+"， mScaleTime === "+mScaleTime);
+        LogUtil.d("sdaasdada","scale = "+values[Matrix.MSCALE_X]+"， translateX = "+values[Matrix.MTRANS_X]+"，translateY = "+values[Matrix.MTRANS_Y]);
     }
 
     private void initMatrixConstant(){
@@ -182,6 +182,30 @@ public class ImageViewer extends View {
         initScaleTime = scaleTime;
         initTranslateX = (ScreenUtil.getScreenWidth() - mWidthAfterScale)/2;
         initTranslateY = (ScreenUtil.getScreenHeight() - mHeightAfterScale)/2;
+    }
+
+
+    /**
+     * 回弹后让图片移动到中间
+     */
+    private void setBitmapBackToCenterPlace(){
+        int mBitmapHeight = mBitmap.getHeight();
+        int mBitmapWidth = mBitmap.getWidth();
+        //高度的放大系数
+        float heightScaleTime = (float) ScreenUtil.getScreenHeight()/(float) mBitmapHeight;
+        //宽度的放大系数
+        float widthScaleTime = (float) ScreenUtil.getScreenWidth()/(float) mBitmapWidth;
+        //实际应该放大的系数
+        float scaleTime = Math.min(heightScaleTime,widthScaleTime);
+        //图片放大之后的尺寸
+        float mHeightAfterScale = mBitmapHeight * scaleTime;
+        float mWidthAfterScale = mBitmapWidth * scaleTime;
+        if (heightScaleTime >= widthScaleTime){
+            mMatrix.postTranslate(0, (ScreenUtil.getScreenHeight() - mHeightAfterScale)/2);
+        }else {
+            mMatrix.postTranslate((ScreenUtil.getScreenWidth() - mWidthAfterScale)/2,0);
+        }
+
     }
 
     /**
@@ -307,7 +331,8 @@ public class ImageViewer extends View {
                 public void onAnimationUpdate(ValueAnimator animation) {
                     mScaleTime = (float)animation.getAnimatedValue();
                     mMatrix.reset();
-                    mMatrix.postScale((float) mScaleTime,(float) mScaleTime,(float) ScreenUtil.getScreenWidth()/2,(float)ScreenUtil.getScreenHeight()/2);//
+                    mMatrix.postScale((float) mScaleTime,(float) mScaleTime,(float) ScreenUtil.getScreenWidth()/2,(float)ScreenUtil.getScreenHeight()/2);
+                    setBitmapBackToCenterPlace();
                     mMatrix.setConcat(mMatrix,mMatrixLast);
                     invalidate();
                 }
@@ -401,7 +426,7 @@ public class ImageViewer extends View {
     private void zoom(){
         double scaleTime = mDistanceOfPointNow/mDistanceOfPointFirst;
         mScaleTime = scaleTime;
-        LogUtil.d("sdaasdada","Move === "+mScaleTime+"");
+        //LogUtil.d("sdaasdada","Move === "+mScaleTime+"");
         mMatrix.reset();
         mMatrix.setConcat(mMatrixLast,mMatrix);
         mMatrix.postScale((float) scaleTime,(float) scaleTime,mCenterPoint_X,mCenterPoint_Y);
