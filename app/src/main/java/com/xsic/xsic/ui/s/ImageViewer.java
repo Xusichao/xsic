@@ -72,6 +72,9 @@ public class ImageViewer extends View {
     //记录每一次【结束】操作的放大倍数
     private double mScaleTimeDone = 1.0;
 
+    private double INIT_SCALE_CONSTANT = 0;
+
+
 
     public ImageViewer(Context context) {
         this(context, null, 0, 0);
@@ -118,16 +121,24 @@ public class ImageViewer extends View {
         mBitmap = ((BitmapDrawable)mDrawable).getBitmap();
         setBitmapCenter();
         assginMatrixToMatrixLast();
+        initMatrixConstant();
     }
 
     /**
+     * 记录上一个矩阵的信息，同时记录所有
      * 将现在的矩阵赋值给上一个用于记录的矩阵
      */
     private void assginMatrixToMatrixLast(){
         float[] values = new float[9];
         mMatrix.getValues(values);
         mMatrixLast.setValues(values);
-        LogUtil.d("sdaasdada","mMatrix === "+mMatrix+"， mMatrixLast === "+mMatrixLast);
+        LogUtil.d("sdaasdada","mScaleTimeDone === "+mScaleTimeDone+"， mScaleTime === "+mScaleTime);
+    }
+
+    private void initMatrixConstant(){
+        float[] values = new float[9];
+        mMatrix.getValues(values);
+        INIT_SCALE_CONSTANT = values[Matrix.MSCALE_X];
     }
 
     @Override
@@ -212,7 +223,6 @@ public class ImageViewer extends View {
 
             case MotionEvent.ACTION_POINTER_UP:
                 mScaleTimeDone = mScaleTime * mScaleTimeDone;
-                LogUtil.d("sdaasdada","松开手指后 = "+mScaleTimeDone);
                 if (mScaleTimeDone < MIN_SCALE){
                     springBackAnimation(false);
                 }else if (mScaleTimeDone > MAX_SCALE){
@@ -238,13 +248,27 @@ public class ImageViewer extends View {
     }
 
     /**
+     * 在回弹动画时获取真实的回弹放大倍数
+     * @param targetScaleTime
+     * @param matrix
+     * @return
+     */
+    private float getRealScaleTime(double targetScaleTime,Matrix matrix){
+        float[] values = new float[9];
+        matrix.getValues(values);
+        double scaleTime = values[Matrix.MSCALE_X]/INIT_SCALE_CONSTANT;
+        return (float) (targetScaleTime/scaleTime);
+    }
+
+    /**
      * 回弹动画
      * @param isBigger  是否放大到比最大限度还大。反之是缩小到比最小限度还小
      *
      */
     private void springBackAnimation(boolean isBigger){
         if (isBigger){
-            ValueAnimator valueAnimator = ValueAnimator.ofFloat((float) mScaleTimeDone,(float) MAX_SCALE);
+            float realScaleTime = getRealScaleTime(MAX_SCALE,mMatrixLast);
+            ValueAnimator valueAnimator = ValueAnimator.ofFloat((float) mScaleTime,realScaleTime);
             valueAnimator.setInterpolator(new LinearInterpolator());
             valueAnimator.setDuration(ANIMATION_DURATION);
             valueAnimator.start();
@@ -263,8 +287,8 @@ public class ImageViewer extends View {
                 public void onAnimationStart(Animator animation) {}
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    assginMatrixToMatrixLast();
                     mScaleTimeDone = MAX_SCALE;
+                    assginMatrixToMatrixLast();
                 }
                 @Override
                 public void onAnimationCancel(Animator animation) {}
@@ -272,7 +296,9 @@ public class ImageViewer extends View {
                 public void onAnimationRepeat(Animator animation) {}
             });
         }else {
-            ValueAnimator valueAnimator = ValueAnimator.ofFloat((float) mScaleTimeDone,(float) MIN_SCALE);
+            float realScaleTime = getRealScaleTime(MIN_SCALE,mMatrixLast);
+            LogUtil.d("sdaasdada","撒大苏打 === "+realScaleTime);
+            ValueAnimator valueAnimator = ValueAnimator.ofFloat((float) mScaleTime,realScaleTime);
             valueAnimator.setInterpolator(new LinearInterpolator());
             valueAnimator.setDuration(ANIMATION_DURATION);
             valueAnimator.start();
@@ -281,7 +307,7 @@ public class ImageViewer extends View {
                 public void onAnimationUpdate(ValueAnimator animation) {
                     mScaleTime = (float)animation.getAnimatedValue();
                     mMatrix.reset();
-                    mMatrix.postScale((float) mScaleTime,(float) mScaleTime,(float) ScreenUtil.getScreenWidth()/2,(float)ScreenUtil.getScreenHeight()/2);
+                    mMatrix.postScale((float) mScaleTime,(float) mScaleTime,(float) ScreenUtil.getScreenWidth()/2,(float)ScreenUtil.getScreenHeight()/2);//
                     mMatrix.setConcat(mMatrix,mMatrixLast);
                     invalidate();
                 }
@@ -291,8 +317,8 @@ public class ImageViewer extends View {
                 public void onAnimationStart(Animator animation) {}
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    assginMatrixToMatrixLast();
                     mScaleTimeDone = MIN_SCALE;
+                    assginMatrixToMatrixLast();
                 }
                 @Override
                 public void onAnimationCancel(Animator animation) {}
