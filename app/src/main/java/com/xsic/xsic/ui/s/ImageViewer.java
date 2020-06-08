@@ -31,8 +31,6 @@ public class ImageViewer extends View {
     private ActionInfo mLastInfo;
     private ActionInfo mCurInfo;
     private Paint mPaint;
-    private Matrix mMatrixNow;
-    private Matrix mMatrixLast;
     private GestureDetector mGestureDetector;
     private Drawable mDrawable;
     private Bitmap mBitmap;
@@ -67,13 +65,12 @@ public class ImageViewer extends View {
     private void init(){
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
-        mMatrixNow = new Matrix();
-        mMatrixLast = new Matrix();
         mInitInfo = new ActionInfo();
+        mLastInfo = new ActionInfo();
+        mCurInfo = new ActionInfo();
         mGestureDetector = new GestureDetector(mContext,mOnGestureListener);
         mBitmap = ((BitmapDrawable)mDrawable).getBitmap();
         initPlace();
-        setmMatrixLast();
     }
 
     /**
@@ -91,61 +88,72 @@ public class ImageViewer extends View {
         float mWidthAfterScale = mBitmap.getWidth() * tempScaleTime;
         float tempTranslateX;
         float tempTranslateY;
-        mMatrixNow.postScale(tempScaleTime,tempScaleTime);
+        mCurInfo.getmMatrix().postScale(tempScaleTime,tempScaleTime);
         if (heightScaleTime >= widthScaleTime){
             //1、宽度铺满
             isFullHeight = false;
-            mMatrixNow.postTranslate(0, (ScreenUtil.getScreenHeight() - mHeightAfterScale)/2);
+            mCurInfo.getmMatrix().postTranslate(0, (ScreenUtil.getScreenHeight() - mHeightAfterScale)/2);
             tempTranslateX = 0;
             tempTranslateY = (ScreenUtil.getScreenHeight() - mHeightAfterScale)/2;
         }else {
             //2、高度铺满
             isFullHeight = true;
-            mMatrixNow.postTranslate((ScreenUtil.getScreenWidth() - mWidthAfterScale)/2,0);
+            mCurInfo.getmMatrix().postTranslate((ScreenUtil.getScreenWidth() - mWidthAfterScale)/2,0);
             tempTranslateX = (ScreenUtil.getScreenWidth() - mWidthAfterScale)/2;
             tempTranslateY = 0;
         }
-        setmInitInfo(mInitInfo,mMatrixNow,tempScaleTime,tempTranslateX,tempTranslateY);
+        setmInitInfo(mCurInfo.getmMatrix(),tempScaleTime,tempTranslateX,tempTranslateY,0);
     }
 
     /**
-     * 保存初始化时的所有信息
+     * 初始化操作信息
      */
-    private void setmInitInfo(ActionInfo actionInfo,Matrix matrix,float scaleTime,float translateX,float translateY){
-        actionInfo.setmMatrix(matrix);
-        actionInfo.setmScaleX(scaleTime);
-        actionInfo.setmScaleY(scaleTime);
-        actionInfo.setmTranslateX(translateX);
-        actionInfo.setmTranslateY(translateY);
-        // TODO: 2020/6/9
-        actionInfo.setmRotate(0);
-        actionInfo.setmCenterPointX(ScreenUtil.getScreenWidth()/2);
-        actionInfo.setmCenterPointY(ScreenUtil.getScreenHeight()/2);
-        actionInfo.setmDistanceOfPoint(0);
-    }
-
-    /**
-     * 将当前的矩阵保存在备份矩阵中
-     */
-    private void setmMatrixLast(){
+    private void setmInitInfo(Matrix matrix,float scaleTime,float translateX,float translateY,float rotate){
         float[] values = new float[9];
-        mMatrixNow.getValues(values);
-        mMatrixLast.setValues(values);
+        matrix.getValues(values);
+        mInitInfo.getmMatrix().setValues(values);
+        mInitInfo.setmScaleX(scaleTime);
+        mInitInfo.setmScaleY(scaleTime);
+        mInitInfo.setmTranslateX(translateX);
+        mInitInfo.setmTranslateY(translateY);
+        mInitInfo.setmRotate(rotate);
+        mInitInfo.setmCenterPointX(ScreenUtil.getScreenWidth()/2);
+        mInitInfo.setmCenterPointY(ScreenUtil.getScreenHeight()/2);
+        mInitInfo.setmDistanceOfPoint(0);
+        mInitInfo.setmDistanceOfPointFirst(0);
+    }
+
+    /**
+     * 将当前操作的信息赋予上一个操作
+     */
+    private void setCurInfoToLastInfo(){
+        float[] values = new float[9];
+        mCurInfo.getmMatrix().getValues(values);
+        mLastInfo.getmMatrix().setValues(values);
+        mLastInfo.setmScaleX(mCurInfo.getmScaleX());
+        mLastInfo.setmScaleY(mCurInfo.getmScaleY());
+        mLastInfo.setmTranslateX(mCurInfo.getmTranslateX());
+        mLastInfo.setmTranslateY(mCurInfo.getmTranslateY());
+        mLastInfo.setmRotate(mCurInfo.getmRotate());
+        mLastInfo.setmCenterPointX(mCurInfo.getmCenterPointX());
+        mLastInfo.setmCenterPointY(mCurInfo.getmCenterPointY());
+        mLastInfo.setmDistanceOfPoint(mCurInfo.getmDistanceOfPoint());
+        mLastInfo.setmDistanceOfPointFirst(mCurInfo.getmDistanceOfPointFirst());
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(Color.BLACK);
-        canvas.drawBitmap(mBitmap,mMatrixNow,mPaint);
+        canvas.drawBitmap(mBitmap,mCurInfo.getmMatrix(),mPaint);
     }
 
     /**
      * 移动回初始位置
      */
     private void moveToInitPlace(){
-        mMatrixNow.reset();
-        mMatrixNow.setConcat(mMatrixNow, mInitInfo.getmMatrix());
+        mCurInfo.getmMatrix().reset();
+        mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(), mInitInfo.getmMatrix());
         invalidate();
     }
 

@@ -14,6 +14,29 @@ public class ActionInfo {
     private float mRotate;
     private float mCenterPointX;
     private float mCenterPointY;
+    private float mDistanceOfPoint;         //两指距离
+    private float mDistanceOfPointFirst;    //刚接触时的两指距离
+
+    public ActionInfo() {
+        mMatrix = new Matrix();
+        mScaleX = 1;
+        mScaleY = 1;
+        mTranslateX = 0;
+        mTranslateY = 0;
+        mRotate = 0;
+        mCenterPointX = 0;
+        mCenterPointY = 0;
+        mDistanceOfPoint = 0;
+        mDistanceOfPointFirst = 0;
+    }
+
+    public float getmDistanceOfPointFirst() {
+        return mDistanceOfPointFirst;
+    }
+
+    public void setmDistanceOfPointFirst(float mDistanceOfPointFirst) {
+        this.mDistanceOfPointFirst = mDistanceOfPointFirst;
+    }
 
     public float getmDistanceOfPoint() {
         return mDistanceOfPoint;
@@ -22,8 +45,6 @@ public class ActionInfo {
     public void setmDistanceOfPoint(float mDistanceOfPoint) {
         this.mDistanceOfPoint = mDistanceOfPoint;
     }
-
-    private float mDistanceOfPoint;
 
     public float getmCenterPointX() {
         return mCenterPointX;
@@ -45,6 +66,9 @@ public class ActionInfo {
         return mMatrix;
     }
 
+    /**
+     * @deprecated
+     */
     public void setmMatrix(Matrix mMatrix) {
         this.mMatrix = mMatrix;
     }
