@@ -4,7 +4,6 @@ import android.view.View;
 
 import com.xsic.xsic.R;
 import com.xsic.xsic.base.BaseDataBindingActivity;
-import com.xsic.xsic.base.BaseViewModel;
 import com.xsic.xsic.databinding.TestBinding;
 
 public class SActivity extends BaseDataBindingActivity<TestBinding, SViewModel> {
@@ -15,8 +14,8 @@ public class SActivity extends BaseDataBindingActivity<TestBinding, SViewModel> 
 
     @Override
     protected void initView() {
-        ImageViewer imageViewer = new ImageViewer(mContext);
-        viewBinding.container.addView(imageViewer);
+        ImageViewer imageViewer2 = new ImageViewer(mContext);
+        viewBinding.container.addView(imageViewer2);
     }
 
     @Override
