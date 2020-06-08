@@ -74,6 +74,9 @@ public class ImageViewer extends View {
 
     private double INIT_SCALE_CONSTANT = 0;
 
+    private double mTranslateInit_X = 0;
+    private double mTranslateInit_Y = 0;
+
 
 
     public ImageViewer(Context context) {
@@ -132,7 +135,7 @@ public class ImageViewer extends View {
         float[] values = new float[9];
         mMatrix.getValues(values);
         mMatrixLast.setValues(values);
-        LogUtil.d("sdaasdada","scale = "+values[Matrix.MSCALE_X]+"， translateX = "+values[Matrix.MTRANS_X]+"，translateY = "+values[Matrix.MTRANS_Y]);
+        //LogUtil.d("sdaasdada","scale = "+values[Matrix.MSCALE_X]+"， translateX = "+values[Matrix.MTRANS_X]+"，translateY = "+values[Matrix.MTRANS_Y]);
     }
 
     private void initMatrixConstant(){
@@ -184,28 +187,23 @@ public class ImageViewer extends View {
         initTranslateY = (ScreenUtil.getScreenHeight() - mHeightAfterScale)/2;
     }
 
+    /**
+     * 判断缩放点是否在图片里面
+     * 不是的话将其按比例映射在图片位置上
+     * @return
+     */
+    private boolean isInBitmap(){
+        return false;
+    }
 
     /**
      * 回弹后让图片移动到中间
      */
     private void setBitmapBackToCenterPlace(){
-        int mBitmapHeight = mBitmap.getHeight();
-        int mBitmapWidth = mBitmap.getWidth();
-        //高度的放大系数
-        float heightScaleTime = (float) ScreenUtil.getScreenHeight()/(float) mBitmapHeight;
-        //宽度的放大系数
-        float widthScaleTime = (float) ScreenUtil.getScreenWidth()/(float) mBitmapWidth;
-        //实际应该放大的系数
-        float scaleTime = Math.min(heightScaleTime,widthScaleTime);
-        //图片放大之后的尺寸
-        float mHeightAfterScale = mBitmapHeight * scaleTime;
-        float mWidthAfterScale = mBitmapWidth * scaleTime;
-        if (heightScaleTime >= widthScaleTime){
-            mMatrix.postTranslate(0, (ScreenUtil.getScreenHeight() - mHeightAfterScale)/2);
-        }else {
-            mMatrix.postTranslate((ScreenUtil.getScreenWidth() - mWidthAfterScale)/2,0);
-        }
-
+        float[] values = new float[9];
+        mMatrixLast.getValues(values);
+        LogUtil.d("sdaasdada","454 = "+"translateX = "+(0 - values[Matrix.MTRANS_X])+"，translateY = "+(0 -values[Matrix.MTRANS_Y]));
+        mMatrix.postTranslate(0 - values[Matrix.MTRANS_X],0 - values[Matrix.MTRANS_Y]+ initTranslateY);
     }
 
     /**
@@ -225,9 +223,12 @@ public class ImageViewer extends View {
         mGestureDetector.onTouchEvent(event);
         switch (event.getAction() & MotionEvent.ACTION_MASK){
             case MotionEvent.ACTION_UP:
+//                assginMatrixToMatrixLast();
                 break;
 
             case MotionEvent.ACTION_DOWN:
+                mTranslateInit_X = event.getX();
+                mTranslateInit_Y = event.getY();
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -241,7 +242,9 @@ public class ImageViewer extends View {
                         zoom();
                     }
                 }else {
-                    // TODO: 2020/6/3
+                    finger_1_X = event.getX(0);
+                    finger_1_Y = event.getY(0);
+                    translate((float) mTranslateInit_X,(float) mTranslateInit_Y,finger_1_X,finger_1_Y);
                 }
                 break;
 
@@ -301,7 +304,7 @@ public class ImageViewer extends View {
                 public void onAnimationUpdate(ValueAnimator animation) {
                     mScaleTime = (float)animation.getAnimatedValue();
                     mMatrix.reset();
-                    mMatrix.postScale((float)animation.getAnimatedValue(),(float)animation.getAnimatedValue(),mCenterPoint_X,mCenterPoint_Y);
+                    mMatrix.postScale((float)mScaleTime,(float)mScaleTime,mCenterPoint_X,mCenterPoint_Y);
                     mMatrix.setConcat(mMatrix,mMatrixLast);
                     invalidate();
                 }
@@ -321,7 +324,6 @@ public class ImageViewer extends View {
             });
         }else {
             float realScaleTime = getRealScaleTime(MIN_SCALE,mMatrixLast);
-            LogUtil.d("sdaasdada","撒大苏打 === "+realScaleTime);
             ValueAnimator valueAnimator = ValueAnimator.ofFloat((float) mScaleTime,realScaleTime);
             valueAnimator.setInterpolator(new LinearInterpolator());
             valueAnimator.setDuration(ANIMATION_DURATION);
@@ -332,9 +334,13 @@ public class ImageViewer extends View {
                     mScaleTime = (float)animation.getAnimatedValue();
                     mMatrix.reset();
                     mMatrix.postScale((float) mScaleTime,(float) mScaleTime,(float) ScreenUtil.getScreenWidth()/2,(float)ScreenUtil.getScreenHeight()/2);
-                    setBitmapBackToCenterPlace();
                     mMatrix.setConcat(mMatrix,mMatrixLast);
                     invalidate();
+
+                    float[] values = new float[9];
+                    mMatrix.getValues(values);
+                    LogUtil.d("sdaasdada","1 : scale = "+values[Matrix.MSCALE_X]+"， translateX = "+values[Matrix.MTRANS_X]+"，translateY = "+values[Matrix.MTRANS_Y]);
+
                 }
             });
             valueAnimator.addListener(new Animator.AnimatorListener() {
@@ -344,6 +350,7 @@ public class ImageViewer extends View {
                 public void onAnimationEnd(Animator animation) {
                     mScaleTimeDone = MIN_SCALE;
                     assginMatrixToMatrixLast();
+                    setBitmapBackToCenterPlace();
                 }
                 @Override
                 public void onAnimationCancel(Animator animation) {}
@@ -430,6 +437,20 @@ public class ImageViewer extends View {
         mMatrix.reset();
         mMatrix.setConcat(mMatrixLast,mMatrix);
         mMatrix.postScale((float) scaleTime,(float) scaleTime,mCenterPoint_X,mCenterPoint_Y);
+        invalidate();
+    }
+
+    /**
+     * 平移操作
+     * @param x1    接触时候的x轴
+     * @param y1    接触时候的y轴
+     * @param x2    拖动时候的x轴
+     * @param y2    拖动时候的y轴
+     */
+    private void translate(float x1, float y1, float x2, float y2){
+        mMatrix.reset();
+        mMatrix.postTranslate(x2-x1,y2-y1);
+        mMatrix.setConcat(mMatrix,mMatrixLast);
         invalidate();
     }
 
