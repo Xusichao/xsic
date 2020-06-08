@@ -74,7 +74,7 @@ public class ImageViewer extends View {
     }
 
     /**
-     *
+     * 初始化图片位置
      */
     private void initPlace(){
         //高度的放大系数
