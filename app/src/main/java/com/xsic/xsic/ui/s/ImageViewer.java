@@ -127,8 +127,7 @@ public class ImageViewer extends View {
         float[] values = new float[9];
         matrix.getValues(values);
         mInitInfo.getmMatrix().setValues(values);
-        mInitInfo.setmScaleX(scaleTime);
-        mInitInfo.setmScaleY(scaleTime);
+        mInitInfo.setmScale(scaleTime);
         mInitInfo.setmTranslateX(translateX);
         mInitInfo.setmTranslateY(translateY);
         mInitInfo.setmRotate(rotate);
@@ -145,8 +144,7 @@ public class ImageViewer extends View {
         float[] values = new float[9];
         mCurInfo.getmMatrix().getValues(values);
         mLastInfo.getmMatrix().setValues(values);
-        mLastInfo.setmScaleX(mCurInfo.getmScaleX());
-        mLastInfo.setmScaleY(mCurInfo.getmScaleY());
+        mLastInfo.setmScale(mCurInfo.getmScale());
         mLastInfo.setmTranslateX(mCurInfo.getmTranslateX());
         mLastInfo.setmTranslateY(mCurInfo.getmTranslateY());
         mLastInfo.setmRotate(mCurInfo.getmRotate());
@@ -262,18 +260,15 @@ public class ImageViewer extends View {
      */
     private void zoom(){
         float scaleTime = mCurInfo.getmDistanceOfPoint()/mCurInfo.getmDistanceOfPointFirst();
-        mCurInfo.setmScaleX(scaleTime * mLastInfo.getmScaleX());
-        mCurInfo.setmScaleY(scaleTime * mLastInfo.getmScaleY());
-        LogUtil.d(TAG,mCurInfo.getmScaleX()+"");
+        mCurInfo.setmScale(scaleTime * mLastInfo.getmScale());
+        LogUtil.d(TAG,mCurInfo.getmScale()+"");
 
         //大于或小于极限值时不消化缩放
-        if (mCurInfo.getmScaleX() < LIMIT_MIN_SCALE){
-            mCurInfo.setmScaleX((float) LIMIT_MIN_SCALE);
-            mCurInfo.setmScaleY((float)LIMIT_MIN_SCALE);
+        if (mCurInfo.getmScale() < LIMIT_MIN_SCALE){
+            mCurInfo.setmScale((float) LIMIT_MIN_SCALE);
             return;
-        }else if (mCurInfo.getmScaleX() > LIMIT_MAX_SCALE){
-            mCurInfo.setmScaleX((float) LIMIT_MAX_SCALE);
-            mCurInfo.setmScaleY((float)LIMIT_MAX_SCALE);
+        }else if (mCurInfo.getmScale() > LIMIT_MAX_SCALE){
+            mCurInfo.setmScale((float) LIMIT_MAX_SCALE);
             return;
         }
         mCurInfo.getmMatrix().reset();

@@ -9,8 +9,7 @@ public class ActionInfo {
      * 存放初始化、上一次操作、这次操作的所有信息
      */
     private Matrix mMatrix;
-    private float mScaleX;
-    private float mScaleY;
+    private float mScale;
     private float mTranslateX;
     private float mTranslateY;
     private float mRotate;
@@ -27,8 +26,7 @@ public class ActionInfo {
 
     public ActionInfo() {
         mMatrix = new Matrix();
-        mScaleX = 1;
-        mScaleY = 1;
+        mScale = 1.0f;
         mTranslateX = 0;
         mTranslateY = 0;
         mRotate = 0;
@@ -36,6 +34,14 @@ public class ActionInfo {
         mCenterPointY = ScreenUtil.getScreenHeight()/2;
         mDistanceOfPoint = 0;
         mDistanceOfPointFirst = 0;
+    }
+
+    public float getmScale() {
+        return mScale;
+    }
+
+    public void setmScale(float mScale) {
+        this.mScale = mScale;
     }
 
     public float getmMiddleOfTwoPointX() {
@@ -108,22 +114,6 @@ public class ActionInfo {
 
     public void setmMatrix(Matrix lastMatrix){
 
-    }
-
-    public float getmScaleX() {
-        return mScaleX;
-    }
-
-    public void setmScaleX(float mScaleX) {
-        this.mScaleX = mScaleX;
-    }
-
-    public float getmScaleY() {
-        return mScaleY;
-    }
-
-    public void setmScaleY(float mScaleY) {
-        this.mScaleY = mScaleY;
     }
 
     public float getmTranslateX() {
