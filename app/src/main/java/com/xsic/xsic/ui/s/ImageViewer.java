@@ -1,5 +1,7 @@
 package com.xsic.xsic.ui.s;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -13,6 +15,7 @@ import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -215,8 +218,13 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
-                LogUtil.d(TAG,"--- ACTION_POINTER_UP ---");
-                setCurInfoToLastInfo();
+                if (mCurInfo.getmScale() > MAX_SCALE){
+                    zoomSpringBack(true);
+                }else if (mCurInfo.getmScale() < MIN_SCALE){
+                    zoomSpringBack(false);
+                }else {
+                    setCurInfoToLastInfo();
+                }
                 break;
 
             default:break;
@@ -267,11 +275,9 @@ public class ImageViewer extends View {
         //大于或小于极限值时不消化缩放
         if (mCurInfo.getmScale() < LIMIT_MIN_SCALE){
             mCurInfo.setmScale((float) LIMIT_MIN_SCALE);
-            LogUtil.d(TAG,"现在的放大倍数是：" + mCurInfo.getmScale());
             return;
         }else if (mCurInfo.getmScale() > LIMIT_MAX_SCALE){
             mCurInfo.setmScale((float) LIMIT_MAX_SCALE);
-            LogUtil.d(TAG,"现在的放大倍数是：" + mCurInfo.getmScale());
             return;
         }
         mCurInfo.getmMatrix().reset();
@@ -292,5 +298,45 @@ public class ImageViewer extends View {
         mCurInfo.getmMatrix().postTranslate(mCurInfo.getmTranslateX(),mCurInfo.getmTranslateY());
         mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
         invalidate();
+    }
+
+    /**
+     * 缩放后回弹
+     */
+    private void zoomSpringBack(boolean isBigger){
+        float limitScaleTime;
+        if (isBigger){
+            limitScaleTime = MAX_SCALE;
+        }else {
+            limitScaleTime = MIN_SCALE;
+        }
+
+        ValueAnimator valueAnimator = ValueAnimator.ofFloat(mCurInfo.getmScale(),limitScaleTime);
+        valueAnimator.setInterpolator(new LinearInterpolator());
+        valueAnimator.setDuration(ANIMATION_DURATION);
+        valueAnimator.start();
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mCurInfo.getmMatrix().reset();
+                mCurInfo.getmMatrix().postScale((float)animation.getAnimatedValue(),(float)animation.getAnimatedValue(),
+                        mCurInfo.getmCenterPointX(),mCurInfo.getmCenterPointY());
+                mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+                invalidate();
+            }
+        });
+        valueAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {}
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mCurInfo.setmScale(limitScaleTime);
+                setCurInfoToLastInfo();
+            }
+            @Override
+            public void onAnimationCancel(Animator animation) {}
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+        });
     }
 }
