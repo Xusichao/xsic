@@ -215,6 +215,7 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
+                LogUtil.d(TAG,"--- ACTION_POINTER_UP ---");
                 setCurInfoToLastInfo();
                 break;
 
@@ -266,9 +267,11 @@ public class ImageViewer extends View {
         //大于或小于极限值时不消化缩放
         if (mCurInfo.getmScale() < LIMIT_MIN_SCALE){
             mCurInfo.setmScale((float) LIMIT_MIN_SCALE);
+            LogUtil.d(TAG,"现在的放大倍数是：" + mCurInfo.getmScale());
             return;
         }else if (mCurInfo.getmScale() > LIMIT_MAX_SCALE){
             mCurInfo.setmScale((float) LIMIT_MAX_SCALE);
+            LogUtil.d(TAG,"现在的放大倍数是：" + mCurInfo.getmScale());
             return;
         }
         mCurInfo.getmMatrix().reset();
