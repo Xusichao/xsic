@@ -215,7 +215,7 @@ public class ImageViewer2 extends View {
         mGestureDetector.onTouchEvent(event);
         switch (event.getAction() & MotionEvent.ACTION_MASK){
             case MotionEvent.ACTION_UP:
-//                assginMatrixToMatrixLast();
+                assginMatrixToMatrixLast();
                 break;
 
             case MotionEvent.ACTION_DOWN:

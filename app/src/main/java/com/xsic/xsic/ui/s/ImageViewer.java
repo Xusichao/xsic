@@ -18,12 +18,16 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.xsic.xsic.R;
+import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
 
 public class ImageViewer extends View {
     //常量
-    private final double MAX_SCALE = 2.5;
-    private final double MIN_SCALE = 1.0;
+    private final String TAG = "ImageViewer";
+    private final float MAX_SCALE = 2.5f;
+    private final float MIN_SCALE = 1.0f;
+    private final float LIMIT_MAX_SCALE = 3.0f;     //大于这个值不响应缩放
+    private final float LIMIT_MIN_SCALE = 0.6f;     //小于这个值不响应缩放
     private final int ANIMATION_DURATION = 300;
 
     private Context mContext;
@@ -35,6 +39,16 @@ public class ImageViewer extends View {
     private Drawable mDrawable;
     private Bitmap mBitmap;
     private boolean isFullHeight;
+    //双指的手指坐标
+    private float finger_1_X;
+    private float finger_1_Y;
+    private float finger_2_X;
+    private float finger_2_Y;
+    //单指的手指坐标
+    private float finger_X;
+    private float finger_Y;
+
+    private boolean isTwoFinger = false;        //是否是两根手指，用于区分move操作
 
 
     public ImageViewer(Context context) {
@@ -71,6 +85,7 @@ public class ImageViewer extends View {
         mGestureDetector = new GestureDetector(mContext,mOnGestureListener);
         mBitmap = ((BitmapDrawable)mDrawable).getBitmap();
         initPlace();
+        setCurInfoToLastInfo();
     }
 
     /**
@@ -162,23 +177,47 @@ public class ImageViewer extends View {
         mGestureDetector.onTouchEvent(event);
         switch (event.getAction() & MotionEvent.ACTION_MASK){
             case MotionEvent.ACTION_DOWN:
+                isTwoFinger = false;
+                mCurInfo.setmTouchX(event.getX());
+                mCurInfo.setmTouchY(event.getY());
                 break;
 
             case MotionEvent.ACTION_UP:
+                setCurInfoToLastInfo();
                 break;
 
             case MotionEvent.ACTION_MOVE:
                 if (event.getPointerCount() > 1){
-
+                    finger_1_X = event.getX(0);
+                    finger_1_Y = event.getY(0);
+                    finger_2_X = event.getX(1);
+                    finger_2_Y = event.getY(1);
+                    mCurInfo.setmDistanceOfPoint((float) Math.sqrt(Math.pow(finger_1_X-finger_2_X,2)+Math.pow(finger_1_Y-finger_2_Y,2)));
+                    if (mCurInfo.getmDistanceOfPoint() != mCurInfo.getmDistanceOfPointFirst()){
+                        zoom();
+                    }
                 }else {
-
+                    if (!isTwoFinger){
+                        finger_1_X = event.getX(0);
+                        finger_1_Y = event.getY(0);
+                        translate();
+                    }
                 }
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
+                isTwoFinger = true;
+                finger_1_X = event.getX(0);
+                finger_1_Y = event.getY(0);
+                finger_2_X = event.getX(1);
+                finger_2_Y = event.getY(1);
+                mCurInfo.setmDistanceOfPointFirst((float) Math.sqrt(Math.pow(finger_1_X-finger_2_X,2)+Math.pow(finger_1_Y-finger_2_Y,2)));
+                mCurInfo.setmMiddleOfTwoPointX((finger_1_X+finger_2_X)/2);
+                mCurInfo.setmMiddleOfTwoPointY((finger_1_Y+finger_2_Y)/2);
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
+                setCurInfoToLastInfo();
                 break;
 
             default:break;
@@ -218,4 +257,42 @@ public class ImageViewer extends View {
         }
     };
 
+    /**
+     * 缩放
+     */
+    private void zoom(){
+        float scaleTime = mCurInfo.getmDistanceOfPoint()/mCurInfo.getmDistanceOfPointFirst();
+        mCurInfo.setmScaleX(scaleTime * mLastInfo.getmScaleX());
+        mCurInfo.setmScaleY(scaleTime * mLastInfo.getmScaleY());
+        LogUtil.d(TAG,mCurInfo.getmScaleX()+"");
+
+        //大于或小于极限值时不消化缩放
+        if (mCurInfo.getmScaleX() < LIMIT_MIN_SCALE){
+            mCurInfo.setmScaleX((float) LIMIT_MIN_SCALE);
+            mCurInfo.setmScaleY((float)LIMIT_MIN_SCALE);
+            return;
+        }else if (mCurInfo.getmScaleX() > LIMIT_MAX_SCALE){
+            mCurInfo.setmScaleX((float) LIMIT_MAX_SCALE);
+            mCurInfo.setmScaleY((float)LIMIT_MAX_SCALE);
+            return;
+        }
+        mCurInfo.getmMatrix().reset();
+        mCurInfo.getmMatrix().postScale(scaleTime,scaleTime,mCurInfo.getmMiddleOfTwoPointX(),mCurInfo.getmMiddleOfTwoPointY());
+        mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+        invalidate();
+    }
+
+    private void translate(){
+        // TODO: 2020/6/9 将操作封装进类里面
+        mCurInfo.setmTranslateX(finger_1_X - mCurInfo.getmTouchX());
+        mCurInfo.setmTranslateY(finger_1_Y - mCurInfo.getmTouchY());
+        //移动中心点
+        mCurInfo.setmCenterPointX(mCurInfo.getmCenterPointX()+mCurInfo.getmTranslateX());
+        mCurInfo.setmCenterPointY(mCurInfo.getmCenterPointY()+mCurInfo.getmTranslateY());
+
+        mCurInfo.getmMatrix().reset();
+        mCurInfo.getmMatrix().postTranslate(mCurInfo.getmTranslateX(),mCurInfo.getmTranslateY());
+        mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+        invalidate();
+    }
 }

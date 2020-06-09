@@ -2,6 +2,8 @@ package com.xsic.xsic.ui.s;
 
 import android.graphics.Matrix;
 
+import com.xsic.xsic.utils.ScreenUtil;
+
 public class ActionInfo {
     /**
      * 存放初始化、上一次操作、这次操作的所有信息
@@ -12,10 +14,16 @@ public class ActionInfo {
     private float mTranslateX;
     private float mTranslateY;
     private float mRotate;
-    private float mCenterPointX;
-    private float mCenterPointY;
+    private float mCenterPointX;            //图片的中心点X
+    private float mCenterPointY;            //图片的中心点Y
+    //双指操作
+    private float mMiddleOfTwoPointX;       //两指中点的X轴
+    private float mMiddleOfTwoPointY;       //两指中点的Y轴
     private float mDistanceOfPoint;         //两指距离
     private float mDistanceOfPointFirst;    //刚接触时的两指距离
+    //单指操作
+    private float mTouchX;                  //单指接触时的X轴
+    private float mTouchY;                  //单指接触时的Y轴
 
     public ActionInfo() {
         mMatrix = new Matrix();
@@ -24,10 +32,42 @@ public class ActionInfo {
         mTranslateX = 0;
         mTranslateY = 0;
         mRotate = 0;
-        mCenterPointX = 0;
-        mCenterPointY = 0;
+        mCenterPointX = ScreenUtil.getScreenWidth()/2;
+        mCenterPointY = ScreenUtil.getScreenHeight()/2;
         mDistanceOfPoint = 0;
         mDistanceOfPointFirst = 0;
+    }
+
+    public float getmMiddleOfTwoPointX() {
+        return mMiddleOfTwoPointX;
+    }
+
+    public void setmMiddleOfTwoPointX(float mMiddleOfTwoPointX) {
+        this.mMiddleOfTwoPointX = mMiddleOfTwoPointX;
+    }
+
+    public float getmMiddleOfTwoPointY() {
+        return mMiddleOfTwoPointY;
+    }
+
+    public void setmMiddleOfTwoPointY(float mMiddleOfTwoPointY) {
+        this.mMiddleOfTwoPointY = mMiddleOfTwoPointY;
+    }
+
+    public float getmTouchX() {
+        return mTouchX;
+    }
+
+    public void setmTouchX(float mTouchX) {
+        this.mTouchX = mTouchX;
+    }
+
+    public float getmTouchY() {
+        return mTouchY;
+    }
+
+    public void setmTouchY(float mTouchY) {
+        this.mTouchY = mTouchY;
     }
 
     public float getmDistanceOfPointFirst() {
@@ -66,11 +106,8 @@ public class ActionInfo {
         return mMatrix;
     }
 
-    /**
-     * @deprecated
-     */
-    public void setmMatrix(Matrix mMatrix) {
-        this.mMatrix = mMatrix;
+    public void setmMatrix(Matrix lastMatrix){
+
     }
 
     public float getmScaleX() {
