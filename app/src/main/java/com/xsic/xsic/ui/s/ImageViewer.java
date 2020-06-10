@@ -229,15 +229,15 @@ public class ImageViewer extends View {
 
                 //mLastInfo.setmScale(mCurInfo.getmScale());
                 //LogUtil.i(TAG,"修改后：mCurInfo："+mCurInfo.getmScale() + "， mLastInfo："+mLastInfo.getmScale());
-
+                LogUtil.e(TAG,mCurInfo.getmScale()+"松开手时的放大倍数");
                 setCurInfoToLastInfo();
                 if (mCurInfo.getmScale() > MAX_SCALE){
-                    zoomSpringBack(true);
-                    //noAnimationTest(true);
+                    //zoomSpringBack(true);
+                    noAnimationTest(true);
                 }else if (mCurInfo.getmScale() < MIN_SCALE){
-                    zoomSpringBack(false);
-                    //noAnimationTest(false);
-                    //translateToCenter();
+                    //zoomSpringBack(false);
+                    noAnimationTest(false);
+                    translateToCenter();
                 }
                 break;
 
@@ -392,7 +392,7 @@ public class ImageViewer extends View {
         }else {
             limitScaleTime = MIN_SCALE;
         }
-
+        LogUtil.e(TAG,"动画需要从： "+mCurInfo.getmScale()+" 放大到"+limitScaleTime/mLastInfo.getmScale());
         ValueAnimator valueAnimator = ValueAnimator.ofFloat(mCurInfo.getmScale(),limitScaleTime/mLastInfo.getmScale());
         valueAnimator.setInterpolator(new LinearInterpolator());
         valueAnimator.setDuration(ANIMATION_DURATION);
