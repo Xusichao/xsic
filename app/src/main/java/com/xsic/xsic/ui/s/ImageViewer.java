@@ -329,11 +329,12 @@ public class ImageViewer extends View {
 //        LogUtil.w(TAG,"上一次操作的中心点："+mLastInfo.getmCenterPointX());
         if (mCurInfo.getmCenterPointX() != mInitInfo.getmCenterPointX() || mCurInfo.getmCenterPointY() != mInitInfo.getmCenterPointY()){
             mCurInfo.getmMatrix().reset();
+            LogUtil.w(TAG,"矩阵相乘前的平移量1：x = "+x+" ， y = "+y);
             mCurInfo.getmMatrix().postTranslate(x,y);
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
             float a = mCurInfo.getmTranslateX()+mLastInfo.getmTranslateX();
             float b = mCurInfo.getmTranslateY()+mLastInfo.getmTranslateY();
-            LogUtil.w(TAG,"矩阵相乘后的平移量：x = "+a+" ， y = "+b);
+            LogUtil.w(TAG,"矩阵相乘后的平移量2：x = "+a+" ， y = "+b);
 
             invalidate();
             mCurInfo.setmCenterPointX(x);
