@@ -185,9 +185,9 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_UP:
-//                if (mCurInfo.getmScale() <= MIN_SCALE){
-//                    translateToCenter_Plus();
-//                }
+                if (mCurInfo.getmScale() <= MIN_SCALE){
+                    translateToCenter_Plus();
+                }
                 if (!isTwoFinger){
                     setCurInfoToLastInfo();
                 }
@@ -311,7 +311,8 @@ public class ImageViewer extends View {
         mCurInfo.setmCenterPointX(mCurInfo.getmCenterPointX()+mCurInfo.getmTranslateX());
         mCurInfo.setmCenterPointY(mCurInfo.getmCenterPointY()+mCurInfo.getmTranslateY());
 
-        LogUtil.d(TAG,"平移时候的中心点X轴对比 = "+mCurInfo.getmCenterPointX()+"  =====  "+mInitInfo.getmCenterPointX()+"  =====  "+mLastInfo.getmCenterPointX());
+        //LogUtil.d(TAG,"平移时候的中心点X轴对比 = "+mCurInfo.getmCenterPointX()+"  =====  "+mInitInfo.getmCenterPointX()+"  =====  "+mLastInfo.getmCenterPointX());
+        LogUtil.e(TAG,"当前位移 = "+mCurInfo.getmTranslateX());
 
         mCurInfo.getmMatrix().reset();
         mCurInfo.getmMatrix().postTranslate(mCurInfo.getmTranslateX(),mCurInfo.getmTranslateY());
@@ -339,6 +340,7 @@ public class ImageViewer extends View {
             mCurInfo.setmCenterPointY(y);
             LogUtil.w(TAG,"最后中心点的位置：x = "+mCurInfo.getmCenterPointX()+" ， y = "+mCurInfo.getmCenterPointY());
         }
+
     }
 
     /**
