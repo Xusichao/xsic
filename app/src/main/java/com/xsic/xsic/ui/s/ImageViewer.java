@@ -11,6 +11,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -185,10 +186,10 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_UP:
-                if (mCurInfo.getmScale() <= MIN_SCALE){
-                    translateToCenter_Plus();
-                }
                 if (!isTwoFinger){
+                    if (mCurInfo.getmScale() <= MIN_SCALE){
+                        translateToCenter_Plus();
+                    }
                     setCurInfoToLastInfo();
                 }
 
@@ -225,10 +226,6 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
-                //LogUtil.i(TAG,"修改前：mCurInfo："+mCurInfo.getmScale() + "， mLastInfo："+mLastInfo.getmScale());
-
-                //mLastInfo.setmScale(mCurInfo.getmScale());
-                //LogUtil.i(TAG,"修改后：mCurInfo："+mCurInfo.getmScale() + "， mLastInfo："+mLastInfo.getmScale());
                 LogUtil.e(TAG,mCurInfo.getmScale()+"松开手时的放大倍数");
                 setCurInfoToLastInfo();
                 if (mCurInfo.getmScale() > MAX_SCALE){
@@ -284,7 +281,7 @@ public class ImageViewer extends View {
     private void zoom(){
         float scaleTime = mCurInfo.getmDistanceOfPoint()/mCurInfo.getmDistanceOfPointFirst();
         mCurInfo.setmScale(scaleTime * mLastInfo.getmScale());
-        LogUtil.d(TAG,mCurInfo.getmScale()+"");
+        LogUtil.d(TAG,"缩放时的真实放大倍数："+mCurInfo.getmScale());
 
         //大于或小于极限值时不消化缩放
 //        if (mCurInfo.getmScale() < LIMIT_MIN_SCALE){
@@ -308,11 +305,11 @@ public class ImageViewer extends View {
         mCurInfo.setmTranslateX(finger_1_X - mCurInfo.getmTouchX());
         mCurInfo.setmTranslateY(finger_1_Y - mCurInfo.getmTouchY());
         //移动中心点
-        mCurInfo.setmCenterPointX(mCurInfo.getmCenterPointX()+mCurInfo.getmTranslateX());
-        mCurInfo.setmCenterPointY(mCurInfo.getmCenterPointY()+mCurInfo.getmTranslateY());
+        mCurInfo.setmCenterPointX(mInitInfo.getmCenterPointX()+mCurInfo.getmTranslateX());
+        mCurInfo.setmCenterPointY(mInitInfo.getmCenterPointY()+mCurInfo.getmTranslateY());
 
-        //LogUtil.d(TAG,"平移时候的中心点X轴对比 = "+mCurInfo.getmCenterPointX()+"  =====  "+mInitInfo.getmCenterPointX()+"  =====  "+mLastInfo.getmCenterPointX());
-        LogUtil.e(TAG,"当前位移 = "+mCurInfo.getmTranslateX());
+//        LogUtil.d(TAG,"平移时候的初始中心点X轴与当前中心点x轴对比 = 当前中心点："+mCurInfo.getmCenterPointX()+"  =====  初始中心点："+mInitInfo.getmCenterPointX()+"  =====  上一操作中心点："+mLastInfo.getmCenterPointX());
+//        LogUtil.e(TAG,"当前位移 = "+mCurInfo.getmTranslateX()+"，中心点移动的距离跟当前位移一致");
 
         mCurInfo.getmMatrix().reset();
         mCurInfo.getmMatrix().postTranslate(mCurInfo.getmTranslateX(),mCurInfo.getmTranslateY());
@@ -324,23 +321,21 @@ public class ImageViewer extends View {
      * 移动小于最小值时返回正中间
      */
     private void translateToCenter_Plus(){
-        float x = mInitInfo.getmCenterPointX() - mCurInfo.getmCenterPointX();
-        float y = mInitInfo.getmCenterPointY() - mCurInfo.getmCenterPointY();
-//        LogUtil.w(TAG,"上一次操作的中心点："+mLastInfo.getmCenterPointX());
+        //将当前产生的所有位移信息清空，再与之前保存的操作对象相乘
         if (mCurInfo.getmCenterPointX() != mInitInfo.getmCenterPointX() || mCurInfo.getmCenterPointY() != mInitInfo.getmCenterPointY()){
             mCurInfo.getmMatrix().reset();
-            LogUtil.w(TAG,"矩阵相乘前的平移量1：x = "+x+" ， y = "+y);
-            mCurInfo.getmMatrix().postTranslate(x,y);
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-            float a = mCurInfo.getmTranslateX()+mLastInfo.getmTranslateX();
-            float b = mCurInfo.getmTranslateY()+mLastInfo.getmTranslateY();
-            LogUtil.w(TAG,"矩阵相乘后的平移量2：x = "+a+" ， y = "+b);
-
             invalidate();
-            mCurInfo.setmCenterPointX(x);
-            mCurInfo.setmCenterPointY(y);
-            LogUtil.w(TAG,"最后中心点的位置：x = "+mCurInfo.getmCenterPointX()+" ， y = "+mCurInfo.getmCenterPointY());
+
+            mCurInfo.setmCenterPointX(mInitInfo.getmCenterPointX());
+            mCurInfo.setmCenterPointY(mInitInfo.getmCenterPointY());
         }
+    }
+
+    /**
+     * 放大后平移，如果图片边界小于屏幕时回弹
+     */
+    private void translateToCenter_Plus_Plus(){
 
     }
 
@@ -355,6 +350,7 @@ public class ImageViewer extends View {
         }else {
             limitScaleTime = MIN_SCALE;
         }
+        LogUtil.w(TAG,"回弹后倍数："+limitScaleTime/mCurInfo.getmScale());
         mCurInfo.getmMatrix().reset();
         mCurInfo.getmMatrix().postScale(limitScaleTime/mCurInfo.getmScale(),limitScaleTime/mCurInfo.getmScale(),
                 mInitInfo.getmCenterPointX(),mInitInfo.getmCenterPointY());
@@ -373,7 +369,6 @@ public class ImageViewer extends View {
     private void translateToCenter(){
         float[] values = new float[9];
         mCurInfo.getmMatrix().getValues(values);
-
 
         mCurInfo.getmMatrix().reset();
         mCurInfo.getmMatrix().postTranslate(0-values[Matrix.MTRANS_X],0-values[Matrix.MTRANS_Y]+mInitInfo.getmTranslateY());
@@ -410,8 +405,6 @@ public class ImageViewer extends View {
                 invalidate();
             }
         });
-        //赋值mlastinfo的时机(zoom里面/抬起)
-        //limitScaleTime/mLastInfo.getmScale()
         valueAnimator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {}

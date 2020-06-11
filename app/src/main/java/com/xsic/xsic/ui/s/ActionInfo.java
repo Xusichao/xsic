@@ -23,6 +23,11 @@ public class ActionInfo {
     //单指操作
     private float mTouchX;                  //单指接触时的X轴
     private float mTouchY;                  //单指接触时的Y轴
+    //用于放大后平移回弹效果的四条边上的中点
+    private float mTopPoint;
+    private float mLeftPoint;
+    private float mRightPoint;
+    private float mBottomPoint;
 
     public ActionInfo() {
         mMatrix = new Matrix();
@@ -34,6 +39,38 @@ public class ActionInfo {
         mCenterPointY = ScreenUtil.getScreenHeight()/2;
         mDistanceOfPoint = 0;
         mDistanceOfPointFirst = 0;
+    }
+
+    public float getmTopPoint() {
+        return mTopPoint;
+    }
+
+    public void setmTopPoint(float mTopPoint) {
+        this.mTopPoint = mTopPoint;
+    }
+
+    public float getmLeftPoint() {
+        return mLeftPoint;
+    }
+
+    public void setmLeftPoint(float mLeftPoint) {
+        this.mLeftPoint = mLeftPoint;
+    }
+
+    public float getmRightPoint() {
+        return mRightPoint;
+    }
+
+    public void setmRightPoint(float mRightPoint) {
+        this.mRightPoint = mRightPoint;
+    }
+
+    public float getmBottomPoint() {
+        return mBottomPoint;
+    }
+
+    public void setmBottomPoint(float mBottomPoint) {
+        this.mBottomPoint = mBottomPoint;
     }
 
     public float getmScale() {
