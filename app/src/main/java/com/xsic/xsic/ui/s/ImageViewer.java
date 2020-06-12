@@ -1,6 +1,7 @@
 package com.xsic.xsic.ui.s;
 
 import android.animation.Animator;
+import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -16,6 +17,7 @@ import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AnimationSet;
 import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
@@ -24,6 +26,9 @@ import androidx.core.content.ContextCompat;
 import com.xsic.xsic.R;
 import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ImageViewer extends View {
     //常量
@@ -211,13 +216,15 @@ public class ImageViewer extends View {
                 isTwoFinger = false;
                 mCurInfo.setmTouchX(event.getX());
                 mCurInfo.setmTouchY(event.getY());
-                LogUtil.i(TAG,mCurInfo.getmTouchX()+","+mCurInfo.getmTouchY());
+//                LogUtil.i(TAG,mCurInfo.getmTouchX()+","+mCurInfo.getmTouchY());
                 break;
 
             case MotionEvent.ACTION_UP:
                 if (!isTwoFinger){
                     if (mCurInfo.getmScale() <= MIN_SCALE){
                         translateToCenter_Plus();
+                    }else {
+                        translateToCenter_Plus_Plus();
                     }
                     setCurInfoToLastInfo();
                 }
@@ -255,7 +262,7 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
-                LogUtil.e(TAG,mCurInfo.getmScale()+"松开手时的放大倍数");
+//                LogUtil.e(TAG,mCurInfo.getmScale()+"松开手时的放大倍数");
                 setCurInfoToLastInfo();
                 if (mCurInfo.getmScale() > MAX_SCALE){
                     //zoomSpringBack(true);
@@ -310,7 +317,7 @@ public class ImageViewer extends View {
     private void zoom(){
         float scaleTime = mCurInfo.getmDistanceOfPoint()/mCurInfo.getmDistanceOfPointFirst();
         mCurInfo.setmScale(scaleTime * mLastInfo.getmScale());
-        LogUtil.d(TAG,"缩放时的真实放大倍数："+mCurInfo.getmScale());
+//        LogUtil.d(TAG,"缩放时的真实放大倍数："+mCurInfo.getmScale());
         //设置四条边的的坐标
         mCurInfo.setmTopPoint(mCurInfo.getmTopPoint() * mCurInfo.getmScale());
         mCurInfo.setmBottomPoint(mCurInfo.getmBottomPoint() * mCurInfo.getmScale());
@@ -348,6 +355,8 @@ public class ImageViewer extends View {
         mCurInfo.setmLeftPoint(mCurInfo.getmLeftPoint() + mCurInfo.getmTranslateX());
         mCurInfo.setmRightPoint(mCurInfo.getmRightPoint() + mCurInfo.getmTranslateX());
 
+        LogUtil.w(TAG,mCurInfo.getmTopPoint()+"");
+
         mCurInfo.getmMatrix().reset();
         mCurInfo.getmMatrix().postTranslate(mCurInfo.getmTranslateX(),mCurInfo.getmTranslateY());
         mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
@@ -366,6 +375,10 @@ public class ImageViewer extends View {
 
             mCurInfo.setmCenterPointX(mInitInfo.getmCenterPointX());
             mCurInfo.setmCenterPointY(mInitInfo.getmCenterPointY());
+            mCurInfo.setmTopPoint(mInitInfo.getmTopPoint());
+            mCurInfo.setmLeftPoint(mInitInfo.getmLeftPoint());
+            mCurInfo.setmRightPoint(mInitInfo.getmRightPoint());
+            mCurInfo.setmBottomPoint(mInitInfo.getmBottomPoint());
         }
     }
 
@@ -373,10 +386,79 @@ public class ImageViewer extends View {
      * 放大后平移，如果图片边界小于屏幕时回弹
      */
     private void translateToCenter_Plus_Plus(){
-        if (mCurInfo.getmTopPoint() > 0 || mCurInfo.getmBottomPoint() < ScreenUtil.getScreenHeight()
-                || mCurInfo.getmLeftPoint() > 0 || mCurInfo.getmRightPoint() < ScreenUtil.getScreenWidth()){
+        ValueAnimator topAnimator = ValueAnimator.ofFloat(0,0);
+        ValueAnimator bottomAnimator = ValueAnimator.ofFloat(0,0);
+        ValueAnimator leftAnimator = ValueAnimator.ofFloat(0,0);
+        ValueAnimator rightAnimator = ValueAnimator.ofFloat(0,0);
+        ArrayList<ValueAnimator> valueAnimatorArrayList = new ArrayList<>();
 
+        if (mCurInfo.getmTopPoint() > 0){
+            topAnimator = ValueAnimator.ofFloat(mCurInfo.getmTopPoint(),0);
+            valueAnimatorArrayList.add(topAnimator);
+            mCurInfo.getmMatrix().reset();
+            mCurInfo.getmMatrix().postTranslate(mCurInfo.getmTopPoint(),0);
+            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+            invalidate();
+            mCurInfo.setmTopPoint(0);
         }
+//        if (mCurInfo.getmBottomPoint() < ScreenUtil.getScreenHeight()){
+//            bottomAnimator = ValueAnimator.ofFloat(mCurInfo.getmBottomPoint(),ScreenUtil.getScreenHeight());
+//            valueAnimatorArrayList.add(bottomAnimator);
+//            mCurInfo.setmBottomPoint(ScreenUtil.getScreenHeight());
+//        }
+//        if (mCurInfo.getmLeftPoint() > 0){
+//            leftAnimator = ValueAnimator.ofFloat(mCurInfo.getmLeftPoint(),0);
+//            valueAnimatorArrayList.add(leftAnimator);
+//            mCurInfo.getmMatrix().reset();
+//            mCurInfo.getmMatrix().postTranslate(mCurInfo.getmLeftPoint(),0);
+//            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+//            invalidate();
+//            mCurInfo.setmLeftPoint(0);
+//        }
+//        if (mCurInfo.getmRightPoint() < ScreenUtil.getScreenWidth()){
+//            rightAnimator = ValueAnimator.ofFloat(mCurInfo.getmRightPoint(),ScreenUtil.getScreenWidth());
+//            valueAnimatorArrayList.add(rightAnimator);
+//            mCurInfo.setmRightPoint(ScreenUtil.getScreenWidth());
+//        }
+
+
+
+//        AnimatorSet animatorSet = new AnimatorSet();
+//        animatorSet.playTogether(topAnimator,bottomAnimator,leftAnimator,rightAnimator);
+//        animatorSet.setDuration(ANIMATION_DURATION);
+//        animatorSet.setInterpolator(new LinearInterpolator());
+//        animatorSet.start();
+//        setListener(topAnimator,mCurInfo.getmTopPoint(),0);
+//        setListener(bottomAnimator,mCurInfo.getmBottomPoint()+ScreenUtil.getScreenHeight(),0);
+//        setListener(leftAnimator,mCurInfo.getmLeftPoint(),0);
+//        setListener(rightAnimator,mCurInfo.getmRightPoint()+ScreenUtil.getScreenWidth(),0);
+    }
+
+    /**
+     * 设置这个方法【translateToCenter_Plus_Plus】里面的监听器
+     */
+    private void setListener(ValueAnimator valueAnimator,float transX,float transY){
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mCurInfo.getmMatrix().reset();
+                mCurInfo.getmMatrix().postTranslate(transX,transY);
+                mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+                invalidate();
+            }
+        });
+        valueAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {}
+            @Override
+            public void onAnimationEnd(Animator animation) {
+
+            }
+            @Override
+            public void onAnimationCancel(Animator animation) {}
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+        });
     }
 
     /**
