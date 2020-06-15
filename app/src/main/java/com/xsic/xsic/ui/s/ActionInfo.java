@@ -32,6 +32,15 @@ public class ActionInfo {
     private float mBitmapHeight;
     private float mBitmapWidth;
 
+    private float mTopLeft_X;
+    private float mTopLeft_Y;
+    private float mTopRight_X;
+    private float mTopRight_Y;
+    private float mBottomLeft_X;
+    private float mBottomLeft_Y;
+    private float mBottomRight_X;
+    private float mBottomRight_Y;
+
     public ActionInfo() {
         mMatrix = new Matrix();
         mScale = 1.0f;
@@ -42,6 +51,54 @@ public class ActionInfo {
         mCenterPointY = ScreenUtil.getScreenHeight()/2;
         mDistanceOfPoint = 0;
         mDistanceOfPointFirst = 0;
+    }
+
+    public float getmTopLeft_X() {
+        return mTopLeft_X;
+    }
+    public float getmTopLeft_Y() {
+        return mTopLeft_Y;
+    }
+
+    public void setmTopLeft(float mTopLeft_X,float mTopLeft_Y) {
+        this.mTopLeft_X = mTopLeft_X;
+        this.mTopLeft_Y = mTopLeft_Y;
+    }
+
+    public float getmTopRight_X() {
+        return mTopRight_X;
+    }
+    public float getmTopRight_Y() {
+        return mTopRight_Y;
+    }
+
+    public void setmTopRight(float mTopRight_X,float mTopRight_Y) {
+        this.mTopRight_X = mTopRight_X;
+        this.mTopRight_Y = mTopRight_Y;
+    }
+
+    public float getmBottomLeft_X() {
+        return mBottomLeft_X;
+    }
+    public float getmBottomLeft_Y() {
+        return mBottomLeft_Y;
+    }
+
+    public void setmBottomLeft(float mBottomLeft_X,float mBottomLeft_Y) {
+        this.mBottomLeft_X = mBottomLeft_X;
+        this.mBottomLeft_Y = mBottomLeft_Y;
+    }
+
+    public float getmBottomRight_X() {
+        return mBottomRight_X;
+    }
+    public float getmBottomRight_Y() {
+        return mBottomRight_Y;
+    }
+
+    public void setmBottomRight(float mBottomRight_X,float mBottomRight_Y) {
+        this.mBottomRight_X = mBottomRight_X;
+        this.mBottomRight_Y = mBottomRight_Y;
     }
 
     public float getmBitmapHeight() {

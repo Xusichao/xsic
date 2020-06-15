@@ -152,6 +152,10 @@ public class ImageViewer extends View {
         mInitInfo.setmBottomPoint(mInitInfo.getmCenterPointY() + height/2);
         mInitInfo.setmLeftPoint(mInitInfo.getmCenterPointX() - width/2);
         mInitInfo.setmRightPoint(mInitInfo.getmRightPoint() + width/2);
+        mInitInfo.setmTopLeft(0,mInitInfo.getmTopPoint());
+        mInitInfo.setmTopRight(mInitInfo.getmRightPoint(),mInitInfo.getmTopPoint());
+        mInitInfo.setmBottomLeft(0,mInitInfo.getmBottomPoint());
+        mInitInfo.setmBottomRight(mInitInfo.getmRightPoint(),mInitInfo.getmBottomPoint());
 
         // TODO: 2020/6/12
         //这里需要为curinfo赋一些初始值，后面需要整理一下这部分
@@ -161,6 +165,7 @@ public class ImageViewer extends View {
         mCurInfo.setmBottomPoint(mInitInfo.getmCenterPointY() + height/2);
         mCurInfo.setmLeftPoint(mInitInfo.getmCenterPointX() - width/2);
         mCurInfo.setmRightPoint(mInitInfo.getmRightPoint() + width/2);
+
 
         LogUtil.w(TAG,"top = "+mInitInfo.getmTopPoint()+", bottom = "+mInitInfo.getmBottomPoint()
                 +", left ="+mInitInfo.getmLeftPoint()+", right = "+mInitInfo.getmRightPoint());
