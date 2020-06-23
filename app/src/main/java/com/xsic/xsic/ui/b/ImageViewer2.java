@@ -258,13 +258,6 @@ public class ImageViewer2 extends View {
         float scaleTime = mCurInfo.getmDistanceOfPoint()/mCurInfo.getmDistanceOfPointFirst();
         mCurInfo.setmScale(scaleTime * mLastInfo.getmScale());
 //        LogUtil.d(TAG,"缩放时的真实放大倍数："+mCurInfo.getmScale());
-        //设置四条边的的坐标
-        mCurInfo.setmTopPoint(mCurInfo.getmTopPoint() * mCurInfo.getmScale());
-        mCurInfo.setmBottomPoint(mCurInfo.getmBottomPoint() * mCurInfo.getmScale());
-        mCurInfo.setmLeftPoint(mCurInfo.getmLeftPoint() * mCurInfo.getmScale());
-        mCurInfo.setmRightPoint(mCurInfo.getmRightPoint() * mCurInfo.getmScale());
-        //设置四个顶点坐标
-        //设置中点
 
         //大于或小于极限值时不消化缩放
 //        if (mCurInfo.getmScale() < LIMIT_MIN_SCALE){
@@ -278,6 +271,20 @@ public class ImageViewer2 extends View {
         mCurInfo.getmMatrix().postScale(scaleTime,scaleTime,mCurInfo.getmMiddleOfTwoPointX(),mCurInfo.getmMiddleOfTwoPointY());
         mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
         invalidate();
+
+        //获取放大过程中产生的偏移量，通过这个偏移量去计算图的中点
+        float values[] = new float[9];
+        mCurInfo.getmMatrix().getValues(values);
+        float tempTranslateX = values[Matrix.MTRANS_X];
+        float tempTranslateY = values[Matrix.MTRANS_Y];
+
+        //设置中点
+        //设置四条边的的坐标
+        //设置四个顶点坐标
+        //设置中点
+        //设置四条边的的坐标
+        //设置四个顶点坐标
+
     }
 
 

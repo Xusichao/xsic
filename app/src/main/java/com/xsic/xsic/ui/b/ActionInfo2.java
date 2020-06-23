@@ -10,6 +10,7 @@ public class ActionInfo2 {
     private float mRotate;                  //旋转角度
     private float mBitmapHeight;            //当前图片高度
     private float mBitmapWidth;             //当前图片宽度
+    //很重要，需要通过这个点去算图形的其他坐标值
     private float mCenterPointX;            //图片的中心点X
     private float mCenterPointY;            //图片的中心点Y
     //双指操作
