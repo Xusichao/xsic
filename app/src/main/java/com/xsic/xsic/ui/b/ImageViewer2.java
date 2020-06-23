@@ -211,12 +211,74 @@ public class ImageViewer2 extends View {
     }
 
 
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        canvas.drawColor(Color.BLACK);
+        canvas.drawBitmap(mBitmap,mCurInfo.getmMatrix(),mPaint);
+    }
 
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mGestureDetector.onTouchEvent(event);
+        switch (event.getAction() & MotionEvent.ACTION_MASK){
+            case MotionEvent.ACTION_DOWN:
+                break;
+
+            case MotionEvent.ACTION_UP:
+                break;
+
+            case MotionEvent.ACTION_MOVE:
+                if (event.getPointerCount() > 1){
+
+                }else {
+
+                }
+                break;
+
+            case MotionEvent.ACTION_POINTER_DOWN:
+
+                break;
+
+            case MotionEvent.ACTION_POINTER_UP:
+
+                break;
+
+            default:break;
+        }
+        return true;
+    }
 
 
+    /**
+     * 缩放
+     */
+    private void zoom(){
+        float scaleTime = mCurInfo.getmDistanceOfPoint()/mCurInfo.getmDistanceOfPointFirst();
+        mCurInfo.setmScale(scaleTime * mLastInfo.getmScale());
+//        LogUtil.d(TAG,"缩放时的真实放大倍数："+mCurInfo.getmScale());
+        //设置四条边的的坐标
+        mCurInfo.setmTopPoint(mCurInfo.getmTopPoint() * mCurInfo.getmScale());
+        mCurInfo.setmBottomPoint(mCurInfo.getmBottomPoint() * mCurInfo.getmScale());
+        mCurInfo.setmLeftPoint(mCurInfo.getmLeftPoint() * mCurInfo.getmScale());
+        mCurInfo.setmRightPoint(mCurInfo.getmRightPoint() * mCurInfo.getmScale());
+        //设置四个顶点坐标
+        //设置中点
 
-
+        //大于或小于极限值时不消化缩放
+//        if (mCurInfo.getmScale() < LIMIT_MIN_SCALE){
+//            mCurInfo.setmScale((float) LIMIT_MIN_SCALE);
+//            return;
+//        }else if (mCurInfo.getmScale() > LIMIT_MAX_SCALE){
+//            mCurInfo.setmScale((float) LIMIT_MAX_SCALE);
+//            return;
+//        }
+        mCurInfo.getmMatrix().reset();
+        mCurInfo.getmMatrix().postScale(scaleTime,scaleTime,mCurInfo.getmMiddleOfTwoPointX(),mCurInfo.getmMiddleOfTwoPointY());
+        mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+        invalidate();
+    }
 
 
 
