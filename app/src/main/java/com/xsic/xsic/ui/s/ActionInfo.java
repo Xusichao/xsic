@@ -28,9 +28,18 @@ public class ActionInfo {
     private float mLeftPoint;       //左边界：只关注 X 轴，X为 + 时回弹
     private float mRightPoint;      //右边界：只关注 X 轴，X为 - 时回弹
     private float mBottomPoint;     //下边界：只关注 Y 轴，Y为 - 时回弹
-
+    //图片宽高
     private float mBitmapHeight;
     private float mBitmapWidth;
+    //四个角的位置
+    private float TopLeft_X;
+    private float TopLeft_Y;
+    private float TopRight_X;
+    private float TopRight_Y;
+    private float BottomLeft_X;
+    private float BottomLeft_Y;
+    private float BottomRight_X;
+    private float BottomRight_Y;
 
     public ActionInfo() {
         mMatrix = new Matrix();
