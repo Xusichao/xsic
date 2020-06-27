@@ -8,6 +8,8 @@ public class ActionInfo2 {
     //偏移量包含初始偏移
     private float mTranslateX;              //x轴平移量
     private float mTranslateY;              //y轴平移量
+    private float tempTranslateX;
+    private float tempTranslateY;
 
     private float mRotate;                  //旋转角度
     private float mBitmapHeight;            //当前图片高度
@@ -242,5 +244,21 @@ public class ActionInfo2 {
 
     public float getmBottomRight_Y() {
         return mBottomRight_Y;
+    }
+
+    public float getTempTranslateX() {
+        return tempTranslateX;
+    }
+
+    public void setTempTranslateX(float tempTranslateX) {
+        this.tempTranslateX = tempTranslateX;
+    }
+
+    public float getTempTranslateY() {
+        return tempTranslateY;
+    }
+
+    public void setTempTranslateY(float tempTranslateY) {
+        this.tempTranslateY = tempTranslateY;
     }
 }
