@@ -5,8 +5,10 @@ import android.graphics.Matrix;
 public class ActionInfo2 {
     private Matrix mMatrix;                 //矩阵
     private float mScale;                   //真实缩放倍数
+    //偏移量包含初始偏移
     private float mTranslateX;              //x轴平移量
     private float mTranslateY;              //y轴平移量
+
     private float mRotate;                  //旋转角度
     private float mBitmapHeight;            //当前图片高度
     private float mBitmapWidth;             //当前图片宽度
@@ -38,6 +40,7 @@ public class ActionInfo2 {
     private float mBottomRight_Y;
 
     public ActionInfo2() {
+        mMatrix = new Matrix();
     }
 
     public Matrix getmMatrix() {

@@ -181,6 +181,17 @@ public class ImageViewer2 extends View {
         mCurInfo.setmTopRight(mInitInfo.getmTopRight_X(),mInitInfo.getmTopRight_Y());
         mCurInfo.setmBottomLeft(mInitInfo.getmBottomLeft_X(),mInitInfo.getmBottomLeft_Y());
         mCurInfo.setmBottomRight(mInitInfo.getmBottomRight_X(),mInitInfo.getmBottomRight_Y());
+
+//        LogUtil.w(TAG,"初始化 ！ 缩放比例："+mCurInfo.getmScale());
+        LogUtil.d(TAG,"初始化 ! 后四条边中点左边："+mCurInfo.getmLeftPoint()+", "+mCurInfo.getmTopPoint()+", "
+                +mCurInfo.getmRightPoint()+", "+mCurInfo.getmBottomPoint()+", ");
+        //LogUtil.d(TAG,"初始化后中点坐标："+mCurInfo.getmCenterPointX()+", "+mCurInfo.getmCenterPointY());
+        LogUtil.v(TAG,"初始化 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
+        LogUtil.i(TAG,"初始化 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
+                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
+                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
+                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
+
     }
 
     /**
@@ -224,25 +235,51 @@ public class ImageViewer2 extends View {
         mGestureDetector.onTouchEvent(event);
         switch (event.getAction() & MotionEvent.ACTION_MASK){
             case MotionEvent.ACTION_DOWN:
+                isTwoFinger = false;
+                mCurInfo.setmTouchX(event.getX());
+                mCurInfo.setmTouchY(event.getY());
                 break;
 
             case MotionEvent.ACTION_UP:
+                if (!isTwoFinger){
+                    //回弹
+                    //translateSpringBack();
+                    setCurInfoToLastInfo();
+                }
                 break;
 
             case MotionEvent.ACTION_MOVE:
                 if (event.getPointerCount() > 1){
-
+                    finger_1_X = event.getX(0);
+                    finger_1_Y = event.getY(0);
+                    finger_2_X = event.getX(1);
+                    finger_2_Y = event.getY(1);
+                    mCurInfo.setmDistanceOfPoint((float) Math.sqrt(Math.pow(finger_1_X-finger_2_X,2)+Math.pow(finger_1_Y-finger_2_Y,2)));
+                    if (mCurInfo.getmDistanceOfPoint() != mCurInfo.getmDistanceOfPointFirst()){
+                        zoom();
+                    }
                 }else {
-
+                    if (!isTwoFinger){
+                        finger_1_X = event.getX(0);
+                        finger_1_Y = event.getY(0);
+                        translate();
+                    }
                 }
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
-
+                isTwoFinger = true;
+                finger_1_X = event.getX(0);
+                finger_1_Y = event.getY(0);
+                finger_2_X = event.getX(1);
+                finger_2_Y = event.getY(1);
+                mCurInfo.setmDistanceOfPointFirst((float) Math.sqrt(Math.pow(finger_1_X-finger_2_X,2)+Math.pow(finger_1_Y-finger_2_Y,2)));
+                mCurInfo.setmMiddleOfTwoPointX((finger_1_X+finger_2_X)/2);
+                mCurInfo.setmMiddleOfTwoPointY((finger_1_Y+finger_2_Y)/2);
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
-
+                setCurInfoToLastInfo();
                 break;
 
             default:break;
@@ -257,8 +294,8 @@ public class ImageViewer2 extends View {
     private void zoom(){
         float scaleTime = mCurInfo.getmDistanceOfPoint()/mCurInfo.getmDistanceOfPointFirst();
         mCurInfo.setmScale(scaleTime * mLastInfo.getmScale());
+        setPointValue();
 //        LogUtil.d(TAG,"缩放时的真实放大倍数："+mCurInfo.getmScale());
-
         //大于或小于极限值时不消化缩放
 //        if (mCurInfo.getmScale() < LIMIT_MIN_SCALE){
 //            mCurInfo.setmScale((float) LIMIT_MIN_SCALE);
@@ -271,24 +308,90 @@ public class ImageViewer2 extends View {
         mCurInfo.getmMatrix().postScale(scaleTime,scaleTime,mCurInfo.getmMiddleOfTwoPointX(),mCurInfo.getmMiddleOfTwoPointY());
         mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
         invalidate();
+    }
 
-        //获取放大过程中产生的偏移量，通过这个偏移量去计算图的中点
-        float values[] = new float[9];
-        mCurInfo.getmMatrix().getValues(values);
-        float tempTranslateX = values[Matrix.MTRANS_X];
-        float tempTranslateY = values[Matrix.MTRANS_Y];
+    /**
+     * 平移
+     */
+    private void translate(){
+        //为了统一处理，偏移量全部加上初始偏移
+        mCurInfo.setmTranslateX((mInitInfo.getmTranslateX() + finger_1_X) - mCurInfo.getmTouchX());
+        mCurInfo.setmTranslateY((mInitInfo.getmTranslateY() + finger_1_Y) - mCurInfo.getmTouchY());
+        //
+        setPointValue();
 
-        //设置中点
-        //设置四条边的的坐标
-        //设置四个顶点坐标
-        //设置中点
-        //设置四条边的的坐标
-        //设置四个顶点坐标
+        mCurInfo.getmMatrix().reset();
+        mCurInfo.getmMatrix().postTranslate(mCurInfo.getmTranslateX() - mInitInfo.getmTranslateX(),
+                mCurInfo.getmTranslateY() - mInitInfo.getmTranslateY());
+        mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+        invalidate();
+    }
 
+    /**
+     * 平移回弹
+     */
+    private void translateSpringBack(){
+        //区分高度铺满和宽度铺满
+        LogUtil.d(TAG,"平移放开后的左边中点坐标："+mCurInfo.getmLeftPoint());
+        if (mCurInfo.getmLeftPoint() > 0){
+            mCurInfo.getmMatrix().reset();
+            mCurInfo.getmMatrix().postTranslate(0 - mCurInfo.getmLeftPoint(),0);
+            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+            invalidate();
+            return;
+        }
+        if (mCurInfo.getmTopPoint() > 0){
+            mCurInfo.getmMatrix().reset();
+            mCurInfo.getmMatrix().postTranslate(0,0 - mCurInfo.getmTopPoint());
+            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+            invalidate();
+        }
     }
 
 
+    /**
+     * 在缩放、偏移、旋转等操作时不断修改
+     * 1、中点位置
+     * 2、图片大小
+     * 3、四条边中点坐标
+     * 4、四个顶点坐标
+     */
+    private void setPointValue(){
+        //1、设置中点
+        float values[] = new float[9];
+        mCurInfo.getmMatrix().getValues(values);
+        //这个偏移量包含了初始偏移，所以计算时需要减去初始偏移
+        float tempTranslateX = values[Matrix.MTRANS_X] - mInitInfo.getmTranslateX();
+        float tempTranslateY = values[Matrix.MTRANS_Y] - mInitInfo.getmTranslateY();
+        mCurInfo.setmCenterPoint(mLastInfo.getmCenterPointX()+tempTranslateX,
+                mLastInfo.getmCenterPointY()+tempTranslateY);
+        //2、设置图片大小
+        mCurInfo.setmBitmapWidth(mInitInfo.getmBitmapWidth()*(mCurInfo.getmScale()/mInitInfo.getmScale()));
+        mCurInfo.setmBitmapHeight(mInitInfo.getmBitmapHeight()*(mCurInfo.getmScale()/mInitInfo.getmScale()));
+        //3、设置四条边的的坐标
+        mCurInfo.setmLeftPoint(mCurInfo.getmCenterPointX() - mCurInfo.getmBitmapWidth()/2);
+        mCurInfo.setmTopPoint(mCurInfo.getmCenterPointY() - mCurInfo.getmBitmapHeight()/2);
+        mCurInfo.setmRightPoint(mCurInfo.getmCenterPointX() + mCurInfo.getmBitmapWidth()/2);
+        mCurInfo.setmBottomPoint(mCurInfo.getmCenterPointY() + mCurInfo.getmBitmapHeight()/2);
+        //4、设置四个顶点坐标
+        mCurInfo.setmTopLeft(mCurInfo.getmLeftPoint(),mCurInfo.getmTopPoint());
+        mCurInfo.setmTopRight(mCurInfo.getmRightPoint(),mCurInfo.getmTopPoint());
+        mCurInfo.setmBottomRight(mCurInfo.getmRightPoint(),mCurInfo.getmBottomPoint());
+        mCurInfo.setmBottomLeft(mCurInfo.getmLeftPoint(),mCurInfo.getmBottomPoint());
 
+//        LogUtil.d(TAG,"偏移："+tempTranslateX+"，"+tempTranslateY);
+//        LogUtil.d(TAG,"中点："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
+//        LogUtil.d(TAG,"产生的临时偏移量："+tempTranslateX+", "+tempTranslateY);
+//        LogUtil.w(TAG,"重新设置 ！ 缩放比例："+mCurInfo.getmScale() + " ， 比例相除："+mCurInfo.getmScale()/mInitInfo.getmScale());
+//        LogUtil.d(TAG,"重新设置 ! 后四条边中点坐标："+mCurInfo.getmLeftPoint()+", "+mCurInfo.getmTopPoint()+", "
+//                +mCurInfo.getmRightPoint()+", "+mCurInfo.getmBottomPoint()+", ");
+//        LogUtil.d(TAG,"重新设置后中点坐标："+mCurInfo.getmCenterPointX()+", "+mCurInfo.getmCenterPointY());
+//        LogUtil.v(TAG,"重新设置 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
+//        LogUtil.i(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
+//                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
+//                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
+//                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
+    }
 
 
 
