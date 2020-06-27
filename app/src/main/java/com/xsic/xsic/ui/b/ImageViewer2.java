@@ -244,10 +244,10 @@ public class ImageViewer2 extends View {
                 if (!isTwoFinger){
                     //回弹
                     setCurInfoToLastInfo();
-                    //translateSpringBack();
-                    //setCurInfoToLastInfo();
-//                    LogUtil.d(TAG,"抬起手 ! 后四条边中点坐标："+mCurInfo.getmLeftPoint()+", "+mCurInfo.getmTopPoint()+", "
-//                            +mCurInfo.getmRightPoint()+", "+mCurInfo.getmBottomPoint()+", ");
+                    translateSpringBack();
+//                    setCurInfoToLastInfo();
+                    LogUtil.d(TAG,"抬起手 ! 后四条边中点坐标："+mCurInfo.getmLeftPoint()+", "+mCurInfo.getmTopPoint()+", "
+                            +mCurInfo.getmRightPoint()+", "+mCurInfo.getmBottomPoint()+", ");
                 }
                 break;
 
@@ -334,21 +334,15 @@ public class ImageViewer2 extends View {
      */
     private void translateSpringBack(){
         //区分高度铺满和宽度铺满
-        LogUtil.d(TAG,"平移放开后的中点："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
         LogUtil.d(TAG,"平移放开后的左边中点坐标："+mCurInfo.getmLeftPoint());
         if (mCurInfo.getmLeftPoint() > 0){
             mCurInfo.getmMatrix().reset();
             mCurInfo.getmMatrix().postTranslate(0 - mCurInfo.getmLeftPoint(),0);    //这也是平移操作，需要设置点的坐标
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
             invalidate();
-            //重置中点
-            mCurInfo.setmCenterPoint(mCurInfo.getmCenterPointX()+(0 - mCurInfo.getmLeftPoint()),mCurInfo.getmCenterPointY());
-            //setPointValue();
-            LogUtil.w(TAG,"平移量有变化吗："+mCurInfo.getmTranslateX());
-            LogUtil.d(TAG,"平移放开后的中点 22222 ："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
-            //mCurInfo.setmLeftPoint(0);
+            setPointValue();
+            LogUtil.w(TAG,"中点："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
             return;
-            // TODO: 2020/6/28
         }
         if (mCurInfo.getmTopPoint() > 0){
             mCurInfo.getmMatrix().reset();
@@ -375,8 +369,6 @@ public class ImageViewer2 extends View {
         float tempTranslateY = values[Matrix.MTRANS_Y] - mInitInfo.getmTranslateY();
         mCurInfo.setTempTranslateX(tempTranslateX);
         mCurInfo.setTempTranslateY(tempTranslateY);
-//        LogUtil.e(TAG,(mCurInfo.getmCenterPointX() - mLastInfo.getmCenterPointX()+tempTranslateX)+"， "
-//                +(mCurInfo.getmCenterPointY() - mLastInfo.getmCenterPointY()+tempTranslateY));
         mCurInfo.setmCenterPoint(mLastInfo.getmCenterPointX()+(mCurInfo.getTempTranslateX()-mLastInfo.getTempTranslateX()),
                 mLastInfo.getmCenterPointY()+(mCurInfo.getTempTranslateY()-mLastInfo.getTempTranslateY()));
         //2、设置图片大小
@@ -395,7 +387,7 @@ public class ImageViewer2 extends View {
 
 //        LogUtil.i(TAG,"原始："+values[Matrix.MTRANS_X]+"，"+values[Matrix.MTRANS_Y]);
 //        LogUtil.d(TAG,"偏移："+tempTranslateX+"，"+tempTranslateY);
-        LogUtil.w(TAG,"中点："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
+//        LogUtil.w(TAG,"中点："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
 //        LogUtil.i(TAG,"产生的临时偏移量："+tempTranslateX+", "+tempTranslateY);
 //        LogUtil.v(TAG,"重新设置 ！ 缩放比例："+mCurInfo.getmScale() + " ， 比例相除："+mCurInfo.getmScale()/mInitInfo.getmScale());
 //        LogUtil.e(TAG,"重新设置 ! 后四条边中点坐标："+mCurInfo.getmLeftPoint()+", "+mCurInfo.getmTopPoint()+", "
