@@ -353,11 +353,11 @@ public class ImageViewer3 extends View {
         mCurInfo.setmTopRight(mCurInfo.getmBitmapWidth() - Math.abs(mCurInfo.getmTopLeft_X()),
                 mCurInfo.getmTopLeft_Y());
 
-//        mCurInfo.setmBottomRight(mLastInfo.getmBottomRight_X() + (mCurInfo.getmBitmapWidth()-mCurInfo.getmBottomRight_X()),
-//                mLastInfo.getmBottomRight_Y() + (mCurInfo.getmBitmapHeight()-mCurInfo.getmBottomRight_Y()));
+        mCurInfo.setmBottomRight(mCurInfo.getmTopRight_X(),
+                mCurInfo.getmBitmapHeight() + mCurInfo.getmTopLeft_Y());
 //
-//        mCurInfo.setmBottomLeft(mLastInfo.getmTopRight_X() + (mCurInfo.getmBitmapWidth()-mCurInfo.getmBottomLeft_X()),
-//                mLastInfo.getmBottomLeft_Y() + (mCurInfo.getmBitmapHeight()-mCurInfo.getmBottomLeft_Y()));
+        mCurInfo.setmBottomLeft(mCurInfo.getmTopLeft_X(),
+                mCurInfo.getmBottomRight_Y());
         //3、设置四条边的的坐标
         mCurInfo.setmTopPoint(mCurInfo.getmTopLeft_Y());
         mCurInfo.setmRightPoint(mCurInfo.getmTopRight_X());
