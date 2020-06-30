@@ -350,14 +350,14 @@ public class ImageViewer3 extends View {
         //2、设置四个顶点坐标
         mCurInfo.setmTopLeft(mLastInfo.getmTopLeft_X()+tempTranslateX , mLastInfo.getmTopLeft_Y()+tempTranslateY);
 
-        mCurInfo.setmTopRight(mLastInfo.getmTopRight_X() + (mCurInfo.getmBitmapWidth()-mCurInfo.getmTopLeft_X()),
-                mLastInfo.getmTopRight_Y() + (mCurInfo.getmBitmapHeight()-mCurInfo.getmTopLeft_Y()));
+        mCurInfo.setmTopRight(mCurInfo.getmBitmapWidth() - Math.abs(mCurInfo.getmTopLeft_X()),
+                mCurInfo.getmTopLeft_Y());
 
-        mCurInfo.setmBottomRight(mLastInfo.getmBottomRight_X() + (mCurInfo.getmBitmapWidth()-mCurInfo.getmBottomRight_X()),
-                mLastInfo.getmBottomRight_Y() + (mCurInfo.getmBitmapHeight()-mCurInfo.getmBottomRight_Y()));
-
-        mCurInfo.setmBottomLeft(mLastInfo.getmTopRight_X() + (mCurInfo.getmBitmapWidth()-mCurInfo.getmBottomLeft_X()),
-                mLastInfo.getmBottomLeft_Y() + (mCurInfo.getmBitmapHeight()-mCurInfo.getmBottomLeft_Y()));
+//        mCurInfo.setmBottomRight(mLastInfo.getmBottomRight_X() + (mCurInfo.getmBitmapWidth()-mCurInfo.getmBottomRight_X()),
+//                mLastInfo.getmBottomRight_Y() + (mCurInfo.getmBitmapHeight()-mCurInfo.getmBottomRight_Y()));
+//
+//        mCurInfo.setmBottomLeft(mLastInfo.getmTopRight_X() + (mCurInfo.getmBitmapWidth()-mCurInfo.getmBottomLeft_X()),
+//                mLastInfo.getmBottomLeft_Y() + (mCurInfo.getmBitmapHeight()-mCurInfo.getmBottomLeft_Y()));
         //3、设置四条边的的坐标
         mCurInfo.setmTopPoint(mCurInfo.getmTopLeft_Y());
         mCurInfo.setmRightPoint(mCurInfo.getmTopRight_X());
@@ -374,10 +374,11 @@ public class ImageViewer3 extends View {
 //                +mCurInfo.getmRightPoint()+", 下："+mCurInfo.getmBottomPoint()+", ");
 //        LogUtil.d(TAG,"重新设置后中点坐标："+mCurInfo.getmCenterPointX()+", "+mCurInfo.getmCenterPointY());
 //        LogUtil.w(TAG,"重新设置 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
-        LogUtil.i(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
-                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
-                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
-                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
+//        LogUtil.d(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
+//                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
+//                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
+//                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
+        LogUtil.d(TAG," ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y());
     }
 
 
