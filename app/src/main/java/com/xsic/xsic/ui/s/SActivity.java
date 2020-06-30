@@ -6,6 +6,7 @@ import com.xsic.xsic.R;
 import com.xsic.xsic.base.BaseDataBindingActivity;
 import com.xsic.xsic.databinding.TestBinding;
 import com.xsic.xsic.ui.b.ImageViewer2;
+import com.xsic.xsic.ui.b.ImageViewer3;
 
 public class SActivity extends BaseDataBindingActivity<TestBinding, SViewModel> {
     @Override
@@ -15,7 +16,7 @@ public class SActivity extends BaseDataBindingActivity<TestBinding, SViewModel> 
 
     @Override
     protected void initView() {
-        ImageViewer2 imageViewer2 = new ImageViewer2(mContext);
+        ImageViewer3 imageViewer2 = new ImageViewer3(mContext);
         viewBinding.container.addView(imageViewer2);
     }
 

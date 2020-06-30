@@ -1,7 +1,5 @@
 package com.xsic.xsic.ui.b;
 
-import android.animation.Animator;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -15,20 +13,19 @@ import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.xsic.xsic.R;
-import com.xsic.xsic.ui.s.ActionInfo;
 import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
 
-public class ImageViewer2 extends View {
+public class ImageViewer3 extends View {
     public static final int TRANSLATE = 1;
     public static final int ZOOM = 2;
     public static final int ROTATE = 3;
+
     //常量
     private final String TAG = "ImageViewer";
     private final float MAX_SCALE = 2.5f;
@@ -38,9 +35,9 @@ public class ImageViewer2 extends View {
     private final int ANIMATION_DURATION = 300;
 
     private Context mContext;
-    private ActionInfo2 mInitInfo;
-    private ActionInfo2 mLastInfo;
-    private ActionInfo2 mCurInfo;
+    private ActionInfo3 mInitInfo;
+    private ActionInfo3 mLastInfo;
+    private ActionInfo3 mCurInfo;
     private Paint mPaint;
     private GestureDetector mGestureDetector;
     private Drawable mDrawable;
@@ -57,20 +54,17 @@ public class ImageViewer2 extends View {
 
     private boolean isTwoFinger = false;        //是否是两根手指，用于区分move操作
 
-    public ImageViewer2(Context context) {
-        this(context, null, 0, 0);
+
+    public ImageViewer3(Context context) {
+        this(context,null,0);
     }
 
-    public ImageViewer2(Context context, @Nullable AttributeSet attrs) {
-        this(context, attrs, 0, 0);
+    public ImageViewer3(Context context, @Nullable AttributeSet attrs) {
+        this(context, attrs,0);
     }
 
-    public ImageViewer2(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        this(context, attrs, defStyleAttr, 0);
-    }
-
-    public ImageViewer2(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
+    public ImageViewer3(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
         mContext = context;
         initAttrs(attrs, defStyleAttr);
         init();
@@ -89,14 +83,13 @@ public class ImageViewer2 extends View {
     private void init(){
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
-        mInitInfo = new ActionInfo2();
-        mLastInfo = new ActionInfo2();
-        mCurInfo = new ActionInfo2();
+        mInitInfo = new ActionInfo3();
+        mLastInfo = new ActionInfo3();
+        mCurInfo = new ActionInfo3();
         mGestureDetector = new GestureDetector(mContext,mOnGestureListener);
         mBitmap = ((BitmapDrawable)mDrawable).getBitmap();
         initPlace();
     }
-
 
     /**
      * 初始化图片位置
@@ -131,8 +124,6 @@ public class ImageViewer2 extends View {
         setCurInfoToLastInfo();
     }
 
-
-
     /**
      * 初始化操作信息
      */
@@ -147,8 +138,6 @@ public class ImageViewer2 extends View {
         mInitInfo.setmTranslateX(translateX);
         mInitInfo.setmTranslateY(translateY);
         mInitInfo.setmRotate(0);
-        mInitInfo.setmCenterPoint(ScreenUtil.getScreenWidth()/2f,ScreenUtil.getScreenHeight()/2f);
-        //待验证
         mInitInfo.setmTopPoint(ScreenUtil.getScreenHeight()/2f - height/2);
         mInitInfo.setmRightPoint(ScreenUtil.getScreenWidth()/2f + width/2);
         mInitInfo.setmBottomPoint(ScreenUtil.getScreenHeight()/2f + height/2);
@@ -173,30 +162,27 @@ public class ImageViewer2 extends View {
         mCurInfo.setmBitmapWidth(mInitInfo.getmBitmapWidth());
         mCurInfo.setmTranslateX(mInitInfo.getmTranslateX());
         mCurInfo.setmTranslateY(mInitInfo.getmTranslateY());
-        mCurInfo.setmRotate(0);
-        mCurInfo.setmCenterPoint(mInitInfo.getmCenterPointX(),mInitInfo.getmCenterPointY());
-        //待验证
+        mCurInfo.setmRotate(mInitInfo.getmRotate());
         mCurInfo.setmTopPoint(mInitInfo.getmTopPoint());
         mCurInfo.setmRightPoint(mInitInfo.getmRightPoint());
         mCurInfo.setmBottomPoint(mInitInfo.getmBottomPoint());
         mCurInfo.setmLeftPoint(mInitInfo.getmLeftPoint());
-
         mCurInfo.setmTopLeft(mInitInfo.getmTopLeft_X(),mInitInfo.getmTopLeft_Y());
         mCurInfo.setmTopRight(mInitInfo.getmTopRight_X(),mInitInfo.getmTopRight_Y());
         mCurInfo.setmBottomLeft(mInitInfo.getmBottomLeft_X(),mInitInfo.getmBottomLeft_Y());
         mCurInfo.setmBottomRight(mInitInfo.getmBottomRight_X(),mInitInfo.getmBottomRight_Y());
 
 //        LogUtil.w(TAG,"初始化 ！ 缩放比例："+mCurInfo.getmScale());
-        LogUtil.d(TAG,"初始化 ! 后四条边中点左边："+mCurInfo.getmLeftPoint()+", "+mCurInfo.getmTopPoint()+", "
-                +mCurInfo.getmRightPoint()+", "+mCurInfo.getmBottomPoint()+", ");
-        LogUtil.d(TAG,"初始化后中点坐标："+mCurInfo.getmCenterPointX()+", "+mCurInfo.getmCenterPointY());
-        LogUtil.v(TAG,"初始化 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
+//        LogUtil.d(TAG,"初始化 ! 后四条边中点左边 = 左："+mCurInfo.getmLeftPoint()+", 上："+mCurInfo.getmTopPoint()+", 右："
+//                +mCurInfo.getmRightPoint()+", 下："+mCurInfo.getmBottomPoint()+", ");
+//        LogUtil.v(TAG,"初始化 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
         LogUtil.i(TAG,"初始化 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
                 +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
                 +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
                 +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
 
     }
+
 
     /**
      * 当每一次操作完成时
@@ -215,13 +201,10 @@ public class ImageViewer2 extends View {
         mLastInfo.setmTranslateX(mCurInfo.getmTranslateX());
         mLastInfo.setmTranslateY(mCurInfo.getmTranslateY());
         mLastInfo.setmRotate(mCurInfo.getmRotate());
-        mLastInfo.setmCenterPoint(mCurInfo.getmCenterPointX(),mCurInfo.getmCenterPointY());
-        //待验证
         mLastInfo.setmTopPoint(mCurInfo.getmTopPoint());
         mLastInfo.setmRightPoint(mCurInfo.getmRightPoint());
         mLastInfo.setmBottomPoint(mCurInfo.getmBottomPoint());
         mLastInfo.setmLeftPoint(mCurInfo.getmLeftPoint());
-
         mLastInfo.setmTopLeft(mCurInfo.getmTopLeft_X(),mCurInfo.getmTopLeft_Y());
         mLastInfo.setmTopRight(mCurInfo.getmTopRight_X(),mCurInfo.getmTopRight_Y());
         mLastInfo.setmBottomLeft(mCurInfo.getmBottomLeft_X(),mCurInfo.getmBottomLeft_Y());
@@ -236,13 +219,12 @@ public class ImageViewer2 extends View {
         canvas.drawBitmap(mBitmap,mCurInfo.getmMatrix(),mPaint);
     }
 
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         mGestureDetector.onTouchEvent(event);
         switch (event.getAction() & MotionEvent.ACTION_MASK){
             case MotionEvent.ACTION_DOWN:
-                LogUtil.d(TAG,"按下时的点x坐标"+event.getX());
+                LogUtil.d(TAG,"按下时的x轴坐标："+event.getX()+", y轴坐标："+event.getY());
                 isTwoFinger = false;
                 mCurInfo.setmTouchX(event.getX());
                 mCurInfo.setmTouchY(event.getY());
@@ -252,10 +234,6 @@ public class ImageViewer2 extends View {
                 if (!isTwoFinger){
                     //回弹
                     setCurInfoToLastInfo();
-//                    translateSpringBack();
-//                    setCurInfoToLastInfo();
-//                    LogUtil.d(TAG,"抬起手 ! 后四条边中点坐标："+mCurInfo.getmLeftPoint()+", "+mCurInfo.getmTopPoint()+", "
-//                            +mCurInfo.getmRightPoint()+", "+mCurInfo.getmBottomPoint()+", ");
                 }
                 break;
 
@@ -306,29 +284,8 @@ public class ImageViewer2 extends View {
         float scaleTime = mCurInfo.getmDistanceOfPoint()/mCurInfo.getmDistanceOfPointFirst();
         mCurInfo.setmRealScale(scaleTime * mLastInfo.getmRealScale());
         mCurInfo.setmScale(scaleTime * mLastInfo.getmScale());
-        float values[] = new float[9];
-        mCurInfo.getmMatrix().getValues(values);
-        //这个偏移量包含了初始偏移，所以计算时需要减去初始偏移
-        float tempTranslateX = values[Matrix.MTRANS_X] - mInitInfo.getmTranslateX();
-        float tempTranslateY = values[Matrix.MTRANS_Y] - mInitInfo.getmTranslateY();
-        LogUtil.w(TAG,"左上角坐标："+(mLastInfo.getmTopLeft_X()+tempTranslateX));
-//        LogUtil.d(TAG,(mCurInfo.getmMiddleOfTwoPointX() - tempTranslateX) + "，"+mCurInfo.getmMiddleOfTwoPointX()+"， "+mCurInfo.getmScale());
-//        LogUtil.w(TAG,(finger_1_X + finger_2_X)+"");
-//        LogUtil.d(TAG,"中心点："+(mCurInfo.getmScale() * mLastInfo.getmCenterPointX() + tempTranslateX));
+        setPointValue();
 
-
-//        setPointValue(ZOOM);
-
-
-
-//        LogUtil.d(TAG,"两指中点X坐标 ："+mCurInfo.getmMiddleOfTwoPointX() +
-//                " === "+mLastInfo.getmCenterPointX() + ",结果 : "+Math.abs(mCurInfo.getmMiddleOfTwoPointX() - mLastInfo.getmCenterPointX()));
-//        LogUtil.d(TAG,"两指中心x坐标乘以放大倍数："+Math.abs(mCurInfo.getmMiddleOfTwoPointX() - mLastInfo.getmCenterPointX()) * mCurInfo.getmScale() + mCurInfo.getmMiddleOfTwoPointX() * mCurInfo.getmScale());
-//        LogUtil.d(TAG,"通过放大倍数乘以原中点坐标："+mLastInfo.getmCenterPointX() * mCurInfo.getmScale());
-//        LogUtil.d(TAG,"用当前图片大小减去初始图片大小，看是否等于偏移量："+mInitInfo.getmBitmapWidth()*mCurInfo.getmScale() + " == "+mInitInfo.getmBitmapWidth());
-//        LogUtil.d(TAG,"缩放时的偏移："+tempTranslateX+"，"+tempTranslateY);
-//        LogUtil.d(TAG,"缩放时相对于1.0的放大倍数："+mCurInfo.getmScale());
-//        LogUtil.d(TAG,"缩放时的真实放大倍数："+mCurInfo.getmRealScale());
         //大于或小于极限值时不消化缩放
 //        if (mCurInfo.getmScale() < LIMIT_MIN_SCALE){
 //            mCurInfo.setmScale((float) LIMIT_MIN_SCALE);
@@ -350,19 +307,7 @@ public class ImageViewer2 extends View {
         //为了统一处理，偏移量全部加上初始偏移
         mCurInfo.setmTranslateX((mInitInfo.getmTranslateX() + finger_1_X) - mCurInfo.getmTouchX());
         mCurInfo.setmTranslateY((mInitInfo.getmTranslateY() + finger_1_Y) - mCurInfo.getmTouchY());
-//        setPointValue(TRANSLATE);
-
-
-
-
-        float values[] = new float[9];
-        mCurInfo.getmMatrix().getValues(values);
-        //这个偏移量包含了初始偏移，所以计算时需要减去初始偏移
-        float tempTranslateX = values[Matrix.MTRANS_X] - mInitInfo.getmTranslateX();
-        float tempTranslateY = values[Matrix.MTRANS_Y] - mInitInfo.getmTranslateY();
-        LogUtil.w(TAG,"左上角坐标："+(mLastInfo.getmTopLeft_X()+tempTranslateX));
-
-
+        setPointValue();
 
         mCurInfo.getmMatrix().reset();
         mCurInfo.getmMatrix().postTranslate(mCurInfo.getmTranslateX() - mInitInfo.getmTranslateX(),
@@ -376,34 +321,20 @@ public class ImageViewer2 extends View {
      */
     private void translateSpringBack(){
         //区分高度铺满和宽度铺满
-        LogUtil.d(TAG,"平移放开后的左边中点坐标："+mCurInfo.getmLeftPoint());
         if (mCurInfo.getmLeftPoint() > 0){
             mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(0 - mCurInfo.getmLeftPoint(),0);    //这也是平移操作，需要设置点的坐标
-            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-            invalidate();
-            setPointValue(TRANSLATE);
-            LogUtil.w(TAG,"中点："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
-            return;
-        }
-        if (mCurInfo.getmTopPoint() > 0){
-            mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(0,0 - mCurInfo.getmTopPoint());
-            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-            invalidate();
         }
     }
 
 
     /**
+     * 以左上角顶点为基准点
      * 在缩放、偏移、旋转等操作时不断修改
-     * 1、中点位置
-     * 2、图片大小
-     * 3、四条边中点坐标
-     * 4、四个顶点坐标
+     * 1、图片大小
+     * 2、四条边中点坐标
+     * 3、四个顶点坐标
      */
-    private void deprecated(){
-        //1、设置中点
+    private void setPointValue(){
         float values[] = new float[9];
         mCurInfo.getmMatrix().getValues(values);
         //这个偏移量包含了初始偏移，所以计算时需要减去初始偏移
@@ -411,87 +342,72 @@ public class ImageViewer2 extends View {
         float tempTranslateY = values[Matrix.MTRANS_Y] - mInitInfo.getmTranslateY();
         mCurInfo.setTempTranslateX(tempTranslateX);
         mCurInfo.setTempTranslateY(tempTranslateY);
-        mCurInfo.setmCenterPoint(mLastInfo.getmCenterPointX()+(mCurInfo.getTempTranslateX()-mLastInfo.getTempTranslateX()),
-                mLastInfo.getmCenterPointY()+(mCurInfo.getTempTranslateY()-mLastInfo.getTempTranslateY()));
-        //2、设置图片大小
+
+        //1、设置图片大小
         mCurInfo.setmBitmapWidth(mInitInfo.getmBitmapWidth()*(mCurInfo.getmRealScale()/mInitInfo.getmRealScale()));
         mCurInfo.setmBitmapHeight(mInitInfo.getmBitmapHeight()*(mCurInfo.getmRealScale()/mInitInfo.getmRealScale()));
+
+        //2、设置四个顶点坐标
+        mCurInfo.setmTopLeft(mLastInfo.getmTopLeft_X()+tempTranslateX , mLastInfo.getmTopLeft_Y()+tempTranslateY);
+
+        mCurInfo.setmTopRight(mLastInfo.getmTopRight_X() + (mCurInfo.getmBitmapWidth()-mCurInfo.getmTopLeft_X()),
+                mLastInfo.getmTopRight_Y() + (mCurInfo.getmBitmapHeight()-mCurInfo.getmTopLeft_Y()));
+
+        mCurInfo.setmBottomRight(mLastInfo.getmBottomRight_X() + (mCurInfo.getmBitmapWidth()-mCurInfo.getmBottomRight_X()),
+                mLastInfo.getmBottomRight_Y() + (mCurInfo.getmBitmapHeight()-mCurInfo.getmBottomRight_Y()));
+
+        mCurInfo.setmBottomLeft(mLastInfo.getmTopRight_X() + (mCurInfo.getmBitmapWidth()-mCurInfo.getmBottomLeft_X()),
+                mLastInfo.getmBottomLeft_Y() + (mCurInfo.getmBitmapHeight()-mCurInfo.getmBottomLeft_Y()));
         //3、设置四条边的的坐标
-        mCurInfo.setmLeftPoint(mCurInfo.getmCenterPointX() - mCurInfo.getmBitmapWidth()/2);
-        mCurInfo.setmTopPoint(mCurInfo.getmCenterPointY() - mCurInfo.getmBitmapHeight()/2);
-        mCurInfo.setmRightPoint(mCurInfo.getmCenterPointX() + mCurInfo.getmBitmapWidth()/2);
-        mCurInfo.setmBottomPoint(mCurInfo.getmCenterPointY() + mCurInfo.getmBitmapHeight()/2);
-        //4、设置四个顶点坐标
-        mCurInfo.setmTopLeft(mCurInfo.getmLeftPoint(),mCurInfo.getmTopPoint());
-        mCurInfo.setmTopRight(mCurInfo.getmRightPoint(),mCurInfo.getmTopPoint());
-        mCurInfo.setmBottomRight(mCurInfo.getmRightPoint(),mCurInfo.getmBottomPoint());
-        mCurInfo.setmBottomLeft(mCurInfo.getmLeftPoint(),mCurInfo.getmBottomPoint());
+        mCurInfo.setmTopPoint(mCurInfo.getmTopLeft_Y());
+        mCurInfo.setmRightPoint(mCurInfo.getmTopRight_X());
+        mCurInfo.setmBottomPoint(mCurInfo.getmBottomRight_Y());
+        mCurInfo.setmLeftPoint(mCurInfo.getmBottomLeft_X());
 
-//        LogUtil.i(TAG,"原始："+values[Matrix.MTRANS_X]+"，"+values[Matrix.MTRANS_Y]);
-//        LogUtil.d(TAG,"偏移："+tempTranslateX+"，"+tempTranslateY);
-//        LogUtil.w(TAG,"中点："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
-//        LogUtil.i(TAG,"产生的临时偏移量："+tempTranslateX+", "+tempTranslateY);
-//        LogUtil.v(TAG,"重新设置 ！ 缩放比例："+mCurInfo.getmScale() + " ， 比例相除："+mCurInfo.getmScale()/mInitInfo.getmScale());
-//        LogUtil.e(TAG,"重新设置 ! 后四条边中点坐标："+mCurInfo.getmLeftPoint()+", "+mCurInfo.getmTopPoint()+", "
-//                +mCurInfo.getmRightPoint()+", "+mCurInfo.getmBottomPoint()+", ");
-//        LogUtil.d(TAG,"重新设置后中点坐标："+mCurInfo.getmCenterPointX()+", "+mCurInfo.getmCenterPointY());
-//        LogUtil.w(TAG,"重新设置 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
-//        LogUtil.i(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
-//                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
-//                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
-//                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
-    }
-
-
-
-    private void setPointValue(int optionType){
-        float values[] = new float[9];
-        mCurInfo.getmMatrix().getValues(values);
-        //这个偏移量包含了初始偏移，所以计算时需要减去初始偏移
-        float tempTranslateX = values[Matrix.MTRANS_X] - mInitInfo.getmTranslateX();
-        float tempTranslateY = values[Matrix.MTRANS_Y] - mInitInfo.getmTranslateY();
-        mCurInfo.setTempTranslateX(tempTranslateX);
-        mCurInfo.setTempTranslateY(tempTranslateY);
-        if (optionType == TRANSLATE){
-            mCurInfo.setmCenterPoint(mLastInfo.getmCenterPointX()+(mCurInfo.getTempTranslateX()-mLastInfo.getTempTranslateX()),
-                    mLastInfo.getmCenterPointY()+(mCurInfo.getTempTranslateY()-mLastInfo.getTempTranslateY()));
-        }
-        if (optionType == ZOOM){
-            mCurInfo.setmCenterPoint(mCurInfo.getmScale() * mLastInfo.getmCenterPointX() + tempTranslateX,
-                    mCurInfo.getmScale() * mLastInfo.getmCenterPointY() + tempTranslateY);
-        }
-        if (optionType == ROTATE){
-
-        }
-        //2、设置图片大小
-        mCurInfo.setmBitmapWidth(mInitInfo.getmBitmapWidth()*(mCurInfo.getmRealScale()/mInitInfo.getmRealScale()));
-        mCurInfo.setmBitmapHeight(mInitInfo.getmBitmapHeight()*(mCurInfo.getmRealScale()/mInitInfo.getmRealScale()));
-        //3、设置四条边的的坐标
-        mCurInfo.setmLeftPoint(mCurInfo.getmCenterPointX() - mCurInfo.getmBitmapWidth()/2);
-        mCurInfo.setmTopPoint(mCurInfo.getmCenterPointY() - mCurInfo.getmBitmapHeight()/2);
-        mCurInfo.setmRightPoint(mCurInfo.getmCenterPointX() + mCurInfo.getmBitmapWidth()/2);
-        mCurInfo.setmBottomPoint(mCurInfo.getmCenterPointY() + mCurInfo.getmBitmapHeight()/2);
-        //4、设置四个顶点坐标
-        mCurInfo.setmTopLeft(mCurInfo.getmLeftPoint(),mCurInfo.getmTopPoint());
-        mCurInfo.setmTopRight(mCurInfo.getmRightPoint(),mCurInfo.getmTopPoint());
-        mCurInfo.setmBottomRight(mCurInfo.getmRightPoint(),mCurInfo.getmBottomPoint());
-        mCurInfo.setmBottomLeft(mCurInfo.getmLeftPoint(),mCurInfo.getmBottomPoint());
 
 
 //        LogUtil.i(TAG,"原始："+values[Matrix.MTRANS_X]+"，"+values[Matrix.MTRANS_Y]);
 //        LogUtil.d(TAG,"偏移："+tempTranslateX+"，"+tempTranslateY);
-        LogUtil.w(TAG,"中点："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
 //        LogUtil.i(TAG,"产生的临时偏移量："+tempTranslateX+", "+tempTranslateY);
 //        LogUtil.v(TAG,"重新设置 ！ 缩放比例："+mCurInfo.getmScale() + " ， 比例相除："+mCurInfo.getmScale()/mInitInfo.getmScale());
-//        LogUtil.e(TAG,"重新设置 ! 后四条边中点坐标："+mCurInfo.getmLeftPoint()+", "+mCurInfo.getmTopPoint()+", "
-//                +mCurInfo.getmRightPoint()+", "+mCurInfo.getmBottomPoint()+", ");
+//        LogUtil.d(TAG,"初始化 ! 后四条边中点左边 = 左："+mCurInfo.getmLeftPoint()+", 上："+mCurInfo.getmTopPoint()+", 右："
+//                +mCurInfo.getmRightPoint()+", 下："+mCurInfo.getmBottomPoint()+", ");
 //        LogUtil.d(TAG,"重新设置后中点坐标："+mCurInfo.getmCenterPointX()+", "+mCurInfo.getmCenterPointY());
 //        LogUtil.w(TAG,"重新设置 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
-//        LogUtil.i(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
-//                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
-//                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
-//                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
+        LogUtil.i(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
+                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
+                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
+                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

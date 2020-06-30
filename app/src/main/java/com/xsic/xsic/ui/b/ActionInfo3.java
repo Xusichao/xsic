@@ -2,25 +2,29 @@ package com.xsic.xsic.ui.b;
 
 import android.graphics.Matrix;
 
-public class ActionInfo2 {
+public class ActionInfo3 {
     private Matrix mMatrix;                 //矩阵
+
     private float mRealScale;               //真实缩放倍数    相对于还没初始化时的大小
     private float mScale;                   //相对于1.0的放大倍数
+
     //偏移量包含初始偏移
     private float mTranslateX;              //x轴平移量
     private float mTranslateY;              //y轴平移量
+
+    //不包括初始偏移量
     private float tempTranslateX;
     private float tempTranslateY;
 
     private float mRotate;                  //旋转角度
+
     private float mBitmapHeight;            //当前图片高度
     private float mBitmapWidth;             //当前图片宽度
-    //很重要，需要通过这个点去算图形的其他坐标值
-    private float mCenterPointX;            //图片的中心点X
-    private float mCenterPointY;            //图片的中心点Y
+
     //双指操作
     private float mMiddleOfTwoPointX;       //两指中点的X轴
     private float mMiddleOfTwoPointY;       //两指中点的Y轴
+
     private float mDistanceOfPoint;         //两指距离
     private float mDistanceOfPointFirst;    //刚接触时的两指距离
     //单指操作
@@ -42,7 +46,7 @@ public class ActionInfo2 {
     private float mBottomRight_X;
     private float mBottomRight_Y;
 
-    public ActionInfo2() {
+    public ActionInfo3() {
         mMatrix = new Matrix();
     }
 
@@ -109,19 +113,6 @@ public class ActionInfo2 {
 
     public void setmBitmapWidth(float mBitmapWidth) {
         this.mBitmapWidth = mBitmapWidth;
-    }
-
-    public float getmCenterPointX() {
-        return mCenterPointX;
-    }
-
-    public void setmCenterPoint(float mCenterPointX,float mCenterPointY) {
-        this.mCenterPointX = mCenterPointX;
-        this.mCenterPointY = mCenterPointY;
-    }
-
-    public float getmCenterPointY() {
-        return mCenterPointY;
     }
 
     public float getmMiddleOfTwoPointX() {
