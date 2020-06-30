@@ -355,9 +355,10 @@ public class ImageViewer3 extends View {
 
         mCurInfo.setmBottomRight(mCurInfo.getmTopRight_X(),
                 mCurInfo.getmBitmapHeight() + mCurInfo.getmTopLeft_Y());
-//
+
         mCurInfo.setmBottomLeft(mCurInfo.getmTopLeft_X(),
                 mCurInfo.getmBottomRight_Y());
+
         //3、设置四条边的的坐标
         mCurInfo.setmTopPoint(mCurInfo.getmTopLeft_Y());
         mCurInfo.setmRightPoint(mCurInfo.getmTopRight_X());
@@ -378,7 +379,6 @@ public class ImageViewer3 extends View {
 //                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
 //                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
 //                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
-        LogUtil.d(TAG," ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y());
     }
 
 
