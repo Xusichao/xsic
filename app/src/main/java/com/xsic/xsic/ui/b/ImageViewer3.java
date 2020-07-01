@@ -1,5 +1,8 @@
 package com.xsic.xsic.ui.b;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -13,6 +16,7 @@ import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -234,6 +238,8 @@ public class ImageViewer3 extends View {
                 if (!isTwoFinger){
                     //回弹
                     setCurInfoToLastInfo();
+                    test();//translateSpringBack();
+                    setCurInfoToLastInfo();
                 }
                 break;
 
@@ -316,14 +322,94 @@ public class ImageViewer3 extends View {
         invalidate();
     }
 
+    private void test(){
+        if (mCurInfo.getmLeftPoint() > mInitInfo.getmLeftPoint()){
+            mCurInfo.getmMatrix().reset();
+            mCurInfo.getmMatrix().postTranslate(mInitInfo.getmLeftPoint() - mCurInfo.getmLeftPoint(),0);
+            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+            invalidate();
+        }
+        if (mCurInfo.getmRightPoint() < mInitInfo.getmRightPoint()){
+            mCurInfo.getmMatrix().reset();
+            mCurInfo.getmMatrix().postTranslate(mInitInfo.getmRightPoint() - mCurInfo.getmRightPoint(), 0);
+            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+            invalidate();
+        }
+        if (mCurInfo.getmTopPoint() > mInitInfo.getmTopPoint()){
+            mCurInfo.getmMatrix().reset();
+            mCurInfo.getmMatrix().postTranslate(0, mInitInfo.getmRightPoint() - mCurInfo.getmTopPoint());
+            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+            invalidate();
+        }
+        if (mCurInfo.getmBottomPoint() < mInitInfo.getmBottomPoint()){
+            mCurInfo.getmMatrix().reset();
+            mCurInfo.getmMatrix().postTranslate(0, mInitInfo.getmRightPoint() - mCurInfo.getmBottomPoint());
+            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+            invalidate();
+        }
+    }
+
+
     /**
      * 平移回弹
      */
     private void translateSpringBack(){
         //区分高度铺满和宽度铺满
-        if (mCurInfo.getmLeftPoint() > 0){
-            mCurInfo.getmMatrix().reset();
+        // TODO: 2020/7/1
+        //先测试宽度铺满！！！！！
+        float startX = 0;
+        float startY = 0;
+        float endX = 0;
+        float endY = 0;
+        ValueAnimator animY;
+        ValueAnimator animX;
+        AnimatorSet animatorSet = new AnimatorSet();
+        if (mCurInfo.getmLeftPoint() > mInitInfo.getmLeftPoint()){
+            startX = 0 - mCurInfo.getmLeftPoint();
+            endX = mInitInfo.getmLeftPoint();
         }
+        if (mCurInfo.getmRightPoint() < mInitInfo.getmRightPoint()){
+            startX = mCurInfo.getmRightPoint();
+            endX = mInitInfo.getmRightPoint();
+        }
+        if (mCurInfo.getmTopPoint() > mInitInfo.getmTopPoint()){
+            startY = 0 - mCurInfo.getmTopPoint();
+            endY = mInitInfo.getmTopPoint();
+        }
+        if (mCurInfo.getmBottomPoint() < mInitInfo.getmBottomPoint()){
+            startY = mCurInfo.getmBottomPoint();
+            endY = mInitInfo.getmBottomPoint();
+        }
+        animX = ValueAnimator.ofFloat(startX,endX);
+        animY = ValueAnimator.ofFloat(startY,endY);
+        animatorSet.setDuration(ANIMATION_DURATION);
+        animatorSet.setInterpolator(new LinearInterpolator());
+        animatorSet.playTogether(animX);
+        animatorSet.start();
+
+        float finalStartX = startX;
+        float finalStartY = startY;
+        animX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mCurInfo.getmMatrix().reset();
+                mCurInfo.getmMatrix().postTranslate(finalStartX, (float) animation.getAnimatedValue());
+                mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+                invalidate();
+            }
+        });
+
+        animY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mCurInfo.getmMatrix().reset();
+                mCurInfo.getmMatrix().postTranslate(finalStartY, (Float) animation.getAnimatedValue());
+                mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+                invalidate();
+            }
+        });
+
+
     }
 
 
@@ -376,10 +462,10 @@ public class ImageViewer3 extends View {
 //                +mCurInfo.getmRightPoint()+", 下："+mCurInfo.getmBottomPoint()+", ");
 //        LogUtil.d(TAG,"重新设置后中点坐标："+mCurInfo.getmCenterPointX()+", "+mCurInfo.getmCenterPointY());
 //        LogUtil.w(TAG,"重新设置 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
-        LogUtil.d(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
-                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
-                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
-                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
+//        LogUtil.d(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
+//                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
+//                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
+//                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
 //
 //        LogUtil.w(TAG,"左上角： X轴 = "+mCurInfo.getmTopLeft_X()+"， Y轴 = "+mCurInfo.getmTopLeft_Y());
     }
