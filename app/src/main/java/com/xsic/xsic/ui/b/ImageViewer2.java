@@ -244,7 +244,7 @@ public class ImageViewer2 extends View {
                 if (!isTwoFinger){
                     //回弹
                     setCurInfoToLastInfo();
-                    translateSpringBack();
+//                    translateSpringBack();
 //                    setCurInfoToLastInfo();
                     LogUtil.d(TAG,"抬起手 ! 后四条边中点坐标："+mCurInfo.getmLeftPoint()+", "+mCurInfo.getmTopPoint()+", "
                             +mCurInfo.getmRightPoint()+", "+mCurInfo.getmBottomPoint()+", ");
@@ -336,11 +336,14 @@ public class ImageViewer2 extends View {
         //区分高度铺满和宽度铺满
         LogUtil.d(TAG,"平移放开后的左边中点坐标："+mCurInfo.getmLeftPoint());
         if (mCurInfo.getmLeftPoint() > 0){
+//            mCurInfo.setmTranslateX(mCurInfo.getmTranslateX()+(0 - mCurInfo.getmLeftPoint()));
+//            setPointValue();
+
             mCurInfo.getmMatrix().reset();
             mCurInfo.getmMatrix().postTranslate(0 - mCurInfo.getmLeftPoint(),0);    //这也是平移操作，需要设置点的坐标
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
             invalidate();
-            setPointValue();
+
             LogUtil.w(TAG,"中点："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
             return;
         }
@@ -386,7 +389,7 @@ public class ImageViewer2 extends View {
         mCurInfo.setmBottomLeft(mCurInfo.getmLeftPoint(),mCurInfo.getmBottomPoint());
 
 //        LogUtil.i(TAG,"原始："+values[Matrix.MTRANS_X]+"，"+values[Matrix.MTRANS_Y]);
-//        LogUtil.d(TAG,"偏移："+tempTranslateX+"，"+tempTranslateY);
+        LogUtil.d(TAG,"偏移："+tempTranslateX+"，"+tempTranslateY);
 //        LogUtil.w(TAG,"中点："+mCurInfo.getmCenterPointX()+"  ---  "+mCurInfo.getmCenterPointY());
 //        LogUtil.i(TAG,"产生的临时偏移量："+tempTranslateX+", "+tempTranslateY);
 //        LogUtil.v(TAG,"重新设置 ！ 缩放比例："+mCurInfo.getmScale() + " ， 比例相除："+mCurInfo.getmScale()/mInitInfo.getmScale());
