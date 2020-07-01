@@ -240,7 +240,7 @@ public class ImageViewer3 extends View {
             case MotionEvent.ACTION_UP:
                 if (!isTwoFinger){
                     //回弹
-                    //setCurInfoToLastInfo();
+                    setCurInfoToLastInfo();
                     test();//translateSpringBack();
                     setCurInfoToLastInfo();
                 }
@@ -374,33 +374,33 @@ public class ImageViewer3 extends View {
             }
         }
         if (mCurInfo.getmLeftPoint() > leftLimit){
-            mCurInfo.setmTranslateX(mCurInfo.getmTranslateY() + (leftLimit - mCurInfo.getmLeftPoint()));
             mCurInfo.getmMatrix().reset();
             mCurInfo.getmMatrix().postTranslate(leftLimit - mCurInfo.getmLeftPoint(),0);
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
             invalidate();
+            //mCurInfo.setmTranslateX(mCurInfo.getmTranslateY() + (leftLimit - mCurInfo.getmLeftPoint()));
         }
         if (mCurInfo.getmRightPoint() < rightLimit){
-            mCurInfo.setmTranslateX(mCurInfo.getmTranslateX() + (rightLimit - mCurInfo.getmRightPoint()));
             mCurInfo.getmMatrix().reset();
             mCurInfo.getmMatrix().postTranslate(rightLimit - mCurInfo.getmRightPoint(), 0);
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
             invalidate();
+            mCurInfo.setmTranslateX(mCurInfo.getmTranslateX() + (rightLimit - mCurInfo.getmRightPoint()));
         }
-        if (mCurInfo.getmTopPoint() > topLimit){
-            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (topLimit - mCurInfo.getmTopPoint()));
-            mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(0, topLimit - mCurInfo.getmTopPoint());
-            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-            invalidate();
-        }
-        if (mCurInfo.getmBottomPoint() < bottomLimit){
-            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (bottomLimit - mCurInfo.getmBottomPoint()));
-            mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(0, bottomLimit - mCurInfo.getmBottomPoint());
-            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-            invalidate();
-        }
+//        if (mCurInfo.getmTopPoint() > topLimit){
+//            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (topLimit - mCurInfo.getmTopPoint()));
+//            mCurInfo.getmMatrix().reset();
+//            mCurInfo.getmMatrix().postTranslate(0, topLimit - mCurInfo.getmTopPoint());
+//            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+//            invalidate();
+//        }
+//        if (mCurInfo.getmBottomPoint() < bottomLimit){
+//            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (bottomLimit - mCurInfo.getmBottomPoint()));
+//            mCurInfo.getmMatrix().reset();
+//            mCurInfo.getmMatrix().postTranslate(0, bottomLimit - mCurInfo.getmBottomPoint());
+//            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+//            invalidate();
+//        }
     }
 
 
