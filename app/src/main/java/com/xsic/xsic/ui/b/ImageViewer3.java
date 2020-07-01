@@ -57,7 +57,8 @@ public class ImageViewer3 extends View {
     private float finger_Y;
 
     private boolean isTwoFinger = false;        //是否是两根手指，用于区分move操作
-
+    private boolean isFullHeight = false;       //是否高度铺满
+    private boolean isWeakSideTouchedScreen = false;    //比屏幕小的一端是否已经放大到接触屏幕
 
     public ImageViewer3(Context context) {
         this(context,null,0);
@@ -113,11 +114,13 @@ public class ImageViewer3 extends View {
         mCurInfo.getmMatrix().postScale(initScaleTime,initScaleTime);
         if (heightScaleTime >= widthScaleTime){
             //1、宽度铺满
+            isFullHeight = false;
             mCurInfo.getmMatrix().postTranslate(0, (ScreenUtil.getScreenHeight() - initHeight)/2);
             initTranslateX = 0;
             initTranslateY = (ScreenUtil.getScreenHeight() - initHeight)/2;
         }else {
             //2、高度铺满
+            isFullHeight = true;
             mCurInfo.getmMatrix().postTranslate((ScreenUtil.getScreenWidth() - initWidth)/2,0);
             initTranslateX = (ScreenUtil.getScreenWidth() - initWidth)/2;
             initTranslateY = 0;
@@ -237,7 +240,7 @@ public class ImageViewer3 extends View {
             case MotionEvent.ACTION_UP:
                 if (!isTwoFinger){
                     //回弹
-                    setCurInfoToLastInfo();
+                    //setCurInfoToLastInfo();
                     test();//translateSpringBack();
                     setCurInfoToLastInfo();
                 }
@@ -291,6 +294,7 @@ public class ImageViewer3 extends View {
         mCurInfo.setmRealScale(scaleTime * mLastInfo.getmRealScale());
         mCurInfo.setmScale(scaleTime * mLastInfo.getmScale());
         setPointValue();
+        setIsWeakSideTouchedScreen();
 
         //大于或小于极限值时不消化缩放
 //        if (mCurInfo.getmScale() < LIMIT_MIN_SCALE){
@@ -304,6 +308,25 @@ public class ImageViewer3 extends View {
         mCurInfo.getmMatrix().postScale(scaleTime,scaleTime,mCurInfo.getmMiddleOfTwoPointX(),mCurInfo.getmMiddleOfTwoPointY());
         mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
         invalidate();
+    }
+
+    /**
+     * 判断短的一边是否接触屏幕边界
+     */
+    private void setIsWeakSideTouchedScreen(){
+        if (isFullHeight){
+            if (mCurInfo.getmScale() >= ScreenUtil.getScreenWidth()/mInitInfo.getmBitmapWidth()){
+                isWeakSideTouchedScreen = true;
+            }else {
+                isWeakSideTouchedScreen = false;
+            }
+        }else {
+            if (mCurInfo.getmScale() >= ScreenUtil.getScreenHeight()/mInitInfo.getmBitmapHeight()){
+                isWeakSideTouchedScreen = true;
+            }else {
+                isWeakSideTouchedScreen = false;
+            }
+        }
     }
 
     /**
@@ -323,27 +346,58 @@ public class ImageViewer3 extends View {
     }
 
     private void test(){
-        if (mCurInfo.getmLeftPoint() > mInitInfo.getmLeftPoint()){
+        float leftLimit = 0;
+        float rightLimit = 0;
+        float topLimit = 0;
+        float bottomLimit = 0;
+        if (isFullHeight){
+            //高度铺满
+            topLimit = mInitInfo.getmTopPoint();
+            bottomLimit = mInitInfo.getmBottomPoint();
+            if (isWeakSideTouchedScreen){
+                leftLimit = 0;
+                rightLimit = ScreenUtil.getScreenWidth();
+            }else {
+                leftLimit = mLastInfo.getmLeftPoint();
+                rightLimit = mLastInfo.getmRightPoint();
+            }
+        }else {
+            //宽度铺满
+            leftLimit = mInitInfo.getmLeftPoint();
+            rightLimit = mInitInfo.getmRightPoint();
+            if (isWeakSideTouchedScreen){
+                topLimit = 0;
+                bottomLimit = ScreenUtil.getScreenHeight();
+            }else {
+                topLimit = mLastInfo.getmTopPoint();
+                bottomLimit = mLastInfo.getmBottomPoint();
+            }
+        }
+        if (mCurInfo.getmLeftPoint() > leftLimit){
+            mCurInfo.setmTranslateX(mCurInfo.getmTranslateY() + (leftLimit - mCurInfo.getmLeftPoint()));
             mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(mInitInfo.getmLeftPoint() - mCurInfo.getmLeftPoint(),0);
+            mCurInfo.getmMatrix().postTranslate(leftLimit - mCurInfo.getmLeftPoint(),0);
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
             invalidate();
         }
-        if (mCurInfo.getmRightPoint() < mInitInfo.getmRightPoint()){
+        if (mCurInfo.getmRightPoint() < rightLimit){
+            mCurInfo.setmTranslateX(mCurInfo.getmTranslateX() + (rightLimit - mCurInfo.getmRightPoint()));
             mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(mInitInfo.getmRightPoint() - mCurInfo.getmRightPoint(), 0);
+            mCurInfo.getmMatrix().postTranslate(rightLimit - mCurInfo.getmRightPoint(), 0);
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
             invalidate();
         }
-        if (mCurInfo.getmTopPoint() > mInitInfo.getmTopPoint()){
+        if (mCurInfo.getmTopPoint() > topLimit){
+            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (topLimit - mCurInfo.getmTopPoint()));
             mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(0, mInitInfo.getmRightPoint() - mCurInfo.getmTopPoint());
+            mCurInfo.getmMatrix().postTranslate(0, topLimit - mCurInfo.getmTopPoint());
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
             invalidate();
         }
-        if (mCurInfo.getmBottomPoint() < mInitInfo.getmBottomPoint()){
+        if (mCurInfo.getmBottomPoint() < bottomLimit){
+            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (bottomLimit - mCurInfo.getmBottomPoint()));
             mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(0, mInitInfo.getmRightPoint() - mCurInfo.getmBottomPoint());
+            mCurInfo.getmMatrix().postTranslate(0, bottomLimit - mCurInfo.getmBottomPoint());
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
             invalidate();
         }
