@@ -247,6 +247,7 @@ public class ImageViewer3 extends View {
                     mTempInfo.setmRightPoint(mLastInfo.getmRightPoint());
                     mTempInfo.setmBottomPoint(mLastInfo.getmBottomPoint());
                     mTempInfo.setmLeftPoint(mLastInfo.getmLeftPoint());
+                    //这里下面出问题，调试mTempInfo
                     setCurInfoToLastInfo();
                     test();//translateSpringBack();
                     setCurInfoToLastInfo();
