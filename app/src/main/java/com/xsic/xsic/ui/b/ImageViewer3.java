@@ -348,7 +348,8 @@ public class ImageViewer3 extends View {
         mCurInfo.setmBitmapHeight(mInitInfo.getmBitmapHeight()*(mCurInfo.getmRealScale()/mInitInfo.getmRealScale()));
 
         //2、设置四个顶点坐标
-        mCurInfo.setmTopLeft(mLastInfo.getmTopLeft_X()+tempTranslateX , mLastInfo.getmTopLeft_Y()+tempTranslateY);
+        mCurInfo.setmTopLeft(mLastInfo.getmTopLeft_X()+(mCurInfo.getTempTranslateX()-mLastInfo.getTempTranslateX()) ,
+                mLastInfo.getmTopLeft_Y()+(mCurInfo.getTempTranslateY()-mLastInfo.getTempTranslateY()));
 
         mCurInfo.setmTopRight(mCurInfo.getmBitmapWidth() - Math.abs(mCurInfo.getmTopLeft_X()),
                 mCurInfo.getmTopLeft_Y());
@@ -379,6 +380,8 @@ public class ImageViewer3 extends View {
 //                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
 //                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
 //                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
+
+        LogUtil.w(TAG,"左上角： X轴 = "+mCurInfo.getmTopLeft_X()+"， Y轴 = "+mCurInfo.getmTopLeft_Y());
     }
 
 
