@@ -262,4 +262,9 @@ public class ActionInfo3 {
     public void setTempTranslateY(float tempTranslateY) {
         this.tempTranslateY = tempTranslateY;
     }
+
+    public void clearProperty(){
+        // TODO: 2020/7/2
+        mMatrix.reset();
+    }
 }

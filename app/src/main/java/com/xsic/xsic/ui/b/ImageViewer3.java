@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.xsic.xsic.R;
+import com.xsic.xsic.ui.s.ActionInfo;
 import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
 
@@ -42,6 +43,7 @@ public class ImageViewer3 extends View {
     private ActionInfo3 mInitInfo;
     private ActionInfo3 mLastInfo;
     private ActionInfo3 mCurInfo;
+    private ActionInfo3 mTempInfo;      //临时的对象，并不是所有属性都有效，用完之后就会清空
     private Paint mPaint;
     private GestureDetector mGestureDetector;
     private Drawable mDrawable;
@@ -91,6 +93,7 @@ public class ImageViewer3 extends View {
         mInitInfo = new ActionInfo3();
         mLastInfo = new ActionInfo3();
         mCurInfo = new ActionInfo3();
+        mTempInfo = new ActionInfo3();
         mGestureDetector = new GestureDetector(mContext,mOnGestureListener);
         mBitmap = ((BitmapDrawable)mDrawable).getBitmap();
         initPlace();
@@ -240,6 +243,10 @@ public class ImageViewer3 extends View {
             case MotionEvent.ACTION_UP:
                 if (!isTwoFinger){
                     //回弹
+                    mTempInfo.setmTopPoint(mLastInfo.getmTopPoint());
+                    mTempInfo.setmRightPoint(mLastInfo.getmRightPoint());
+                    mTempInfo.setmBottomPoint(mLastInfo.getmBottomPoint());
+                    mTempInfo.setmLeftPoint(mLastInfo.getmLeftPoint());
                     setCurInfoToLastInfo();
                     test();//translateSpringBack();
                     setCurInfoToLastInfo();
@@ -358,8 +365,8 @@ public class ImageViewer3 extends View {
                 leftLimit = 0;
                 rightLimit = ScreenUtil.getScreenWidth();
             }else {
-                leftLimit = mLastInfo.getmLeftPoint();
-                rightLimit = mLastInfo.getmRightPoint();
+                leftLimit = mTempInfo.getmLeftPoint();
+                rightLimit = mTempInfo.getmRightPoint();
             }
         }else {
             //宽度铺满
@@ -369,8 +376,8 @@ public class ImageViewer3 extends View {
                 topLimit = 0;
                 bottomLimit = ScreenUtil.getScreenHeight();
             }else {
-                topLimit = mLastInfo.getmTopPoint();
-                bottomLimit = mLastInfo.getmBottomPoint();
+                topLimit = mTempInfo.getmTopPoint();
+                bottomLimit = mTempInfo.getmBottomPoint();
             }
         }
         if (mCurInfo.getmLeftPoint() > leftLimit){
@@ -378,7 +385,7 @@ public class ImageViewer3 extends View {
             mCurInfo.getmMatrix().postTranslate(leftLimit - mCurInfo.getmLeftPoint(),0);
             mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
             invalidate();
-            //mCurInfo.setmTranslateX(mCurInfo.getmTranslateY() + (leftLimit - mCurInfo.getmLeftPoint()));
+            mCurInfo.setmTranslateX(mCurInfo.getmTranslateY() + (leftLimit - mCurInfo.getmLeftPoint()));
         }
         if (mCurInfo.getmRightPoint() < rightLimit){
             mCurInfo.getmMatrix().reset();
@@ -387,19 +394,19 @@ public class ImageViewer3 extends View {
             invalidate();
             mCurInfo.setmTranslateX(mCurInfo.getmTranslateX() + (rightLimit - mCurInfo.getmRightPoint()));
         }
-//        if (mCurInfo.getmTopPoint() > topLimit){
-//            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (topLimit - mCurInfo.getmTopPoint()));
-//            mCurInfo.getmMatrix().reset();
-//            mCurInfo.getmMatrix().postTranslate(0, topLimit - mCurInfo.getmTopPoint());
-//            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-//            invalidate();
-//        }
+        if (mCurInfo.getmTopPoint() > topLimit){
+            mCurInfo.getmMatrix().reset();
+            mCurInfo.getmMatrix().postTranslate(0, topLimit - mCurInfo.getmTopPoint());
+            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+            invalidate();
+            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (topLimit - mCurInfo.getmTopPoint()));
+        }
 //        if (mCurInfo.getmBottomPoint() < bottomLimit){
-//            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (bottomLimit - mCurInfo.getmBottomPoint()));
 //            mCurInfo.getmMatrix().reset();
 //            mCurInfo.getmMatrix().postTranslate(0, bottomLimit - mCurInfo.getmBottomPoint());
 //            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
 //            invalidate();
+//            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (bottomLimit - mCurInfo.getmBottomPoint()));
 //        }
     }
 
