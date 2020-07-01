@@ -351,7 +351,7 @@ public class ImageViewer3 extends View {
         mCurInfo.setmTopLeft(mLastInfo.getmTopLeft_X()+(mCurInfo.getTempTranslateX()-mLastInfo.getTempTranslateX()) ,
                 mLastInfo.getmTopLeft_Y()+(mCurInfo.getTempTranslateY()-mLastInfo.getTempTranslateY()));
 
-        mCurInfo.setmTopRight(mCurInfo.getmBitmapWidth() - Math.abs(mCurInfo.getmTopLeft_X()),
+        mCurInfo.setmTopRight(mCurInfo.getmBitmapWidth() + mCurInfo.getmTopLeft_X(),
                 mCurInfo.getmTopLeft_Y());
 
         mCurInfo.setmBottomRight(mCurInfo.getmTopRight_X(),
@@ -376,12 +376,12 @@ public class ImageViewer3 extends View {
 //                +mCurInfo.getmRightPoint()+", 下："+mCurInfo.getmBottomPoint()+", ");
 //        LogUtil.d(TAG,"重新设置后中点坐标："+mCurInfo.getmCenterPointX()+", "+mCurInfo.getmCenterPointY());
 //        LogUtil.w(TAG,"重新设置 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
-//        LogUtil.d(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
-//                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
-//                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
-//                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
-
-        LogUtil.w(TAG,"左上角： X轴 = "+mCurInfo.getmTopLeft_X()+"， Y轴 = "+mCurInfo.getmTopLeft_Y());
+        LogUtil.d(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
+                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
+                +" ， 右下 = "+mCurInfo.getmBottomRight_X()+"， "+mCurInfo.getmBottomRight_Y()
+                +" ， 左下 = "+mCurInfo.getmBottomLeft_X()+"， "+mCurInfo.getmBottomLeft_Y());
+//
+//        LogUtil.w(TAG,"左上角： X轴 = "+mCurInfo.getmTopLeft_X()+"， Y轴 = "+mCurInfo.getmTopLeft_Y());
     }
 
 
