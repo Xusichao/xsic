@@ -256,7 +256,7 @@ public class ImageViewer3 extends View {
 
                     setCurInfoToLastInfo();
                     //translatePointSpringBack();
-                    translateLineSpringBack();
+                    //translateLineSpringBack();
                     setCurInfoToLastInfo();
                 }
                 break;
@@ -348,12 +348,19 @@ public class ImageViewer3 extends View {
      * 平移
      */
     private void translate(){
+        float values[] = new float[9];
+        mCurInfo.getmMatrix().getValues(values);
+
+        LogUtil.w(TAG,"平移Y："+values[Matrix.MTRANS_Y] + mInitInfo.getmTranslateY());
+
         //为了统一处理，偏移量全部加上初始偏移
+//        mCurInfo.setmTranslateX(values[Matrix.MTRANS_X] + mInitInfo.getmTranslateX());
+//        mCurInfo.setmTranslateY(values[Matrix.MTRANS_Y] + mInitInfo.getmTranslateY());
         mCurInfo.setmTranslateX((mInitInfo.getmTranslateX() + finger_1_X) - mCurInfo.getmTouchX());
         mCurInfo.setmTranslateY((mInitInfo.getmTranslateY() + finger_1_Y) - mCurInfo.getmTouchY());
         setPointValue();
 
-//        LogUtil.w(TAG,"平移："+mCurInfo.getmTopLeft_X());
+
 
         mCurInfo.getmMatrix().reset();
         mCurInfo.getmMatrix().postTranslate(mCurInfo.getmTranslateX() - mInitInfo.getmTranslateX(),
@@ -423,7 +430,6 @@ public class ImageViewer3 extends View {
         }
         setPointValue();
 
-
 //        LogUtil.d(TAG,"初始化 ! 后四条边中点左边 = 左："+mCurInfo.getmLeftPoint()+", 上："+mCurInfo.getmTopPoint()+", 右："
 //                +mCurInfo.getmRightPoint()+", 下："+mCurInfo.getmBottomPoint()+", ");
 //        LogUtil.d(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
@@ -463,105 +469,39 @@ public class ImageViewer3 extends View {
                 bottomLimit = mTempInfo.getmBottomPoint();
             }
         }
-        if (mCurInfo.getmLeftPoint() > leftLimit){
-            mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(leftLimit - mCurInfo.getmLeftPoint(),0);
-            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-            invalidate();
-            mCurInfo.setmTranslateX(mCurInfo.getmTranslateY() + (leftLimit - mCurInfo.getmLeftPoint()));
-        }
-        if (mCurInfo.getmRightPoint() < rightLimit){
-            mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(rightLimit - mCurInfo.getmRightPoint(), 0);
-            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-            invalidate();
-            mCurInfo.setmTranslateX(mCurInfo.getmTranslateX() + (rightLimit - mCurInfo.getmRightPoint()));
-        }
+//        if (mCurInfo.getmLeftPoint() > leftLimit){
+//            mCurInfo.getmMatrix().reset();
+//            mCurInfo.getmMatrix().postTranslate(leftLimit - mCurInfo.getmLeftPoint(),0);
+//            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+//            invalidate();
+//        }
+//        if (mCurInfo.getmRightPoint() < rightLimit){
+//            mCurInfo.getmMatrix().reset();
+//            mCurInfo.getmMatrix().postTranslate(rightLimit - mCurInfo.getmRightPoint(), 0);
+//            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+//            invalidate();
+////            mCurInfo.setmTranslateX(mCurInfo.getmTranslateX() + (rightLimit - mCurInfo.getmRightPoint()));
+//        }
         if (mCurInfo.getmTopPoint() > topLimit){
-            mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(0, topLimit - mCurInfo.getmTopPoint());
-            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-            invalidate();
-            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (topLimit - mCurInfo.getmTopPoint()));
-        }
-        if (mCurInfo.getmBottomPoint() < bottomLimit){
-            mCurInfo.getmMatrix().reset();
-            mCurInfo.getmMatrix().postTranslate(0, bottomLimit - mCurInfo.getmBottomPoint());
-            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-            invalidate();
-            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (bottomLimit - mCurInfo.getmBottomPoint()));
-        }
+            LogUtil.i(TAG,"当前上边点："+mCurInfo.getmTopPoint());
+            LogUtil.d(TAG,"上边临界点："+topLimit);
+            LogUtil.w(TAG,"两者相减：（当前矩阵的平移信息）"+(topLimit - mCurInfo.getmTopPoint()));
+            LogUtil.v(TAG,"上一矩阵的平移信息"+mLastInfo.getmTranslateY());
 
-//        mCurInfo.setmTopPoint(topLimit);
-//        mCurInfo.setmLeftPoint(leftLimit);
-//        mCurInfo.setmRightPoint(rightLimit);
-//        mCurInfo.setmBottomPoint(bottomLimit);
-
+//            mCurInfo.getmMatrix().reset();
+//            mCurInfo.getmMatrix().postTranslate(0, topLimit - mCurInfo.getmTopPoint());
+//            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+//            invalidate();
+//            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (topLimit - mCurInfo.getmTopPoint()));
+        }
+//        if (mCurInfo.getmBottomPoint() < bottomLimit){
+//            mCurInfo.getmMatrix().reset();
+//            mCurInfo.getmMatrix().postTranslate(0, bottomLimit - mCurInfo.getmBottomPoint());
+//            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
+//            invalidate();
+////            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (bottomLimit - mCurInfo.getmBottomPoint()));
+//        }
         setPointValue();
-    }
-
-
-    /**
-     * 平移回弹
-     * @deprecated
-     */
-    private void test(){
-        //区分高度铺满和宽度铺满
-        // TODO: 2020/7/1
-        //先测试宽度铺满！！！！！
-        float startX = 0;
-        float startY = 0;
-        float endX = 0;
-        float endY = 0;
-        ValueAnimator animY;
-        ValueAnimator animX;
-        AnimatorSet animatorSet = new AnimatorSet();
-        if (mCurInfo.getmLeftPoint() > mInitInfo.getmLeftPoint()){
-            startX = 0 - mCurInfo.getmLeftPoint();
-            endX = mInitInfo.getmLeftPoint();
-        }
-        if (mCurInfo.getmRightPoint() < mInitInfo.getmRightPoint()){
-            startX = mCurInfo.getmRightPoint();
-            endX = mInitInfo.getmRightPoint();
-        }
-        if (mCurInfo.getmTopPoint() > mInitInfo.getmTopPoint()){
-            startY = 0 - mCurInfo.getmTopPoint();
-            endY = mInitInfo.getmTopPoint();
-        }
-        if (mCurInfo.getmBottomPoint() < mInitInfo.getmBottomPoint()){
-            startY = mCurInfo.getmBottomPoint();
-            endY = mInitInfo.getmBottomPoint();
-        }
-        animX = ValueAnimator.ofFloat(startX,endX);
-        animY = ValueAnimator.ofFloat(startY,endY);
-        animatorSet.setDuration(ANIMATION_DURATION);
-        animatorSet.setInterpolator(new LinearInterpolator());
-        animatorSet.playTogether(animX);
-        animatorSet.start();
-
-        float finalStartX = startX;
-        float finalStartY = startY;
-        animX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                mCurInfo.getmMatrix().reset();
-                mCurInfo.getmMatrix().postTranslate(finalStartX, (float) animation.getAnimatedValue());
-                mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-                invalidate();
-            }
-        });
-
-        animY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                mCurInfo.getmMatrix().reset();
-                mCurInfo.getmMatrix().postTranslate(finalStartY, (Float) animation.getAnimatedValue());
-                mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
-                invalidate();
-            }
-        });
-
-
     }
 
 
@@ -615,7 +555,6 @@ public class ImageViewer3 extends View {
 //        LogUtil.v(TAG,"重新设置 ！ 缩放比例："+mCurInfo.getmScale() + " ， 比例相除："+mCurInfo.getmScale()/mInitInfo.getmScale());
 //        LogUtil.d(TAG,"初始化 ! 后四条边中点左边 = 左："+mCurInfo.getmLeftPoint()+", 上："+mCurInfo.getmTopPoint()+", 右："
 //                +mCurInfo.getmRightPoint()+", 下："+mCurInfo.getmBottomPoint()+", ");
-//        LogUtil.d(TAG,"重新设置后中点坐标："+mCurInfo.getmCenterPointX()+", "+mCurInfo.getmCenterPointY());
 //        LogUtil.w(TAG,"重新设置 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
 //        LogUtil.d(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
 //                +" ， 右上 = "+mCurInfo.getmTopRight_X()+"， "+mCurInfo.getmTopRight_Y()
