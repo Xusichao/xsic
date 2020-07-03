@@ -68,6 +68,10 @@ public class ImageViewer4 extends View {
     private boolean isFullHeight = false;           //true：高度铺满     false：宽度铺满
     private boolean isShortSideTouchScreen = false; //短的一边是否被放大到接触屏幕
 
+    //左上角坐标
+    private float mTopLeft_X;
+    private float mTopLeft_Y;
+
     public ImageViewer4(Context context) {
         this(context,null,0);
     }
@@ -170,6 +174,7 @@ public class ImageViewer4 extends View {
         mGestureDetector.onTouchEvent(event);
         switch (event.getAction() & MotionEvent.ACTION_MASK){
             case MotionEvent.ACTION_DOWN:
+                isDoubleFinger = false;
                 mTouchX = event.getX();
                 mTouchY = event.getY();
                 mDownX = event.getX();
@@ -178,7 +183,9 @@ public class ImageViewer4 extends View {
 
             case MotionEvent.ACTION_OUTSIDE:
             case MotionEvent.ACTION_UP:
-                setmLastMatrix();
+                if (!isDoubleFinger){
+                    setmLastMatrix();
+                }
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -187,14 +194,20 @@ public class ImageViewer4 extends View {
                     mDown_1_Y = event.getY(0);
                     mDown_2_X = event.getX(1);
                     mDown_2_Y = event.getY(1);
+
+                    zoom();
                 }else {
-                    mDownX = event.getX();
-                    mDownY = event.getY();
-                    translate();
+                    if (!isDoubleFinger){
+                        mDownX = event.getX();
+                        mDownY = event.getY();
+
+                        translate();
+                    }
                 }
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
+                isDoubleFinger = true;
                 mTouch_1_X = event.getX(0);
                 mTouch_1_Y = event.getY(0);
                 mTouch_2_X = event.getX(1);
@@ -207,6 +220,7 @@ public class ImageViewer4 extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
+                setmLastMatrix();
                 break;
 
             default:break;
@@ -225,14 +239,39 @@ public class ImageViewer4 extends View {
         mCurMatrix.postTranslate(curTranslateX - lastTranslateX , curTranslateY - lastTranslateY);
         mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
         invalidate();
+        setTopLeft();
 
     }
 
     private void zoom(){
+        //首次接触屏幕时的双指距离
+        float distanceOf2PointFirstTouch = (float) Math.sqrt(Math.pow(mTouch_1_X - mTouch_2_X,2)+Math.pow(mTouch_1_Y - mTouch_2_Y,2));
+        //缩放时不断变化的双指距离
+        float distanceOf2Point = (float) Math.sqrt(Math.pow(mDown_1_X - mDown_2_X,2)+Math.pow(mDown_1_Y - mDown_2_Y,2));
+        if (distanceOf2Point == distanceOf2PointFirstTouch){
+            return;
+        }
+        //首次接触屏幕时的双指中心点，即缩放中心点
+        float zoomCenter_X = (mTouch_1_X + mTouch_2_X)/2f;
+        float zoomCenter_Y = (mTouch_1_Y + mTouch_2_Y)/2f;
 
+        float zoomFactor = distanceOf2Point / distanceOf2PointFirstTouch;
+
+        mCurMatrix.reset();
+        mCurMatrix.postScale(zoomFactor, zoomFactor, zoomCenter_X, zoomCenter_Y);
+        mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
+        invalidate();
+        setTopLeft();
     }
 
-
+    /**
+     * 设置左上角坐标值
+     */
+    private void setTopLeft(){
+        mCurMatrix.getValues(mMatrixValues);
+        mTopLeft_X = mMatrixValues[Matrix.MTRANS_X];
+        mTopLeft_Y = mMatrixValues[Matrix.MTRANS_Y];
+    }
 
 
 
@@ -295,6 +334,7 @@ public class ImageViewer4 extends View {
 
     private void debug(){
         mCurMatrix.getValues(mMatrixValues);
-        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
+//        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
+        LogUtil.d(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
     }
 }
