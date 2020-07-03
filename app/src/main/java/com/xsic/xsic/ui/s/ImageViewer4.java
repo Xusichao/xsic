@@ -44,7 +44,7 @@ public class ImageViewer4 extends View {
     private Matrix mInitMatrix;
     private Matrix mCurMatrix;
     private Matrix mLastMatrix;
-    private Matrix mSupMatrix;
+    private Matrix mSupMatrix;                      //辅助矩阵 ，用于回弹等操作
 
     private float[] mMatrixValues = new float[9];   //存放矩阵信息的数组
 
@@ -202,6 +202,11 @@ public class ImageViewer4 extends View {
         }
     }
 
+    //为 辅助矩阵 赋值
+    private void setmSupMatrix(Matrix matrix){
+        mSupMatrix.set(matrix);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         mGestureDetector.onTouchEvent(event);
@@ -216,6 +221,7 @@ public class ImageViewer4 extends View {
 
             case MotionEvent.ACTION_OUTSIDE:
             case MotionEvent.ACTION_UP:
+                setmSupMatrix(mCurMatrix);
                 if (!isDoubleFinger){
                     setmLastMatrix();
                 }
@@ -330,7 +336,24 @@ public class ImageViewer4 extends View {
         float bottomRightLimit_X = 0;
         float bottomRightLimit_Y = 0;
         if (isWeakSideTouchScreen){
-
+            topLeftLimit_X = 0;
+            topLeftLimit_Y = 0;
+            topRightLimit_X = ScreenUtil.getScreenWidth();
+            topRightLimit_Y = 0;
+            bottomRightLimit_X = ScreenUtil.getScreenWidth();
+            bottomRightLimit_Y = ScreenUtil.getScreenWidth();
+            bottomLeftLimit_X = 0;
+            bottomLeftLimit_Y = ScreenUtil.getScreenHeight();
+        }else {
+            mSupMatrix.getValues(mMatrixValues);
+            topLeftLimit_X = mMatrixValues[Matrix.MTRANS_X];
+            topLeftLimit_Y = mMatrixValues[Matrix.MTRANS_Y];
+            topRightLimit_X = mTopLeft_X + mBitmapWidth;
+            topRightLimit_Y = topLeftLimit_Y;
+            bottomRightLimit_X = topLeftLimit_X + mBitmapWidth;
+            bottomRightLimit_Y = topLeftLimit_Y + mBitmapHeight;
+            bottomLeftLimit_X = topLeftLimit_X;
+            bottomLeftLimit_Y = topLeftLimit_Y + mBitmapHeight;
         }
     }
 
