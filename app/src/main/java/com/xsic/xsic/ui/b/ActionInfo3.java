@@ -12,7 +12,7 @@ public class ActionInfo3 {
     private float mTranslateX;              //x轴平移量
     private float mTranslateY;              //y轴平移量
 
-    //不包括初始偏移量
+    //减去初始位置的偏移后，整个过程的偏移之和
     private float tempTranslateX;
     private float tempTranslateY;
 
