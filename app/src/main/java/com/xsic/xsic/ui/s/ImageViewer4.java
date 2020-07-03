@@ -1,5 +1,7 @@
 package com.xsic.xsic.ui.s;
 
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -318,7 +320,10 @@ public class ImageViewer4 extends View {
 
     private void springBack(){
         mCurMatrix.getValues(mMatrixValues);
-        // 4个顶点坐标
+        //松手时的坐标：
+
+
+        // 当前4个顶点坐标
         float mTopRight_X = mTopLeft_X + mBitmapWidth;
         float mTopRight_Y = mTopLeft_Y;
         float mBottomRight_X = mTopLeft_X + mBitmapWidth;
@@ -355,6 +360,23 @@ public class ImageViewer4 extends View {
             bottomLeftLimit_X = topLeftLimit_X;
             bottomLeftLimit_Y = topLeftLimit_Y + mBitmapHeight;
         }
+
+        ValueAnimator animatorX;
+        ValueAnimator animatorY;
+        AnimatorSet animatorSet;
+
+        float animationValue_X = 0;
+        float animationValue_Y = 0;
+
+        if (mTopLeft_X > topLeftLimit_X){
+            animationValue_X += mTopLeft_X - topLeftLimit_X;
+        }
+        if (mTopLeft_Y > topLeftLimit_Y){
+            animationValue_Y += mTopLeft_Y - topLeftLimit_Y;
+        }
+        // TODO: 2020/7/3
+
+
     }
 
 
