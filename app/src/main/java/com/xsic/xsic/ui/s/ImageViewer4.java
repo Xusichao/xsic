@@ -72,6 +72,8 @@ public class ImageViewer4 extends View {
     private float mTopLeft_X;
     private float mTopLeft_Y;
 
+    private float mInitBitmapHeight;
+    private float mInitBitmapWidth;
     private float mBitmapHeight;
     private float mBitmapWidth;
 
@@ -159,6 +161,9 @@ public class ImageViewer4 extends View {
         mInitMatrix.postRotate(initRoate);
         invalidate();
 
+
+        mInitBitmapHeight = initHeight;
+        mInitBitmapWidth = initWidth;
         setmBitmapSize(initHeight, initWidth);
     }
 
@@ -177,6 +182,24 @@ public class ImageViewer4 extends View {
     private void setmBitmapSize(float height, float width){
         mBitmapHeight = height;
         mBitmapWidth = width;
+    }
+
+    private void setIsWeakSideTouchedScreen(){
+        mCurMatrix.getValues(mMatrixValues);
+        float curZoomFactor = mMatrixValues[Matrix.MSCALE_X];
+        if (isFullHeight){
+            if (curZoomFactor/SCALE_RATIO >= ScreenUtil.getScreenWidth()/mInitBitmapWidth){
+                isWeakSideTouchScreen = true;
+            }else {
+                isWeakSideTouchScreen = false;
+            }
+        }else {
+            if (curZoomFactor/SCALE_RATIO >= ScreenUtil.getScreenHeight()/mInitBitmapHeight){
+                isWeakSideTouchScreen = true;
+            }else {
+                isWeakSideTouchScreen = false;
+            }
+        }
     }
 
     @Override
@@ -274,6 +297,8 @@ public class ImageViewer4 extends View {
 
         setTopLeft();
         setmBitmapSize(mBitmap.getHeight() * SCALE_RATIO * zoomFactor, mBitmap.getWidth() * SCALE_RATIO * zoomFactor);
+        setIsWeakSideTouchedScreen();
+        LogUtil.d(TAG,isWeakSideTouchScreen+"");
     }
 
     /**
@@ -287,7 +312,13 @@ public class ImageViewer4 extends View {
 
     private void springBack(){
         mCurMatrix.getValues(mMatrixValues);
-        //float mTopRight_X =
+        float mTopRight_X = mTopLeft_X + mBitmapWidth;
+        float mTopRight_Y = mTopLeft_Y;
+        float mBottomRight_X = mTopLeft_X + mBitmapWidth;
+        float mBottomRight_Y = mTopLeft_Y + mBitmapHeight;
+        float mBottomLeft_X = mTopLeft_X;
+        float mBottomLeft_Y = mTopLeft_Y + mBitmapHeight;
+
     }
 
 
