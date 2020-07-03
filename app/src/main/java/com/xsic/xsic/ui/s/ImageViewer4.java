@@ -312,6 +312,7 @@ public class ImageViewer4 extends View {
 
     private void springBack(){
         mCurMatrix.getValues(mMatrixValues);
+        // 4个顶点坐标
         float mTopRight_X = mTopLeft_X + mBitmapWidth;
         float mTopRight_Y = mTopLeft_Y;
         float mBottomRight_X = mTopLeft_X + mBitmapWidth;
@@ -319,6 +320,18 @@ public class ImageViewer4 extends View {
         float mBottomLeft_X = mTopLeft_X;
         float mBottomLeft_Y = mTopLeft_Y + mBitmapHeight;
 
+        // 边界点
+        float topLeftLimit_X = 0;
+        float topLeftLimit_Y = 0;
+        float topRightLimit_X = 0;
+        float topRightLimit_Y = 0;
+        float bottomLeftLimit_X = 0;
+        float bottomLeftLimit_Y = 0;
+        float bottomRightLimit_X = 0;
+        float bottomRightLimit_Y = 0;
+        if (isWeakSideTouchScreen){
+
+        }
     }
 
 
