@@ -223,8 +223,11 @@ public class ImageViewer4 extends View {
 
             case MotionEvent.ACTION_OUTSIDE:
             case MotionEvent.ACTION_UP:
-                setmSupMatrix(mCurMatrix);
                 if (!isDoubleFinger){
+                    /**
+                     * 【辅助矩阵】存的是【上一操作】的矩阵信息
+                     */
+                    setmSupMatrix(mLastMatrix);
                     setmLastMatrix();
                 }
                 break;
@@ -319,11 +322,7 @@ public class ImageViewer4 extends View {
     }
 
     private void springBack(){
-        mCurMatrix.getValues(mMatrixValues);
-        //松手时的坐标：
-
-
-        // 当前4个顶点坐标
+        // 松手时4个顶点坐标
         float mTopRight_X = mTopLeft_X + mBitmapWidth;
         float mTopRight_Y = mTopLeft_Y;
         float mBottomRight_X = mTopLeft_X + mBitmapWidth;
