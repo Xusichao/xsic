@@ -66,11 +66,14 @@ public class ImageViewer4 extends View {
 
     private boolean isDoubleFinger = false;         //是否双指操作
     private boolean isFullHeight = false;           //true：高度铺满     false：宽度铺满
-    private boolean isShortSideTouchScreen = false; //短的一边是否被放大到接触屏幕
+    private boolean isWeakSideTouchScreen = false;  //短的一边是否被放大到接触屏幕
 
     //左上角坐标
     private float mTopLeft_X;
     private float mTopLeft_Y;
+
+    private float mBitmapHeight;
+    private float mBitmapWidth;
 
     public ImageViewer4(Context context) {
         this(context,null,0);
@@ -155,6 +158,8 @@ public class ImageViewer4 extends View {
         mInitMatrix.postTranslate(initTranslateX,initTranslateY);
         mInitMatrix.postRotate(initRoate);
         invalidate();
+
+        setmBitmapSize(initHeight, initWidth);
     }
 
     @Override
@@ -167,6 +172,11 @@ public class ImageViewer4 extends View {
     private void setmLastMatrix(){
         mCurMatrix.getValues(mMatrixValues);
         mLastMatrix.setValues(mMatrixValues);
+    }
+
+    private void setmBitmapSize(float height, float width){
+        mBitmapHeight = height;
+        mBitmapWidth = width;
     }
 
     @Override
@@ -261,7 +271,9 @@ public class ImageViewer4 extends View {
         mCurMatrix.postScale(zoomFactor, zoomFactor, zoomCenter_X, zoomCenter_Y);
         mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
         invalidate();
+
         setTopLeft();
+        setmBitmapSize(mBitmap.getHeight() * SCALE_RATIO * zoomFactor, mBitmap.getWidth() * SCALE_RATIO * zoomFactor);
     }
 
     /**
@@ -273,6 +285,10 @@ public class ImageViewer4 extends View {
         mTopLeft_Y = mMatrixValues[Matrix.MTRANS_Y];
     }
 
+    private void springBack(){
+        mCurMatrix.getValues(mMatrixValues);
+        //float mTopRight_X =
+    }
 
 
 
@@ -335,6 +351,7 @@ public class ImageViewer4 extends View {
     private void debug(){
         mCurMatrix.getValues(mMatrixValues);
 //        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
-        LogUtil.d(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
+//        LogUtil.d(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
+        LogUtil.w(TAG,"Bitmap的宽度： " + mBitmapWidth + "  ,  Bitmap的高度： " + mBitmapHeight);
     }
 }
