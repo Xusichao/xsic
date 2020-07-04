@@ -15,6 +15,7 @@ import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -78,6 +79,10 @@ public class ImageViewer4 extends View {
     private float mInitBitmapWidth;
     private float mBitmapHeight;
     private float mBitmapWidth;
+
+    //放大过程中产生的净偏移量
+    private float zoomOffset_X;
+    private float zoomOffset_Y;
 
     public ImageViewer4(Context context) {
         this(context,null,0);
@@ -224,10 +229,7 @@ public class ImageViewer4 extends View {
             case MotionEvent.ACTION_OUTSIDE:
             case MotionEvent.ACTION_UP:
                 if (!isDoubleFinger){
-                    /**
-                     * 【辅助矩阵】存的是【上一操作】的矩阵信息
-                     */
-                    setmSupMatrix(mLastMatrix);
+                    springBack();
                     setmLastMatrix();
                 }
                 break;
@@ -251,6 +253,8 @@ public class ImageViewer4 extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
+                LogUtil.i(TAG,"未放大前： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
+
                 isDoubleFinger = true;
                 mTouch_1_X = event.getX(0);
                 mTouch_1_Y = event.getY(0);
@@ -309,7 +313,15 @@ public class ImageViewer4 extends View {
         setTopLeft();
         setmBitmapSize(mBitmap.getHeight() * SCALE_RATIO * zoomFactor, mBitmap.getWidth() * SCALE_RATIO * zoomFactor);
         setIsWeakSideTouchedScreen();
-        LogUtil.d(TAG,isWeakSideTouchScreen+"");
+    }
+
+    /**
+     * 设置放大过程中产生的净偏移量
+     * 用来改变四个顶点
+     * @deprecated
+     */
+    private void setZoomOffset(){
+        // TODO: 2020/7/5
     }
 
     /**
@@ -321,6 +333,10 @@ public class ImageViewer4 extends View {
         mTopLeft_Y = mMatrixValues[Matrix.MTRANS_Y];
     }
 
+    /**
+     * 思路：松开手时，从当前位置的顶点移动到上一位置的顶点
+     * 当前位置：已在一开始得到四个顶点位置
+     */
     private void springBack(){
         // 松手时4个顶点坐标
         float mTopRight_X = mTopLeft_X + mBitmapWidth;
@@ -349,32 +365,101 @@ public class ImageViewer4 extends View {
             bottomLeftLimit_X = 0;
             bottomLeftLimit_Y = ScreenUtil.getScreenHeight();
         }else {
-            mSupMatrix.getValues(mMatrixValues);
-            topLeftLimit_X = mMatrixValues[Matrix.MTRANS_X];
-            topLeftLimit_Y = mMatrixValues[Matrix.MTRANS_Y];
-            topRightLimit_X = mTopLeft_X + mBitmapWidth;
-            topRightLimit_Y = topLeftLimit_Y;
-            bottomRightLimit_X = topLeftLimit_X + mBitmapWidth;
-            bottomRightLimit_Y = topLeftLimit_Y + mBitmapHeight;
-            bottomLeftLimit_X = topLeftLimit_X;
-            bottomLeftLimit_Y = topLeftLimit_Y + mBitmapHeight;
+            if (mBitmapHeight == ScreenUtil.getScreenHeight() || mBitmapWidth == ScreenUtil.getScreenWidth()){
+                //相当于放大倍数为1.0时
+                mLastMatrix.getValues(mMatrixValues);
+                topLeftLimit_X = mMatrixValues[Matrix.MTRANS_X];
+                topLeftLimit_Y = mMatrixValues[Matrix.MTRANS_Y];
+                topRightLimit_X = topLeftLimit_X + mBitmapWidth;
+                topRightLimit_Y = topLeftLimit_Y;
+                bottomRightLimit_X = topLeftLimit_X + mBitmapWidth;
+                bottomRightLimit_Y = topLeftLimit_Y + mBitmapHeight;
+                bottomLeftLimit_X = topLeftLimit_X;
+                bottomLeftLimit_Y = topLeftLimit_Y + mBitmapHeight;
+            }
+            if (mBitmapWidth > ScreenUtil.getScreenWidth()){
+                //图片宽度大于屏幕，有平移的空间
+                mLastMatrix.getValues(mMatrixValues);
+                topLeftLimit_X = 0;
+                topLeftLimit_Y = mMatrixValues[Matrix.MTRANS_Y];
+                topRightLimit_X = ScreenUtil.getScreenWidth();
+                topRightLimit_Y = topLeftLimit_Y;
+                bottomRightLimit_X = ScreenUtil.getScreenWidth();
+                bottomRightLimit_Y = topLeftLimit_Y + mBitmapHeight;
+                bottomLeftLimit_X = 0;
+                bottomLeftLimit_Y = topLeftLimit_Y + mBitmapHeight;
+            }
+            if (mBitmapHeight > ScreenUtil.getScreenHeight()){
+                //图片高度大于屏幕，有平移的空间
+                mLastMatrix.getValues(mMatrixValues);
+                topLeftLimit_X = mMatrixValues[Matrix.MTRANS_X];
+                topLeftLimit_Y = 0;
+                topRightLimit_X = topLeftLimit_X + mBitmapWidth;
+                topRightLimit_Y = 0;
+                bottomRightLimit_X = topLeftLimit_X + mBitmapWidth;
+                bottomRightLimit_Y = ScreenUtil.getScreenHeight();
+                bottomLeftLimit_X = topLeftLimit_X;
+                bottomLeftLimit_Y = ScreenUtil.getScreenHeight();
+            }
         }
 
         ValueAnimator animatorX;
         ValueAnimator animatorY;
-        AnimatorSet animatorSet;
+        AnimatorSet animatorSet = new AnimatorSet();
 
         float animationValue_X = 0;
         float animationValue_Y = 0;
 
         if (mTopLeft_X > topLeftLimit_X){
-            animationValue_X += mTopLeft_X - topLeftLimit_X;
+            animationValue_X = topLeftLimit_X - mTopLeft_X;
         }
         if (mTopLeft_Y > topLeftLimit_Y){
-            animationValue_Y += mTopLeft_Y - topLeftLimit_Y;
+            animationValue_Y = topLeftLimit_Y - mTopLeft_Y;
         }
-        // TODO: 2020/7/3
+        if (mTopRight_X < topRightLimit_X){
+            animationValue_X = topRightLimit_X - mTopRight_X;
+        }
+        if (mTopRight_Y > topRightLimit_Y){
+            animationValue_Y = topRightLimit_Y - mTopRight_Y;
+        }
+        if (mBottomRight_X < bottomRightLimit_X){
+            animationValue_X = bottomRightLimit_X - mBottomRight_X;
+        }
+        if (mBottomRight_Y < bottomRightLimit_Y){
+            animationValue_Y = bottomRightLimit_Y - mBottomRight_Y;
+        }
+        if (mBottomLeft_X > bottomLeftLimit_X){
+            animationValue_X = bottomLeftLimit_X - mBottomLeft_X;
+        }
+        if (mBottomLeft_Y < bottomLeftLimit_Y){
+            animationValue_Y = bottomLeftLimit_Y - mBottomLeft_Y;
+        }
+        mCurMatrix.postTranslate(animationValue_X,animationValue_Y);
+        invalidate();
 
+//        animatorX = ValueAnimator.ofFloat(mTopLeft_X,topLeftLimit_X);// TODO: 2020/7/5 这里错了
+//        animatorY = ValueAnimator.ofFloat(mTopLeft_Y,topLeftLimit_Y);
+//        animatorSet.setDuration(ANIMATION_DURATION);
+//        animatorSet.setInterpolator(new LinearInterpolator());
+//        animatorSet.playTogether(animatorX);// TODO: 2020/7/5
+//        //animatorSet.start();
+//
+//        animatorX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+//            @Override
+//            public void onAnimationUpdate(ValueAnimator animation) {
+//                mCurMatrix.reset();
+//                mCurMatrix.setTranslate((float) animation.getAnimatedValue(), 0);
+//                mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
+//                invalidate();
+//            }
+//        });
+//        animatorY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+//            @Override
+//            public void onAnimationUpdate(ValueAnimator animation) {
+////                mCurMatrix.postTranslate((float) animation.getAnimatedValue(), 0);
+////                invalidate();
+//            }
+//        });
 
     }
 
@@ -438,8 +523,8 @@ public class ImageViewer4 extends View {
 
     private void debug(){
         mCurMatrix.getValues(mMatrixValues);
-//        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
+        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
 //        LogUtil.d(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
-        LogUtil.w(TAG,"Bitmap的宽度： " + mBitmapWidth + "  ,  Bitmap的高度： " + mBitmapHeight);
+//        LogUtil.w(TAG,"Bitmap的宽度： " + mBitmapWidth + "  ,  Bitmap的高度： " + mBitmapHeight);
     }
 }
