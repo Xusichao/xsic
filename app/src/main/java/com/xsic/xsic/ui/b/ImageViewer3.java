@@ -17,6 +17,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -61,6 +62,8 @@ public class ImageViewer3 extends View {
     private boolean isTwoFinger = false;        //是否是两根手指，用于区分move操作
     private boolean isFullHeight = false;       //是否高度铺满
     private boolean isWeakSideTouchedScreen = false;    //比屏幕小的一端是否已经放大到接触屏幕
+
+    private ImageView imageView;
 
     public ImageViewer3(Context context) {
         this(context,null,0);
@@ -244,9 +247,6 @@ public class ImageViewer3 extends View {
                 if (!isTwoFinger){
                     //回弹
 
-//                    mTempInfo.setmTranslateX(mLastInfo.getmTranslateX());
-//                    mTempInfo.setmTranslateY(mLastInfo.getmTranslateY());
-//
 //                    mTempInfo.setmTopLeft(mLastInfo.getmTopLeft_X(),mLastInfo.getmTopLeft_Y());
 //                    mTempInfo.setmTopRight(mLastInfo.getmTopRight_X(),mLastInfo.getmTopRight_Y());
 //                    mTempInfo.setmBottomRight(mLastInfo.getmBottomRight_X(),mLastInfo.getmBottomRight_Y());
@@ -257,12 +257,9 @@ public class ImageViewer3 extends View {
 //                    mTempInfo.setmBottomPoint(mLastInfo.getmBottomPoint());
 //                    mTempInfo.setmLeftPoint(mLastInfo.getmLeftPoint());
 
-                    //通过临时对象保留矩阵信息
-                    //mTempInfo.getmMatrix().set(mLastInfo.getmMatrix());
-
-                    //setCurInfoToLastInfo();
+//                    setCurInfoToLastInfo();
                     //translatePointSpringBack();
-                    translateLineSpringBack();
+                    //translateLineSpringBack();
                     setCurInfoToLastInfo();
                 }
                 break;
@@ -358,13 +355,16 @@ public class ImageViewer3 extends View {
         mCurInfo.setmTranslateX(mLastInfo.getmTranslateX() + (finger_1_X - mCurInfo.getmTouchX()));
         mCurInfo.setmTranslateY(mLastInfo.getmTranslateY() + (finger_1_Y - mCurInfo.getmTouchY()));
         setPointValue();
-        LogUtil.w(TAG,"平移："+mCurInfo.getmTranslateY());
 
         mCurInfo.getmMatrix().reset();
         mCurInfo.getmMatrix().postTranslate(mCurInfo.getmTranslateX() - mLastInfo.getmTranslateX(),
                 mCurInfo.getmTranslateY() - mLastInfo.getmTranslateY());
         mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
         invalidate();
+
+//        float values[] = new float[9];
+//        mCurInfo.getmMatrix().getValues(values);
+//        LogUtil.w(TAG,"在translate中计算的偏移量："+mCurInfo.getmTranslateY()+"，在Matrix中得到的偏移量："+values[Matrix.MTRANS_Y]);
     }
 
 
@@ -452,8 +452,8 @@ public class ImageViewer3 extends View {
                 leftLimit = 0;
                 rightLimit = ScreenUtil.getScreenWidth();
             }else {
-                leftLimit = mTempInfo.getmLeftPoint();
-                rightLimit = mTempInfo.getmRightPoint();
+                leftLimit = mLastInfo.getmLeftPoint();
+                rightLimit = mLastInfo.getmRightPoint();
             }
         }else {
             //宽度铺满
@@ -475,36 +475,29 @@ public class ImageViewer3 extends View {
 //        }
 //        if (mCurInfo.getmRightPoint() < rightLimit){
 //            mCurInfo.getmMatrix().reset();
-////            mCurInfo.getmMatrix().postTranslate(rightLimit - mCurInfo.getmRightPoint(), 0);
+//            mCurInfo.getmMatrix().postTranslate(rightLimit - mCurInfo.getmRightPoint(), 0);
 //            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
 //            invalidate();
 ////            mCurInfo.setmTranslateX(mCurInfo.getmTranslateX() + (rightLimit - mCurInfo.getmRightPoint()));
 //        }
-        LogUtil.e(TAG,mCurInfo.getmTranslateY()+"");
-        LogUtil.e(TAG,topLimit+"");
-        LogUtil.e(TAG,mCurInfo.getmTopPoint()+"");
-        LogUtil.e(TAG,(mCurInfo.getmTranslateY() + (topLimit - mCurInfo.getmTopPoint()))+"");
         if (mCurInfo.getmTopPoint() > topLimit){
-            mCurInfo.getmMatrix().postTranslate(0, topLimit - mCurInfo.getmTopPoint());
+            LogUtil.i(TAG,"当前上边点："+mCurInfo.getmTopPoint());
+            LogUtil.d(TAG,"上边临界点："+topLimit);
+            LogUtil.w(TAG,"两者相减：（当前矩阵的平移信息）"+(topLimit - mCurInfo.getmTopPoint()));
+            LogUtil.v(TAG,"上一矩阵的平移信息"+mLastInfo.getmTranslateY());
+//
+            mCurInfo.getmMatrix().postTranslate(0, -(mCurInfo.getmTopPoint() - topLimit));
             invalidate();
 //            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (topLimit - mCurInfo.getmTopPoint()));
         }
 //        if (mCurInfo.getmBottomPoint() < bottomLimit){
 //            mCurInfo.getmMatrix().reset();
-////            mCurInfo.getmMatrix().postTranslate(0, bottomLimit - mCurInfo.getmBottomPoint());
+//            mCurInfo.getmMatrix().postTranslate(0, bottomLimit - mCurInfo.getmBottomPoint());
 //            mCurInfo.getmMatrix().setConcat(mCurInfo.getmMatrix(),mLastInfo.getmMatrix());
 //            invalidate();
 ////            mCurInfo.setmTranslateY(mCurInfo.getTempTranslateY() + (bottomLimit - mCurInfo.getmBottomPoint()));
 //        }
         setPointValue();
-
-        LogUtil.d(TAG,"初始化 ! 后四条边中点左边 = 左："+mCurInfo.getmLeftPoint()+", 上："+mCurInfo.getmTopPoint()+", 右："
-                +mCurInfo.getmRightPoint()+", 下："+mCurInfo.getmBottomPoint()+", ");
-
-//        LogUtil.i(TAG,"当前上边点："+mCurInfo.getmTopPoint());
-//        LogUtil.d(TAG,"上边临界点："+topLimit);
-//        LogUtil.w(TAG,"两者相减：（当前矩阵的平移信息）"+(topLimit - mCurInfo.getmTopPoint()));
-//        LogUtil.v(TAG,"上一矩阵的平移信息"+mTempInfo.getmTranslateY());
     }
 
 
@@ -517,8 +510,6 @@ public class ImageViewer3 extends View {
      */
     private void setPointValue(){
 
-//        LogUtil.e(TAG,(mLastInfo.getmTopLeft_X()+(mCurInfo.getTempTranslateX()-mLastInfo.getTempTranslateX()))+"");
-
         float values[] = new float[9];
         mCurInfo.getmMatrix().getValues(values);
         //这个偏移量包含了初始偏移，所以计算时需要减去初始偏移
@@ -528,8 +519,8 @@ public class ImageViewer3 extends View {
         mCurInfo.setTempTranslateY(tempTranslateY);
 
         //1、设置图片大小
-        mCurInfo.setmBitmapWidth(mInitInfo.getmBitmapWidth()*(mCurInfo.getmRealScale()/mInitInfo.getmRealScale()));
-        mCurInfo.setmBitmapHeight(mInitInfo.getmBitmapHeight()*(mCurInfo.getmRealScale()/mInitInfo.getmRealScale()));
+        mCurInfo.setmBitmapWidth(mInitInfo.getmBitmapWidth()*mCurInfo.getmScale());
+        mCurInfo.setmBitmapHeight(mInitInfo.getmBitmapHeight()*mCurInfo.getmScale());
 
         //2、设置四个顶点坐标
         mCurInfo.setmTopLeft(mLastInfo.getmTopLeft_X()+(mCurInfo.getTempTranslateX()-mLastInfo.getTempTranslateX()) ,
@@ -555,8 +546,8 @@ public class ImageViewer3 extends View {
 //        LogUtil.i(TAG,"原始："+values[Matrix.MTRANS_X]+"，"+values[Matrix.MTRANS_Y]);
 //        LogUtil.d(TAG,"偏移："+tempTranslateX+"，"+tempTranslateY);
 //        LogUtil.i(TAG,"产生的临时偏移量："+tempTranslateX+", "+tempTranslateY);
-//        LogUtil.v(TAG,"重新设置 ！ 缩放比例："+mCurInfo.getmScale() + " ， 比例相除："+mCurInfo.getmScale()/mInitInfo.getmScale());
-//        LogUtil.d(TAG,"初始化 ! 后四条边中点左边 = 左："+mCurInfo.getmLeftPoint()+", 上："+mCurInfo.getmTopPoint()+", 右："
+//        LogUtil.v(TAG,"重新设置 ！ 缩放比例："+mCurInfo.getmScale() + " ， 图片大小："+mCurInfo.getmBitmapWidth());
+//        LogUtil.d(TAG,"重新设置 ! 后四条边中点左边 = 左："+mCurInfo.getmLeftPoint()+", 上："+mCurInfo.getmTopPoint()+", 右："
 //                +mCurInfo.getmRightPoint()+", 下："+mCurInfo.getmBottomPoint()+", ");
 //        LogUtil.w(TAG,"重新设置 ! 后图片大小："+mCurInfo.getmBitmapWidth()+", "+mCurInfo.getmBitmapHeight());
 //        LogUtil.d(TAG,"重新设置 ! 后四个顶点坐标：左上 = "+mCurInfo.getmTopLeft_X()+"， "+mCurInfo.getmTopLeft_Y()
