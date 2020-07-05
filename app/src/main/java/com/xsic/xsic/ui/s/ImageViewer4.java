@@ -336,6 +336,14 @@ public class ImageViewer4 extends View {
     }
 
     /**
+     * 手动设置左上角坐标值，用于回弹
+     */
+    private void setTopLeftManual(float x, float y){
+        mTopLeft_X = x;
+        mTopLeft_Y = y;
+    }
+
+    /**
      * 思路：松开手时，从当前位置的顶点移动到上一位置的顶点
      * 当前位置：已在一开始得到四个顶点位置
      */
@@ -492,20 +500,14 @@ public class ImageViewer4 extends View {
             if (mTopLeft_Y > initTopLeft_Y){
                 offsetY = initTopLeft_Y - mTopLeft_Y;
             }
-            LogUtil.e(TAG,"要偏移的X轴："+offsetX + "， 要偏移的Y轴："+offsetY);
-//            LogUtil.e(TAG,"原来的X轴："+mMatrixValues[Matrix.MTRANS_X] + "， 原来的Y轴："+mMatrixValues[Matrix.MTRANS_Y]);
             mCurMatrix.postTranslate(offsetX, offsetY);
+            setTopLeftManual(initTopLeft_X,initTopLeft_Y);
         }
-
-        // TODO: 2020/7/6 左上角坐标不对 
-        debug();
 
         //小于1.0后回弹至1.0
         if (curRealZoomFactor < 1f){
             mCurMatrix.postScale(1f/curRealZoomFactor, 1f/curRealZoomFactor);
         }
-//        LogUtil.e(TAG,"被放大后的X轴："+mMatrixValues[Matrix.MTRANS_X] + "， 被放大后的Y轴："+mMatrixValues[Matrix.MTRANS_Y]);
-        debug();
 
         //修正上下边距
         if (!isWeakSideTouchScreen && curRealZoomFactor > 1f){
@@ -515,7 +517,6 @@ public class ImageViewer4 extends View {
                 mCurMatrix.postTranslate(0,translateOffset);
             }
         }
-
         invalidate();
 //        LogUtil.e(TAG,"刷新后的X轴："+mMatrixValues[Matrix.MTRANS_X] + "， 刷新后的Y轴："+mMatrixValues[Matrix.MTRANS_Y]);
 
