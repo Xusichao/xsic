@@ -74,6 +74,8 @@ public class ImageViewer4 extends View {
     //左上角坐标
     private float mTopLeft_X;
     private float mTopLeft_Y;
+    private float initTopLeft_X;
+    private float initTopLeft_Y;
 
     private float mInitBitmapHeight;
     private float mInitBitmapWidth;
@@ -168,7 +170,7 @@ public class ImageViewer4 extends View {
         mInitMatrix.postRotate(initRoate);
         invalidate();
 
-
+        setInitTopLeft();
         mInitBitmapHeight = initHeight;
         mInitBitmapWidth = initWidth;
         setmBitmapSize(initHeight, initWidth);
@@ -253,7 +255,6 @@ public class ImageViewer4 extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
-                LogUtil.i(TAG,"未放大前： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
 
                 isDoubleFinger = true;
                 mTouch_1_X = event.getX(0);
@@ -268,6 +269,7 @@ public class ImageViewer4 extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
+                zoomSpringBack();
                 setmLastMatrix();
                 break;
 
@@ -303,6 +305,7 @@ public class ImageViewer4 extends View {
         float zoomCenter_X = (mTouch_1_X + mTouch_2_X)/2f;
         float zoomCenter_Y = (mTouch_1_Y + mTouch_2_Y)/2f;
 
+        //放大倍数是相对于上一矩阵
         float zoomFactor = distanceOf2Point / distanceOf2PointFirstTouch;
 
         mCurMatrix.reset();
@@ -311,17 +314,16 @@ public class ImageViewer4 extends View {
         invalidate();
 
         setTopLeft();
-        setmBitmapSize(mBitmap.getHeight() * SCALE_RATIO * zoomFactor, mBitmap.getWidth() * SCALE_RATIO * zoomFactor);
+        mCurMatrix.getValues(mMatrixValues);
+        setmBitmapSize(mBitmap.getHeight() * mMatrixValues[Matrix.MSCALE_Y],mBitmap.getWidth() * mMatrixValues[Matrix.MSCALE_X]);
         setIsWeakSideTouchedScreen();
+        debug();
     }
 
-    /**
-     * 设置放大过程中产生的净偏移量
-     * 用来改变四个顶点
-     * @deprecated
-     */
-    private void setZoomOffset(){
-        // TODO: 2020/7/5
+    private void setInitTopLeft(){
+        mInitMatrix.getValues(mMatrixValues);
+        initTopLeft_X = mMatrixValues[Matrix.MTRANS_X];
+        initTopLeft_Y = mMatrixValues[Matrix.MTRANS_Y];
     }
 
     /**
@@ -437,6 +439,8 @@ public class ImageViewer4 extends View {
         mCurMatrix.postTranslate(animationValue_X,animationValue_Y);
         invalidate();
 
+        //创建一个辅助矩阵，进行set平移，再与当前矩阵相乘
+
 //        animatorX = ValueAnimator.ofFloat(mTopLeft_X,topLeftLimit_X);// TODO: 2020/7/5 这里错了
 //        animatorY = ValueAnimator.ofFloat(mTopLeft_Y,topLeftLimit_Y);
 //        animatorSet.setDuration(ANIMATION_DURATION);
@@ -464,7 +468,58 @@ public class ImageViewer4 extends View {
     }
 
 
+    /**
+     * 缩放后的回弹
+     * 1、小于1.0后回弹至1.0
+     * 2、缩小后左上角不在初始位置时，动画平移至初始位置
+     * 3、放大后上下边距与手机屏幕的距离不对称，修正至对称，只有当没有放大到弱边也接触屏幕的时候才需要
+     * PS：注意放大和平移的顺序！！！！
+     */
+    private void zoomSpringBack(){
+        //当前相对于1.0的真实放大倍数
+        mCurMatrix.getValues(mMatrixValues);
+        float curRealZoomFactor = mMatrixValues[Matrix.MSCALE_X] / SCALE_RATIO;
 
+        //缩小后左上角不在初始位置时，动画平移至初始位置
+        //先平移后缩放的话平移量会被缩放，所以直接在值里面除以缩放量
+        if(curRealZoomFactor < 1f){
+            float offsetX = 0;
+            float offsetY = 0;
+            if (mTopLeft_X > initTopLeft_X){
+                offsetX = initTopLeft_X - mTopLeft_X;
+            }
+
+            if (mTopLeft_Y > initTopLeft_Y){
+                offsetY = initTopLeft_Y - mTopLeft_Y;
+            }
+            LogUtil.e(TAG,"要偏移的X轴："+offsetX + "， 要偏移的Y轴："+offsetY);
+//            LogUtil.e(TAG,"原来的X轴："+mMatrixValues[Matrix.MTRANS_X] + "， 原来的Y轴："+mMatrixValues[Matrix.MTRANS_Y]);
+            mCurMatrix.postTranslate(offsetX, offsetY);
+        }
+
+        // TODO: 2020/7/6 左上角坐标不对 
+        debug();
+
+        //小于1.0后回弹至1.0
+        if (curRealZoomFactor < 1f){
+            mCurMatrix.postScale(1f/curRealZoomFactor, 1f/curRealZoomFactor);
+        }
+//        LogUtil.e(TAG,"被放大后的X轴："+mMatrixValues[Matrix.MTRANS_X] + "， 被放大后的Y轴："+mMatrixValues[Matrix.MTRANS_Y]);
+        debug();
+
+        //修正上下边距
+        if (!isWeakSideTouchScreen && curRealZoomFactor > 1f){
+            float mBottomLeftY = mTopLeft_Y + mBitmapHeight;
+            if (mTopLeft_Y != (ScreenUtil.getScreenHeight() - mBottomLeftY)){
+                float translateOffset = ((ScreenUtil.getScreenHeight() - mBottomLeftY) - mTopLeft_Y)/2f;
+                mCurMatrix.postTranslate(0,translateOffset);
+            }
+        }
+
+        invalidate();
+//        LogUtil.e(TAG,"刷新后的X轴："+mMatrixValues[Matrix.MTRANS_X] + "， 刷新后的Y轴："+mMatrixValues[Matrix.MTRANS_Y]);
+
+    }
 
 
 
@@ -523,8 +578,9 @@ public class ImageViewer4 extends View {
 
     private void debug(){
         mCurMatrix.getValues(mMatrixValues);
-        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
-//        LogUtil.d(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
+//        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
+        LogUtil.d(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
 //        LogUtil.w(TAG,"Bitmap的宽度： " + mBitmapWidth + "  ,  Bitmap的高度： " + mBitmapHeight);
+//        LogUtil.w(TAG,"放大倍数："+mMatrixValues[Matrix.MSCALE_X]);
     }
 }
