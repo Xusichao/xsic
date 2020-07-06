@@ -456,7 +456,7 @@ public class ImageViewer4 extends View {
         float curPoint_X = 0;
         float curPoint_Y = 0;
 
-        // TODO: 2020/7/6 这里错 
+        // 不影响，因为左下横坐标和右上纵坐标分别等于左上角x，y，最后指向的点还是左上角
         if (mTopLeft_X > topLeftLimit_X){
             animationValue_X = topLeftLimit_X - mTopLeft_X;
             curPoint_X = mTopLeft_X;
@@ -465,7 +465,7 @@ public class ImageViewer4 extends View {
             animationValue_Y = topLeftLimit_Y - mTopLeft_Y;
             curPoint_Y = mTopLeft_Y;
         }
-        if (mTopRight_X < topRightLimit_X  ){
+        if (mTopRight_X < topRightLimit_X){
             animationValue_X = topRightLimit_X - mTopRight_X;
             curPoint_X = mTopRight_X;
         }
