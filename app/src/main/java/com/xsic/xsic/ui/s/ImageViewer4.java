@@ -294,8 +294,7 @@ public class ImageViewer4 extends View {
     private void translate(){
         if (animatorX!=null && animatorY!=null){
             if (animatorX.isRunning() || animatorY.isRunning()){
-                animatorX.cancel();
-                animatorY.cancel();
+                clearTranslateAnimator();
                 LogUtil.e(TAG,"停不了啊啊啊啊");
             }
         }
@@ -364,6 +363,13 @@ public class ImageViewer4 extends View {
         mTopLeft_Y = y;
     }
 
+    private void clearTranslateAnimator(){
+        animatorX.cancel();
+        animatorY.cancel();
+        animatorX.removeAllUpdateListeners();
+        animatorY.removeAllUpdateListeners();
+    }
+
     /**
      * 思路：松开手时，从当前位置的顶点移动到上一位置的顶点
      * 当前位置：已在一开始得到四个顶点位置
@@ -371,8 +377,7 @@ public class ImageViewer4 extends View {
     private void translateSpringBack(){
         if (animatorX!=null && animatorY!=null){
             if (animatorX.isRunning() || animatorY.isRunning()){
-                animatorX.cancel();
-                animatorY.cancel();
+                clearTranslateAnimator();
             }
         }
         // 松手时4个顶点坐标
@@ -404,15 +409,6 @@ public class ImageViewer4 extends View {
         }else {
             if (mBitmapHeight == ScreenUtil.getScreenHeight() || mBitmapWidth == ScreenUtil.getScreenWidth()){
                 //相当于放大倍数为1.0时
-//                mLastMatrix.getValues(mMatrixValues);
-//                topLeftLimit_X = mMatrixValues[Matrix.MTRANS_X];
-//                topLeftLimit_Y = mMatrixValues[Matrix.MTRANS_Y];
-//                topRightLimit_X = topLeftLimit_X + mBitmapWidth;
-//                topRightLimit_Y = topLeftLimit_Y;
-//                bottomRightLimit_X = topLeftLimit_X + mBitmapWidth;
-//                bottomRightLimit_Y = topLeftLimit_Y + mBitmapHeight;
-//                bottomLeftLimit_X = topLeftLimit_X;
-//                bottomLeftLimit_Y = topLeftLimit_Y + mBitmapHeight;
                 topLeftLimit_X = initTopLeft_X;
                 topLeftLimit_Y = initTopLeft_Y;
                 topRightLimit_X = topLeftLimit_X + mBitmapWidth;
@@ -492,10 +488,6 @@ public class ImageViewer4 extends View {
 //        mCurMatrix.postTranslate(animationValue_X,animationValue_Y);
 //        invalidate();
 
-        i++;
-        LogUtil.e(TAG,"X = 开始："+curPoint_X+"，结束："+(animationValue_X + curPoint_X));
-        LogUtil.e(TAG,"Y = 开始："+curPoint_Y+"，结束："+(animationValue_Y + curPoint_Y));
-
         mSupOffsetX = curPoint_X;
         mSupOffsetY = curPoint_Y;
 
@@ -506,38 +498,26 @@ public class ImageViewer4 extends View {
         animatorSet.playTogether(animatorX,animatorY);
         animatorSet.start();
 
-//        new Handler().postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                animatorX.cancel();
-//                animatorY.cancel();
-//            }
-//        },3000);
-
-
-
         animatorX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-//                LogUtil.d(TAG,"X = "+(float) animation.getAnimatedValue());
+                //LogUtil.d(TAG,"X = "+(float) animation.getAnimatedValue());
                 mCurMatrix.postTranslate((float) animation.getAnimatedValue() - mSupOffsetX, 0);
                 invalidate();
                 mSupOffsetX = (float) animation.getAnimatedValue();
                 //需要不断地设置上一矩阵，防止中断动画的时候发生抖动
                 setmLastMatrix();
-                LogUtil.i(TAG,i+"!!!! ， 当前平移量： X轴 = " + mSupOffsetX);
             }
         });
         animatorY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-//                LogUtil.d(TAG,"Y = "+(float) animation.getAnimatedValue());
+                LogUtil.d(TAG,"这是Y = " + ((float) animation.getAnimatedValue()) + "，" + mSupOffsetY);
                 mCurMatrix.postTranslate(0, (float) animation.getAnimatedValue() - mSupOffsetY);
                 invalidate();
                 mSupOffsetY = (float) animation.getAnimatedValue();
                 //需要不断地设置上一矩阵，防止中断动画的时候发生抖动
                 setmLastMatrix();
-                LogUtil.i(TAG,i+"!!!! ， 当前平移量： Y轴 = " + mSupOffsetX);
             }
         });
 
@@ -547,15 +527,16 @@ public class ImageViewer4 extends View {
             }
             @Override
             public void onAnimationEnd(Animator animation) {
+                ((ValueAnimator)animation).removeAllUpdateListeners();
                 setTopLeftManual(initTopLeft_X,initTopLeft_Y);
                 setmLastMatrix();
-                mSupOffsetX = 0;
-                animation.removeAllListeners();
+                //mSupOffsetX = 0;
             }
             @Override
             public void onAnimationCancel(Animator animation) {
-                mSupOffsetX = 0;
-                animation.removeAllListeners();
+                ((ValueAnimator)animation).removeAllUpdateListeners();
+                setmLastMatrix();
+                //mSupOffsetX = 0;
             }
             @Override
             public void onAnimationRepeat(Animator animation) {}
@@ -566,22 +547,24 @@ public class ImageViewer4 extends View {
             }
             @Override
             public void onAnimationEnd(Animator animation) {
-                setTopLeftManual(initTopLeft_X,initTopLeft_Y);
+                ((ValueAnimator)animation).removeAllUpdateListeners();
+                LogUtil.d(TAG,"你说你妈呢");
                 setmLastMatrix();
-                mSupOffsetY = 0;
-                animation.removeAllListeners();
+                setTopLeftManual(initTopLeft_X,initTopLeft_Y);
+                //mSupOffsetY = 0;
             }
             @Override
             public void onAnimationCancel(Animator animation) {
-                mSupOffsetX = 0;
-                animation.removeAllListeners();
+                ((ValueAnimator)animation).removeAllUpdateListeners();
+                LogUtil.d(TAG,"傻逼");
+                setmLastMatrix();
+                //mSupOffsetX = 0;
+
             }
             @Override
             public void onAnimationRepeat(Animator animation) {}
         });
     }
-
-    private int i = 0;
 
     /**
      * 缩放后的回弹
