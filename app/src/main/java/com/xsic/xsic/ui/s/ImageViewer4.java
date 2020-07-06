@@ -12,6 +12,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -295,6 +296,7 @@ public class ImageViewer4 extends View {
             if (animatorX.isRunning() || animatorY.isRunning()){
                 animatorX.cancel();
                 animatorY.cancel();
+                LogUtil.e(TAG,"停不了啊啊啊啊");
             }
         }
         mLastMatrix.getValues(mMatrixValues);
@@ -302,6 +304,8 @@ public class ImageViewer4 extends View {
         float curTranslateY = mMatrixValues[Matrix.MTRANS_Y] + (mDownY - mTouchY);
         float lastTranslateX = mMatrixValues[Matrix.MTRANS_X];
         float lastTranslateY = mMatrixValues[Matrix.MTRANS_Y];
+
+
 
         mCurMatrix.reset();
         mCurMatrix.postTranslate(curTranslateX - lastTranslateX , curTranslateY - lastTranslateY);
@@ -335,7 +339,6 @@ public class ImageViewer4 extends View {
         mCurMatrix.getValues(mMatrixValues);
         setmBitmapSize(mBitmap.getHeight() * mMatrixValues[Matrix.MSCALE_Y],mBitmap.getWidth() * mMatrixValues[Matrix.MSCALE_X]);
         setIsWeakSideTouchedScreen();
-        debug();
     }
 
     private void setInitTopLeft(){
@@ -366,6 +369,12 @@ public class ImageViewer4 extends View {
      * 当前位置：已在一开始得到四个顶点位置
      */
     private void translateSpringBack(){
+        if (animatorX!=null && animatorY!=null){
+            if (animatorX.isRunning() || animatorY.isRunning()){
+                animatorX.cancel();
+                animatorY.cancel();
+            }
+        }
         // 松手时4个顶点坐标
         float mTopRight_X = mTopLeft_X + mBitmapWidth;
         float mTopRight_Y = mTopLeft_Y;
@@ -447,6 +456,7 @@ public class ImageViewer4 extends View {
         float curPoint_X = 0;
         float curPoint_Y = 0;
 
+        // TODO: 2020/7/6 这里错 
         if (mTopLeft_X > topLeftLimit_X){
             animationValue_X = topLeftLimit_X - mTopLeft_X;
             curPoint_X = mTopLeft_X;
@@ -482,6 +492,10 @@ public class ImageViewer4 extends View {
 //        mCurMatrix.postTranslate(animationValue_X,animationValue_Y);
 //        invalidate();
 
+        i++;
+        LogUtil.e(TAG,"X = 开始："+curPoint_X+"，结束："+(animationValue_X + curPoint_X));
+        LogUtil.e(TAG,"Y = 开始："+curPoint_Y+"，结束："+(animationValue_Y + curPoint_Y));
+
         mSupOffsetX = curPoint_X;
         mSupOffsetY = curPoint_Y;
 
@@ -492,26 +506,38 @@ public class ImageViewer4 extends View {
         animatorSet.playTogether(animatorX,animatorY);
         animatorSet.start();
 
+//        new Handler().postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                animatorX.cancel();
+//                animatorY.cancel();
+//            }
+//        },3000);
+
+
+
         animatorX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                LogUtil.d(TAG,"X = "+(float) animation.getAnimatedValue());
+//                LogUtil.d(TAG,"X = "+(float) animation.getAnimatedValue());
                 mCurMatrix.postTranslate((float) animation.getAnimatedValue() - mSupOffsetX, 0);
                 invalidate();
                 mSupOffsetX = (float) animation.getAnimatedValue();
                 //需要不断地设置上一矩阵，防止中断动画的时候发生抖动
                 setmLastMatrix();
+                LogUtil.i(TAG,i+"!!!! ， 当前平移量： X轴 = " + mSupOffsetX);
             }
         });
         animatorY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                LogUtil.d(TAG,"Y = "+(float) animation.getAnimatedValue());
+//                LogUtil.d(TAG,"Y = "+(float) animation.getAnimatedValue());
                 mCurMatrix.postTranslate(0, (float) animation.getAnimatedValue() - mSupOffsetY);
                 invalidate();
                 mSupOffsetY = (float) animation.getAnimatedValue();
                 //需要不断地设置上一矩阵，防止中断动画的时候发生抖动
                 setmLastMatrix();
+                LogUtil.i(TAG,i+"!!!! ， 当前平移量： Y轴 = " + mSupOffsetX);
             }
         });
 
@@ -529,6 +555,7 @@ public class ImageViewer4 extends View {
             @Override
             public void onAnimationCancel(Animator animation) {
                 mSupOffsetX = 0;
+                animation.removeAllListeners();
             }
             @Override
             public void onAnimationRepeat(Animator animation) {}
@@ -547,12 +574,14 @@ public class ImageViewer4 extends View {
             @Override
             public void onAnimationCancel(Animator animation) {
                 mSupOffsetX = 0;
+                animation.removeAllListeners();
             }
             @Override
             public void onAnimationRepeat(Animator animation) {}
         });
     }
 
+    private int i = 0;
 
     /**
      * 缩放后的回弹
@@ -654,9 +683,10 @@ public class ImageViewer4 extends View {
     };
 
     private void debug(){
-        mCurMatrix.getValues(mMatrixValues);
-//        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
-        LogUtil.d(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
+//        mCurMatrix.getValues(mMatrixValues);
+        mLastMatrix.getValues(mMatrixValues);
+        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
+//        LogUtil.d(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
 //        LogUtil.w(TAG,"Bitmap的宽度： " + mBitmapWidth + "  ,  Bitmap的高度： " + mBitmapHeight);
 //        LogUtil.w(TAG,"放大倍数："+mMatrixValues[Matrix.MSCALE_X]);
     }
