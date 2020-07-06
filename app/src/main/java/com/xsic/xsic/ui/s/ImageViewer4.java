@@ -1,5 +1,6 @@
 package com.xsic.xsic.ui.s;
 
+import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -85,6 +86,17 @@ public class ImageViewer4 extends View {
     //放大过程中产生的净偏移量
     private float zoomOffset_X;
     private float zoomOffset_Y;
+
+    //辅助作用，用于保存动画中上一帧animationValue的值
+    private float mSupOffsetX = 0;
+    private float mSupOffsetY = 0;
+
+    //平移动画
+    ValueAnimator animatorX;
+    ValueAnimator animatorY;
+    AnimatorSet animatorSet = new AnimatorSet();
+
+    private boolean isDoingTranslateAnimation = false;
 
     public ImageViewer4(Context context) {
         this(context,null,0);
@@ -231,7 +243,7 @@ public class ImageViewer4 extends View {
             case MotionEvent.ACTION_OUTSIDE:
             case MotionEvent.ACTION_UP:
                 if (!isDoubleFinger){
-                    springBack();
+                    translateSpringBack();
                     setmLastMatrix();
                 }
                 break;
@@ -279,6 +291,12 @@ public class ImageViewer4 extends View {
     }
 
     private void translate(){
+        if (animatorX!=null && animatorY!=null){
+            if (animatorX.isRunning() || animatorY.isRunning()){
+                animatorX.cancel();
+                animatorY.cancel();
+            }
+        }
         mLastMatrix.getValues(mMatrixValues);
         float curTranslateX = mMatrixValues[Matrix.MTRANS_X] + (mDownX - mTouchX);
         float curTranslateY = mMatrixValues[Matrix.MTRANS_Y] + (mDownY - mTouchY);
@@ -347,7 +365,7 @@ public class ImageViewer4 extends View {
      * 思路：松开手时，从当前位置的顶点移动到上一位置的顶点
      * 当前位置：已在一开始得到四个顶点位置
      */
-    private void springBack(){
+    private void translateSpringBack(){
         // 松手时4个顶点坐标
         float mTopRight_X = mTopLeft_X + mBitmapWidth;
         float mTopRight_Y = mTopLeft_Y;
@@ -377,9 +395,17 @@ public class ImageViewer4 extends View {
         }else {
             if (mBitmapHeight == ScreenUtil.getScreenHeight() || mBitmapWidth == ScreenUtil.getScreenWidth()){
                 //相当于放大倍数为1.0时
-                mLastMatrix.getValues(mMatrixValues);
-                topLeftLimit_X = mMatrixValues[Matrix.MTRANS_X];
-                topLeftLimit_Y = mMatrixValues[Matrix.MTRANS_Y];
+//                mLastMatrix.getValues(mMatrixValues);
+//                topLeftLimit_X = mMatrixValues[Matrix.MTRANS_X];
+//                topLeftLimit_Y = mMatrixValues[Matrix.MTRANS_Y];
+//                topRightLimit_X = topLeftLimit_X + mBitmapWidth;
+//                topRightLimit_Y = topLeftLimit_Y;
+//                bottomRightLimit_X = topLeftLimit_X + mBitmapWidth;
+//                bottomRightLimit_Y = topLeftLimit_Y + mBitmapHeight;
+//                bottomLeftLimit_X = topLeftLimit_X;
+//                bottomLeftLimit_Y = topLeftLimit_Y + mBitmapHeight;
+                topLeftLimit_X = initTopLeft_X;
+                topLeftLimit_Y = initTopLeft_Y;
                 topRightLimit_X = topLeftLimit_X + mBitmapWidth;
                 topRightLimit_Y = topLeftLimit_Y;
                 bottomRightLimit_X = topLeftLimit_X + mBitmapWidth;
@@ -413,66 +439,118 @@ public class ImageViewer4 extends View {
             }
         }
 
-        ValueAnimator animatorX;
-        ValueAnimator animatorY;
-        AnimatorSet animatorSet = new AnimatorSet();
+
 
         float animationValue_X = 0;
         float animationValue_Y = 0;
+        //当前某一顶点的XY
+        float curPoint_X = 0;
+        float curPoint_Y = 0;
 
         if (mTopLeft_X > topLeftLimit_X){
             animationValue_X = topLeftLimit_X - mTopLeft_X;
+            curPoint_X = mTopLeft_X;
         }
         if (mTopLeft_Y > topLeftLimit_Y){
             animationValue_Y = topLeftLimit_Y - mTopLeft_Y;
+            curPoint_Y = mTopLeft_Y;
         }
-        if (mTopRight_X < topRightLimit_X){
+        if (mTopRight_X < topRightLimit_X  ){
             animationValue_X = topRightLimit_X - mTopRight_X;
+            curPoint_X = mTopRight_X;
         }
         if (mTopRight_Y > topRightLimit_Y){
             animationValue_Y = topRightLimit_Y - mTopRight_Y;
+            curPoint_Y = mTopRight_Y;
         }
-        if (mBottomRight_X < bottomRightLimit_X){
+        if (mBottomRight_X < bottomRightLimit_X  ){
             animationValue_X = bottomRightLimit_X - mBottomRight_X;
+            curPoint_X = mBottomRight_X;
         }
         if (mBottomRight_Y < bottomRightLimit_Y){
             animationValue_Y = bottomRightLimit_Y - mBottomRight_Y;
+            curPoint_Y = mBottomRight_Y;
         }
         if (mBottomLeft_X > bottomLeftLimit_X){
             animationValue_X = bottomLeftLimit_X - mBottomLeft_X;
+            curPoint_X = mBottomLeft_X;
         }
         if (mBottomLeft_Y < bottomLeftLimit_Y){
             animationValue_Y = bottomLeftLimit_Y - mBottomLeft_Y;
+            curPoint_Y = mBottomLeft_Y;
         }
-        mCurMatrix.postTranslate(animationValue_X,animationValue_Y);
-        invalidate();
+//        mCurMatrix.postTranslate(animationValue_X,animationValue_Y);
+//        invalidate();
 
-        //创建一个辅助矩阵，进行set平移，再与当前矩阵相乘
+        mSupOffsetX = curPoint_X;
+        mSupOffsetY = curPoint_Y;
 
-//        animatorX = ValueAnimator.ofFloat(mTopLeft_X,topLeftLimit_X);// TODO: 2020/7/5 这里错了
-//        animatorY = ValueAnimator.ofFloat(mTopLeft_Y,topLeftLimit_Y);
-//        animatorSet.setDuration(ANIMATION_DURATION);
-//        animatorSet.setInterpolator(new LinearInterpolator());
-//        animatorSet.playTogether(animatorX);// TODO: 2020/7/5
-//        //animatorSet.start();
-//
-//        animatorX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-//            @Override
-//            public void onAnimationUpdate(ValueAnimator animation) {
-//                mCurMatrix.reset();
-//                mCurMatrix.setTranslate((float) animation.getAnimatedValue(), 0);
-//                mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
-//                invalidate();
-//            }
-//        });
-//        animatorY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-//            @Override
-//            public void onAnimationUpdate(ValueAnimator animation) {
-////                mCurMatrix.postTranslate((float) animation.getAnimatedValue(), 0);
-////                invalidate();
-//            }
-//        });
+        animatorX = ValueAnimator.ofFloat(curPoint_X, animationValue_X + curPoint_X);
+        animatorY = ValueAnimator.ofFloat(curPoint_Y, animationValue_Y + curPoint_Y);
+        animatorSet.setDuration(ANIMATION_DURATION);
+        animatorSet.setInterpolator(new LinearInterpolator());
+        animatorSet.playTogether(animatorX,animatorY);
+        animatorSet.start();
 
+        animatorX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                LogUtil.d(TAG,"X = "+(float) animation.getAnimatedValue());
+                mCurMatrix.postTranslate((float) animation.getAnimatedValue() - mSupOffsetX, 0);
+                invalidate();
+                mSupOffsetX = (float) animation.getAnimatedValue();
+                //需要不断地设置上一矩阵，防止中断动画的时候发生抖动
+                setmLastMatrix();
+            }
+        });
+        animatorY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                LogUtil.d(TAG,"Y = "+(float) animation.getAnimatedValue());
+                mCurMatrix.postTranslate(0, (float) animation.getAnimatedValue() - mSupOffsetY);
+                invalidate();
+                mSupOffsetY = (float) animation.getAnimatedValue();
+                //需要不断地设置上一矩阵，防止中断动画的时候发生抖动
+                setmLastMatrix();
+            }
+        });
+
+        animatorX.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+            }
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                setTopLeftManual(initTopLeft_X,initTopLeft_Y);
+                setmLastMatrix();
+                mSupOffsetX = 0;
+                animation.removeAllListeners();
+            }
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                mSupOffsetX = 0;
+            }
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+        });
+        animatorY.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+            }
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                setTopLeftManual(initTopLeft_X,initTopLeft_Y);
+                setmLastMatrix();
+                mSupOffsetY = 0;
+                animation.removeAllListeners();
+            }
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                mSupOffsetX = 0;
+            }
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+        });
     }
 
 
@@ -496,7 +574,6 @@ public class ImageViewer4 extends View {
             if (mTopLeft_X > initTopLeft_X){
                 offsetX = initTopLeft_X - mTopLeft_X;
             }
-
             if (mTopLeft_Y > initTopLeft_Y){
                 offsetY = initTopLeft_Y - mTopLeft_Y;
             }
@@ -506,7 +583,8 @@ public class ImageViewer4 extends View {
 
         //小于1.0后回弹至1.0
         if (curRealZoomFactor < 1f){
-            mCurMatrix.postScale(1f/curRealZoomFactor, 1f/curRealZoomFactor);
+            mCurMatrix.postScale(1f/curRealZoomFactor, 1f/curRealZoomFactor,initTopLeft_X,initTopLeft_Y);
+            setmBitmapSize(mInitBitmapHeight,mInitBitmapWidth);
         }
 
         //修正上下边距
@@ -518,8 +596,6 @@ public class ImageViewer4 extends View {
             }
         }
         invalidate();
-//        LogUtil.e(TAG,"刷新后的X轴："+mMatrixValues[Matrix.MTRANS_X] + "， 刷新后的Y轴："+mMatrixValues[Matrix.MTRANS_Y]);
-
     }
 
 
