@@ -26,7 +26,7 @@ import com.xsic.xsic.R;
 import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
 
-public class ImageViewer4 extends View {
+public class ImageViewer5 extends View {
     //常量
     private final String TAG = "ImageViewer";
     private final float MAX_SCALE = 2.5f;
@@ -89,37 +89,25 @@ public class ImageViewer4 extends View {
     private float zoomOffset_Y;
 
     //辅助作用，用于保存动画中上一帧animationValue的值
-    //平移回弹辅助值
     private float mSupOffsetX = 0;
     private float mSupOffsetY = 0;
 
-    //缩放回弹辅助值
-    private float mSupZoomOffsetX = 0;
-    private float mSupZoomOffsetY = 0;
-    private float mSupZoomFactor = 1f;
-
     //平移动画
-    private ValueAnimator transAnimatorX;
-    private ValueAnimator transAnimatorY;
-    private AnimatorSet transAnimatorSet = new AnimatorSet();
-
-    //缩放动画
-    private ValueAnimator zoomAnimator_1;
-    private ValueAnimator zoomAnimator_2;
-    private ValueAnimator zoomAnimator_3;
-    private AnimatorSet zoomAnimatorSet = new AnimatorSet();
+    ValueAnimator animatorX;
+    ValueAnimator animatorY;
+    AnimatorSet animatorSet = new AnimatorSet();
 
     private boolean isDoingTranslateAnimation = false;
 
-    public ImageViewer4(Context context) {
+    public ImageViewer5(Context context) {
         this(context,null,0);
     }
 
-    public ImageViewer4(Context context, @Nullable AttributeSet attrs) {
+    public ImageViewer5(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs,0);
     }
 
-    public ImageViewer4(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ImageViewer5(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
         initAttrs(attrs, defStyleAttr);
@@ -304,10 +292,10 @@ public class ImageViewer4 extends View {
     }
 
     private void translate(){
-        if (transAnimatorX!=null && transAnimatorY!=null){
-            if (transAnimatorX.isRunning() || transAnimatorY.isRunning()){
+        if (animatorX!=null && animatorY!=null){
+            if (animatorX.isRunning() || animatorY.isRunning()){
                 clearTranslateAnimator();
-                LogUtil.e(TAG,"translate里面停动画了");
+                LogUtil.e(TAG,"停不了啊啊啊啊");
             }
         }
         mLastMatrix.getValues(mMatrixValues);
@@ -340,19 +328,6 @@ public class ImageViewer4 extends View {
 
         //放大倍数是相对于上一矩阵
         float zoomFactor = distanceOf2Point / distanceOf2PointFirstTouch;
-
-        //大于或小于极限值时不消化缩放
-        mCurMatrix.getValues(mMatrixValues);
-        if (mMatrixValues[Matrix.MSCALE_X]/SCALE_RATIO <= LIMIT_MIN_SCALE){
-            mCurMatrix.postScale(1.0f,1.0f,zoomCenter_X, zoomCenter_Y);
-            invalidate();
-            return;
-        }
-        if (mMatrixValues[Matrix.MSCALE_X]/SCALE_RATIO >= LIMIT_MAX_SCALE){
-            mCurMatrix.postScale(1.0f,1.0f,zoomCenter_X, zoomCenter_Y);
-            invalidate();
-            return;
-        }
 
         mCurMatrix.reset();
         mCurMatrix.postScale(zoomFactor, zoomFactor, zoomCenter_X, zoomCenter_Y);
@@ -389,10 +364,10 @@ public class ImageViewer4 extends View {
     }
 
     private void clearTranslateAnimator(){
-        transAnimatorX.cancel();
-        transAnimatorY.cancel();
-        transAnimatorX.removeAllUpdateListeners();
-        transAnimatorY.removeAllUpdateListeners();
+        animatorX.cancel();
+        animatorY.cancel();
+        animatorX.removeAllUpdateListeners();
+        animatorY.removeAllUpdateListeners();
     }
 
     /**
@@ -400,9 +375,8 @@ public class ImageViewer4 extends View {
      * 当前位置：已在一开始得到四个顶点位置
      */
     private void translateSpringBack(){
-        LogUtil.d(TAG,"调了这里");
-        if (transAnimatorX!=null && transAnimatorY!=null){
-            if (transAnimatorX.isRunning() || transAnimatorY.isRunning()){
+        if (animatorX!=null && animatorY!=null){
+            if (animatorX.isRunning() || animatorY.isRunning()){
                 clearTranslateAnimator();
             }
         }
@@ -517,14 +491,14 @@ public class ImageViewer4 extends View {
         mSupOffsetX = curPoint_X;
         mSupOffsetY = curPoint_Y;
 
-        transAnimatorX = ValueAnimator.ofFloat(curPoint_X, animationValue_X + curPoint_X);
-        transAnimatorY = ValueAnimator.ofFloat(curPoint_Y, animationValue_Y + curPoint_Y);
-        transAnimatorSet.setDuration(ANIMATION_DURATION);
-        transAnimatorSet.setInterpolator(new LinearInterpolator());
-        transAnimatorSet.playTogether(transAnimatorX,transAnimatorY);
-        transAnimatorSet.start();
+        animatorX = ValueAnimator.ofFloat(curPoint_X, animationValue_X + curPoint_X);
+        animatorY = ValueAnimator.ofFloat(curPoint_Y, animationValue_Y + curPoint_Y);
+        animatorSet.setDuration(ANIMATION_DURATION);
+        animatorSet.setInterpolator(new LinearInterpolator());
+        animatorSet.playTogether(animatorX,animatorY);
+        animatorSet.start();
 
-        transAnimatorX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        animatorX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 //LogUtil.d(TAG,"X = "+(float) animation.getAnimatedValue());
@@ -535,7 +509,7 @@ public class ImageViewer4 extends View {
                 setmLastMatrix();
             }
         });
-        transAnimatorY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        animatorY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 LogUtil.d(TAG,"这是Y = " + ((float) animation.getAnimatedValue()) + "，" + mSupOffsetY);
@@ -547,7 +521,7 @@ public class ImageViewer4 extends View {
             }
         });
 
-        transAnimatorX.addListener(new Animator.AnimatorListener() {
+        animatorX.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
             }
@@ -567,14 +541,14 @@ public class ImageViewer4 extends View {
             @Override
             public void onAnimationRepeat(Animator animation) {}
         });
-        transAnimatorY.addListener(new Animator.AnimatorListener() {
+        animatorY.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
             }
             @Override
             public void onAnimationEnd(Animator animation) {
                 ((ValueAnimator)animation).removeAllUpdateListeners();
-                LogUtil.d(TAG,"这是end");
+                LogUtil.d(TAG,"你说你妈呢");
                 setmLastMatrix();
                 setTopLeftManual(initTopLeft_X,initTopLeft_Y);
                 //mSupOffsetY = 0;
@@ -582,7 +556,7 @@ public class ImageViewer4 extends View {
             @Override
             public void onAnimationCancel(Animator animation) {
                 ((ValueAnimator)animation).removeAllUpdateListeners();
-                LogUtil.d(TAG,"这是cancel");
+                LogUtil.d(TAG,"傻逼");
                 setmLastMatrix();
                 //mSupOffsetX = 0;
 
@@ -590,12 +564,11 @@ public class ImageViewer4 extends View {
             @Override
             public void onAnimationRepeat(Animator animation) {}
         });
-
     }
 
     /**
      * 缩放后的回弹
-     * 1、小于1.0后回弹至1.0、大于2.5回弹
+     * 1、小于1.0后回弹至1.0
      * 2、缩小后左上角不在初始位置时，动画平移至初始位置
      * 3、放大后上下边距与手机屏幕的距离不对称，修正至对称，只有当没有放大到弱边也接触屏幕的时候才需要
      * PS：注意放大和平移的顺序！！！！
@@ -605,50 +578,26 @@ public class ImageViewer4 extends View {
         mCurMatrix.getValues(mMatrixValues);
         float curRealZoomFactor = mMatrixValues[Matrix.MSCALE_X] / SCALE_RATIO;
 
-//        //缩小后左上角不在初始位置时，动画平移至初始位置
-//        if(curRealZoomFactor < 1f){
-//            float offsetX = 0;
-//            float offsetY = 0;
-//            if (mTopLeft_X > initTopLeft_X){
-//                offsetX = initTopLeft_X - mTopLeft_X;
-//            }
-//            if (mTopLeft_Y > initTopLeft_Y){
-//                offsetY = initTopLeft_Y - mTopLeft_Y;
-//            }
-//            mCurMatrix.postTranslate(offsetX, offsetY);
-//        }
-//
-//
-//
-//
-//
-//        //小于1.0后回弹至1.0、大于2.5回弹
-//        float targetZoomFactor = 0;
-//        float centerX = 0;
-//        float centerY = 0;
-//        if (curRealZoomFactor < MIN_SCALE){
-//            targetZoomFactor = MIN_SCALE/curRealZoomFactor;
-//            centerX = initTopLeft_X;
-//            centerY = initTopLeft_Y;
-//
-//            mCurMatrix.postScale(MIN_SCALE/curRealZoomFactor, MIN_SCALE/curRealZoomFactor,initTopLeft_X,initTopLeft_Y);
-//            setmBitmapSize(mInitBitmapHeight,mInitBitmapWidth);
-//        }else if (curRealZoomFactor > MAX_SCALE){
-//            targetZoomFactor = MAX_SCALE/curRealZoomFactor;
-//            centerX = (mTouch_1_X + mTouch_2_X)/2f;
-//            centerY = (mTouch_1_Y + mTouch_2_Y)/2f;
-//
-//            mCurMatrix.postScale(MAX_SCALE/curRealZoomFactor, MAX_SCALE/curRealZoomFactor,centerX,centerY);
-//            setmBitmapSize(mInitBitmapHeight,mInitBitmapWidth);
-//        }
+        //缩小后左上角不在初始位置时，动画平移至初始位置
+        //先平移后缩放的话平移量会被缩放，所以直接在值里面除以缩放量
+        if(curRealZoomFactor < 1f){
+            float offsetX = 0;
+            float offsetY = 0;
+            if (mTopLeft_X > initTopLeft_X){
+                offsetX = initTopLeft_X - mTopLeft_X;
+            }
+            if (mTopLeft_Y > initTopLeft_Y){
+                offsetY = initTopLeft_Y - mTopLeft_Y;
+            }
+            mCurMatrix.postTranslate(offsetX, offsetY);
+            setTopLeftManual(initTopLeft_X,initTopLeft_Y);
+        }
 
-
-        zoomSpringBackLimitSituation(curRealZoomFactor);
-
-
-
-
-
+        //小于1.0后回弹至1.0
+        if (curRealZoomFactor < 1f){
+            mCurMatrix.postScale(1f/curRealZoomFactor, 1f/curRealZoomFactor,initTopLeft_X,initTopLeft_Y);
+            setmBitmapSize(mInitBitmapHeight,mInitBitmapWidth);
+        }
 
         //修正上下边距
         if (!isWeakSideTouchScreen && curRealZoomFactor > 1f){
@@ -656,168 +605,9 @@ public class ImageViewer4 extends View {
             if (mTopLeft_Y != (ScreenUtil.getScreenHeight() - mBottomLeftY)){
                 float translateOffset = ((ScreenUtil.getScreenHeight() - mBottomLeftY) - mTopLeft_Y)/2f;
                 mCurMatrix.postTranslate(0,translateOffset);
-                invalidate();
             }
         }
-
-    }
-
-    /**
-     * 在边界情况下的缩放回弹
-     * 1、小于1.0后回弹至1.0、大于2.5回弹
-     * 2、缩小后左上角不在初始位置时，动画平移至初始位置
-     */
-    private void zoomSpringBackLimitSituation(float zoomFactor){
-        mCurMatrix.getValues(mMatrixValues);
-        LogUtil.e(TAG,"当前的平移："+mMatrixValues[Matrix.MTRANS_X]);
-
-        if (zoomFactor >= MIN_SCALE && zoomFactor <= MAX_SCALE){
-            return;
-        }
-        mSupZoomOffsetX = mTopLeft_X;
-        mSupZoomOffsetY = mTopLeft_Y;
-        if (zoomFactor < MIN_SCALE){
-            if (mTopLeft_X > initTopLeft_X || mTopLeft_Y > initTopLeft_Y){
-                zoomAnimator_1 = ValueAnimator.ofFloat(mTopLeft_X, initTopLeft_X);
-                zoomAnimator_2 = ValueAnimator.ofFloat(mTopLeft_Y, initTopLeft_Y);
-                zoomAnimator_1.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        LogUtil.d(TAG,"平移：X = "+((float)animation.getAnimatedValue() - mSupZoomOffsetX) + " ，未减："+(float)animation.getAnimatedValue());
-                        mCurMatrix.getValues(mMatrixValues);
-                        LogUtil.e(TAG,"当前的平移："+mMatrixValues[Matrix.MTRANS_X] + "数值相加后：" +
-                                (mMatrixValues[Matrix.MTRANS_X] + ((float)animation.getAnimatedValue() - mSupZoomOffsetX)));
-
-                        mCurMatrix.postTranslate((float)animation.getAnimatedValue() - mSupZoomOffsetX,0);//
-                        mSupZoomOffsetX = (float)animation.getAnimatedValue();
-                        invalidate();
-                        setmLastMatrix();
-                    }
-                });
-                zoomAnimator_2.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        LogUtil.d(TAG,"平移：Y = "+((float)animation.getAnimatedValue() - mSupZoomOffsetY) + " ，未减："+(float)animation.getAnimatedValue());
-                        mCurMatrix.getValues(mMatrixValues);
-                        LogUtil.e(TAG,"当前的平移："+mMatrixValues[Matrix.MTRANS_Y] + "数值相加后：" +
-                                (mMatrixValues[Matrix.MTRANS_Y] + ((float)animation.getAnimatedValue() - mSupZoomOffsetY)));
-
-                        mCurMatrix.postTranslate(0, (float)animation.getAnimatedValue() - mSupZoomOffsetY);
-                        invalidate();
-                        mSupZoomOffsetY = (float)animation.getAnimatedValue();
-                        setmLastMatrix();
-                    }
-                });
-                zoomAnimator_1.addListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {}
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        ((ValueAnimator)animation).removeAllUpdateListeners();
-                        setmLastMatrix();
-                        setTopLeftManual(initTopLeft_X,initTopLeft_Y);
-                    }
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-
-                    }
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {}
-                });
-                zoomAnimator_2.addListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {}
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        ((ValueAnimator)animation).removeAllUpdateListeners();
-                        setmLastMatrix();
-                        setTopLeftManual(initTopLeft_X,initTopLeft_Y);
-                    }
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-
-                    }
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {}
-                });
-            }
-        }
-
-
-
-
-        if (zoomFactor < MIN_SCALE || zoomFactor > MAX_SCALE){
-            float curZoomFactor = 0;
-            float targetZoomFactor = 1f;
-            //缩放中心点设置图片中心
-            float centerX = (mTopLeft_X +(mTopLeft_X + mBitmapWidth))/2f;//(mTouch_1_X + mTouch_2_X)/2f;
-            float centerY = (mTopLeft_Y +(mTopLeft_Y + mBitmapHeight))/2f;//(mTouch_1_Y + mTouch_2_Y)/2f;
-            if (zoomFactor < MIN_SCALE){
-                /**
-                 * 当前缩放倍数分为：
-                 * 1：大于不响应缩放的限定值，同时小于最小值  => 取当前实际缩放值
-                 * 2：小于不响应缩放的限定值 => 取限定值
-                 * 同理用于放大回弹
-                 */
-                if (zoomFactor > LIMIT_MIN_SCALE && zoomFactor < MIN_SCALE){
-                    curZoomFactor = zoomFactor;
-                }else {
-                    curZoomFactor = LIMIT_MIN_SCALE;
-                }
-                targetZoomFactor = MIN_SCALE;
-                centerX = initTopLeft_X;
-                centerY = initTopLeft_Y;
-            }else{
-                if (zoomFactor > MAX_SCALE && zoomFactor < LIMIT_MAX_SCALE){
-                    curZoomFactor = zoomFactor;
-                }else {
-                    curZoomFactor = LIMIT_MAX_SCALE;
-                }
-                targetZoomFactor = MAX_SCALE;
-            }
-            mSupZoomFactor = curZoomFactor;
-            zoomAnimator_3 = ValueAnimator.ofFloat(curZoomFactor, targetZoomFactor);
-            float finalCenterX = centerX;
-            float finalCenterY = centerY;
-            zoomAnimator_3.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    mCurMatrix.getValues(mMatrixValues);
-                    LogUtil.e(TAG,"原缩放："+mMatrixValues[Matrix.MSCALE_X] + "  ， 传进来的："+zoomFactor);
-                    LogUtil.d(TAG,"缩放："+(float)animation.getAnimatedValue()/mSupZoomFactor);
-                    mCurMatrix.postScale((float)animation.getAnimatedValue()/mSupZoomFactor,(float)animation.getAnimatedValue()/mSupZoomFactor,
-                            finalCenterX, finalCenterY);
-                    invalidate();
-                    mSupZoomFactor = (float)animation.getAnimatedValue();
-                    setmLastMatrix();
-                }
-            });
-            zoomAnimator_3.addListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {}
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    ((ValueAnimator)animation).removeAllUpdateListeners();
-                    setmLastMatrix();
-                    setmBitmapSize(mInitBitmapHeight,mInitBitmapWidth);
-                }
-                @Override
-                public void onAnimationCancel(Animator animation) {
-
-                }
-                @Override
-                public void onAnimationRepeat(Animator animation) {}
-            });
-        }
-
-        zoomAnimatorSet.setDuration(ANIMATION_DURATION);
-        zoomAnimatorSet.setInterpolator(new LinearInterpolator());
-        if (zoomFactor > MAX_SCALE){
-            zoomAnimatorSet.playTogether(zoomAnimator_3);
-        }else {
-            zoomAnimatorSet.playTogether(zoomAnimator_1, zoomAnimator_2,zoomAnimator_3);//
-        }
-        zoomAnimatorSet.start();
+        invalidate();
     }
 
 
