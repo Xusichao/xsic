@@ -667,6 +667,8 @@ public class ImageViewer4 extends View {
         if (zoomFactor >= MIN_SCALE && zoomFactor <= MAX_SCALE){
             return;
         }
+        //true：大于MAX  false：小于MIN
+        boolean isBigger = zoomFactor > MAX_SCALE;
         //当前实际的缩放倍数（相对于1.0），受限定值影响
         float curZoomFactor;
         float targetZoomFactor;
@@ -683,24 +685,69 @@ public class ImageViewer4 extends View {
             curZoomFactor = LIMIT_MAX_SCALE;
             targetZoomFactor = MAX_SCALE;
         }
+        //设置缩放中心点
+        float centerX;
+        float centerY;
+        if (zoomFactor > MAX_SCALE){
+            //放大倍数大于MAX，缩放中心为两指中点
+            centerX = (mTouch_1_X + mTouch_2_X)/2f;
+            centerY = (mTouch_1_Y + mTouch_2_Y)/2f;
+        }else {
+            //缩放中心为图片中心
+            centerX = (mTopLeft_X +(mTopLeft_X + mBitmapWidth))/2f;
+            centerY = (mTopLeft_Y +(mTopLeft_Y + mBitmapHeight))/2f;
+        }
 
         mSupZoomOffsetX = mTopLeft_X;
         mSupZoomOffsetY = mTopLeft_Y;
         mSupZoomFactor = curZoomFactor;
 
         valueAnimator = ValueAnimator.ofFloat(0, 1);
-        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                float mTranslateX = ((float)animation.getAnimatedValue() - mSupZoomOffsetX) * (mTopLeft_X - initTopLeft_X);
-                float mTranslateY = ((float)animation.getAnimatedValue() - mSupZoomOffsetY) * (mTopLeft_Y - initTopLeft_Y);
-                float mZoomFactor = ((float)animation.getAnimatedValue()/mSupZoomOffsetY) * curZoomFactor/targetZoomFactor;
-                float centerX;
-                float centerY;
-                mCurMatrix.postTranslate(mTranslateX,mTranslateY);
-                mCurMatrix.postScale(mZoomFactor,mZoomFactor);
-            }
-        });
+        if (isBigger){
+            //放大后回弹
+            valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float mZoomFactor = ((float)animation.getAnimatedValue()/mSupZoomOffsetY) * (curZoomFactor/targetZoomFactor);
+                    mCurMatrix.postScale(mZoomFactor,mZoomFactor,centerX,centerY);
+                    invalidate();
+                    setmLastMatrix();
+                }
+            });
+            valueAnimator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {}
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    ((ValueAnimator)animation).removeAllUpdateListeners();
+                    setmLastMatrix();
+//                    setmBitmapSize(MAX_SCALE * SCALE_RATIO * mBitmapHeight,MAX_SCALE * SCALE_RATIO * mBitmapWidth);
+                }
+                @Override
+                public void onAnimationCancel(Animator animation) {
+
+                }
+                @Override
+                public void onAnimationRepeat(Animator animation) {}
+            });
+        }else {
+            //缩小后回弹+平移
+            valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float mTranslateX = ((float)animation.getAnimatedValue() - mSupZoomOffsetX) * (mTopLeft_X - initTopLeft_X);
+                    float mTranslateY = ((float)animation.getAnimatedValue() - mSupZoomOffsetY) * (mTopLeft_Y - initTopLeft_Y);
+                    float mZoomFactor = ((float)animation.getAnimatedValue()/mSupZoomOffsetY) * (curZoomFactor/targetZoomFactor);
+
+                    mCurMatrix.postTranslate(mTranslateX,mTranslateY);
+                    mCurMatrix.postScale(mZoomFactor,mZoomFactor);
+                    invalidate();
+                    setmLastMatrix();
+                }
+            });
+        }
+
     }
 
     /**
