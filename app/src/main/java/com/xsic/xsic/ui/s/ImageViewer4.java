@@ -692,10 +692,13 @@ public class ImageViewer4 extends View {
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                float translateX = ((float)animation.getAnimatedValue() - mSupZoomOffsetX) * (mTopLeft_X - initTopLeft_X);
-                float translateY = ((float)animation.getAnimatedValue() - mSupZoomOffsetY) * (mTopLeft_Y - initTopLeft_Y);
-                float zoomFactor = ((float)animation.getAnimatedValue()/mSupZoomOffsetY) * curZoomFactor/targetZoomFactor;
-
+                float mTranslateX = ((float)animation.getAnimatedValue() - mSupZoomOffsetX) * (mTopLeft_X - initTopLeft_X);
+                float mTranslateY = ((float)animation.getAnimatedValue() - mSupZoomOffsetY) * (mTopLeft_Y - initTopLeft_Y);
+                float mZoomFactor = ((float)animation.getAnimatedValue()/mSupZoomOffsetY) * curZoomFactor/targetZoomFactor;
+                float centerX;
+                float centerY;
+                mCurMatrix.postTranslate(mTranslateX,mTranslateY);
+                mCurMatrix.postScale(mZoomFactor,mZoomFactor);
             }
         });
     }
