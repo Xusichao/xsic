@@ -296,7 +296,7 @@ public class ImageViewer4 extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
-                //zoomSpringBack();
+                zoomSpringBack();
                 setmLastMatrix();
                 break;
 
@@ -305,6 +305,8 @@ public class ImageViewer4 extends View {
         return true;
     }
 
+    private float mTranslateSupValue_X;
+    private float mTranslateSupValue_Y;
     private void translate(){
         mLastMatrix.getValues(mMatrixValues);
         float curTranslateX = mMatrixValues[Matrix.MTRANS_X] + (mDownX - mTouchX);
@@ -312,17 +314,21 @@ public class ImageViewer4 extends View {
         float lastTranslateX = mMatrixValues[Matrix.MTRANS_X];
         float lastTranslateY = mMatrixValues[Matrix.MTRANS_Y];
 
-
+//        LogUtil.d(TAG,curTranslateX + " , " + lastTranslateX);
 
         mCurMatrix.reset();
         mCurMatrix.postTranslate(curTranslateX - lastTranslateX , curTranslateY - lastTranslateY);
         mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
         invalidate();
-        LogUtil.w(TAG,curTranslateX +","+ lastTranslateX+"");
-        setTopLeftNew(curTranslateX - lastTranslateX, curTranslateY - lastTranslateY);
-        //debug();
+
+//        setTopLeftNew(curTranslateX - lastTranslateX - mTranslateSupValue_X, curTranslateY - lastTranslateY - mTranslateSupValue_Y);
+//        mTranslateSupValue_X = curTranslateX - lastTranslateX;
+//        mTranslateSupValue_Y = curTranslateY - lastTranslateY;
+        setTopLeft();
     }
 
+    private float mZoomSupValueX;
+    private float mZoomSupValueY;
     private void zoom(){
         //首次接触屏幕时的双指距离
         float distanceOf2PointFirstTouch = (float) Math.sqrt(Math.pow(mTouch_1_X - mTouch_2_X,2)+Math.pow(mTouch_1_Y - mTouch_2_Y,2));
@@ -357,14 +363,16 @@ public class ImageViewer4 extends View {
         invalidate();
 
         //缩放点的xy轴是不变的，而左上角坐标与缩放点的距离： 距离 = 原距离 x 放大倍数
-//        float offsetX = (zoomCenter_X - mTopLeft_X)*zoomFactor - (zoomCenter_X - mTopLeft_X);
-//        float offsetY = (zoomCenter_Y - mTopLeft_Y)*zoomFactor - (zoomCenter_Y - mTopLeft_Y);
-//        setTopLeftNew(offsetX, offsetY);
-        setTopLeft();// TODO: 2020/7/8
+//        float offsetX = (zoomCenter_X - mTopLeft_X) - (zoomCenter_X - mTopLeft_X)*zoomFactor;
+//        float offsetY = (zoomCenter_Y - mTopLeft_Y) - (zoomCenter_Y - mTopLeft_Y)*zoomFactor;
+////        LogUtil.v(TAG,offsetX + " ， " +  zoomCenter_X + " ， " + mTopLeft_X + " ， " + zoomFactor);
+//        setTopLeftNew(offsetX - mZoomSupValueX + initTopLeft_X, offsetY - mZoomSupValueY + initTopLeft_Y);
+//        mZoomSupValueX = offsetX + initTopLeft_X;
+//        mZoomSupValueY = offsetY + initTopLeft_Y;
+        setTopLeft();
         mCurMatrix.getValues(mMatrixValues);
         setmBitmapSize(mBitmap.getHeight() * mMatrixValues[Matrix.MSCALE_Y],mBitmap.getWidth() * mMatrixValues[Matrix.MSCALE_X]);
         setIsWeakSideTouchedScreen();
-        //debug();
     }
 
     private void setInitTopLeft(){
@@ -675,6 +683,8 @@ public class ImageViewer4 extends View {
 
     }
 
+    private float springBackSupValueX;
+    private float springBackSupValueY;
     private ValueAnimator valueAnimator;
     private void xsic(float zoomFactor){
         if (zoomFactor >= MIN_SCALE && zoomFactor <= MAX_SCALE){
@@ -729,7 +739,8 @@ public class ImageViewer4 extends View {
 
                     mCurMatrix.postScale(mZoomFactor/mSupZoomFactor,mZoomFactor/mSupZoomFactor,centerX,centerY);
                     invalidate();
-
+                    
+                    setTopLeft();// TODO: 2020/7/9  
                     mSupZoomFactor = mZoomFactor;
                     setmLastMatrix();
                 }
@@ -765,16 +776,24 @@ public class ImageViewer4 extends View {
                     float mZoomFactor = ((1 -animation.getAnimatedFraction()) * (curZoomFactor - targetZoomFactor) + targetZoomFactor) * SCALE_RATIO;
 
                     mCurMatrix.postTranslate(mTranslateX - mSupZoomOffsetX, 0);//mTranslateY - mSupZoomOffsetY
-                    mCurMatrix.postScale(mZoomFactor/mSupZoomFactor,mZoomFactor/mSupZoomFactor,mCenterX,mCenterY);
+                    //mCurMatrix.postScale(mZoomFactor/mSupZoomFactor,mZoomFactor/mSupZoomFactor,mCenterX,mCenterY);
                     invalidate();
+
+
+                    setTopLeftNew(mTranslateX - mSupZoomOffsetX - springBackSupValueX, mTranslateY - mSupZoomOffsetY - springBackSupValueY);
+
+                    LogUtil.d(TAG,(mTranslateX - mSupZoomOffsetX)+"");
+                    springBackSupValueX = mTranslateX - mSupZoomOffsetX;
+                    springBackSupValueY = mTranslateY - mSupZoomOffsetY;
+                    debug();
 
                     mSupZoomFactor = mZoomFactor;
                     mSupZoomOffsetX = mTranslateX;
                     mSupZoomOffsetY = mTranslateY;
                     setmLastMatrix();
-                    setTopLeftNew(mTranslateX - mSupZoomOffsetX, mTranslateY - mSupZoomOffsetY);
+
                     setmBitmapSize(mBitmap.getHeight() * mZoomFactor/mSupZoomFactor, mBitmap.getWidth() * mZoomFactor/mSupZoomFactor);
-                    LogUtil.e(TAG,mCenterX+"， "+mCenterY);
+//                    LogUtil.e(TAG,mCenterX+"， "+mCenterY);
                 }
             });
             valueAnimator.addListener(new Animator.AnimatorListener() {
