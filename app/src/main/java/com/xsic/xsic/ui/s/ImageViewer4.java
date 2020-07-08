@@ -306,12 +306,6 @@ public class ImageViewer4 extends View {
     }
 
     private void translate(){
-        if (transAnimatorX!=null && transAnimatorY!=null){
-            if (transAnimatorX.isRunning() || transAnimatorY.isRunning()){
-                clearTranslateAnimator();
-                LogUtil.e(TAG,"translate里面停动画了");
-            }
-        }
         mLastMatrix.getValues(mMatrixValues);
         float curTranslateX = mMatrixValues[Matrix.MTRANS_X] + (mDownX - mTouchX);
         float curTranslateY = mMatrixValues[Matrix.MTRANS_Y] + (mDownY - mTouchY);
@@ -324,9 +318,9 @@ public class ImageViewer4 extends View {
         mCurMatrix.postTranslate(curTranslateX - lastTranslateX , curTranslateY - lastTranslateY);
         mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
         invalidate();
-
+        LogUtil.w(TAG,curTranslateX +","+ lastTranslateX+"");
         setTopLeftNew(curTranslateX - lastTranslateX, curTranslateY - lastTranslateY);
-        debug();
+        //debug();
     }
 
     private void zoom(){
@@ -370,7 +364,7 @@ public class ImageViewer4 extends View {
         mCurMatrix.getValues(mMatrixValues);
         setmBitmapSize(mBitmap.getHeight() * mMatrixValues[Matrix.MSCALE_Y],mBitmap.getWidth() * mMatrixValues[Matrix.MSCALE_X]);
         setIsWeakSideTouchedScreen();
-        debug();
+        //debug();
     }
 
     private void setInitTopLeft(){
