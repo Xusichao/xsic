@@ -258,7 +258,7 @@ public class ImageViewer4 extends View {
             case MotionEvent.ACTION_OUTSIDE:
             case MotionEvent.ACTION_UP:
                 if (!isDoubleFinger){
-                    translateSpringBack();
+                    //translateSpringBack();
                     setmLastMatrix();
                 }
                 break;
@@ -296,7 +296,7 @@ public class ImageViewer4 extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
-                zoomSpringBack();
+                //zoomSpringBack();
                 setmLastMatrix();
                 break;
 
@@ -324,8 +324,9 @@ public class ImageViewer4 extends View {
         mCurMatrix.postTranslate(curTranslateX - lastTranslateX , curTranslateY - lastTranslateY);
         mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
         invalidate();
-        setTopLeft();
 
+        setTopLeftNew(curTranslateX - lastTranslateX, curTranslateY - lastTranslateY);
+        debug();
     }
 
     private void zoom(){
@@ -361,10 +362,15 @@ public class ImageViewer4 extends View {
         mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
         invalidate();
 
-        setTopLeft();
+        //缩放点的xy轴是不变的，而左上角坐标与缩放点的距离： 距离 = 原距离 x 放大倍数
+//        float offsetX = (zoomCenter_X - mTopLeft_X)*zoomFactor - (zoomCenter_X - mTopLeft_X);
+//        float offsetY = (zoomCenter_Y - mTopLeft_Y)*zoomFactor - (zoomCenter_Y - mTopLeft_Y);
+//        setTopLeftNew(offsetX, offsetY);
+        setTopLeft();// TODO: 2020/7/8
         mCurMatrix.getValues(mMatrixValues);
         setmBitmapSize(mBitmap.getHeight() * mMatrixValues[Matrix.MSCALE_Y],mBitmap.getWidth() * mMatrixValues[Matrix.MSCALE_X]);
         setIsWeakSideTouchedScreen();
+        debug();
     }
 
     private void setInitTopLeft(){
@@ -388,6 +394,11 @@ public class ImageViewer4 extends View {
     private void setTopLeftManual(float x, float y){
         mTopLeft_X = x;
         mTopLeft_Y = y;
+    }
+
+    private void setTopLeftNew(float x, float y){
+        mTopLeft_X += x;
+        mTopLeft_Y += y;
     }
 
     private void clearTranslateAnimator(){
@@ -530,22 +541,28 @@ public class ImageViewer4 extends View {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 //LogUtil.d(TAG,"X = "+(float) animation.getAnimatedValue());
-                mCurMatrix.postTranslate((float) animation.getAnimatedValue() - mSupOffsetX, 0);
+                float translateX = (float) animation.getAnimatedValue() - mSupOffsetX;
+                float translateY = 0;
+                mCurMatrix.postTranslate(translateX, translateY);
                 invalidate();
                 mSupOffsetX = (float) animation.getAnimatedValue();
                 //需要不断地设置上一矩阵，防止中断动画的时候发生抖动
                 setmLastMatrix();
+                setTopLeftNew(translateX,translateY);
             }
         });
         transAnimatorY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                LogUtil.d(TAG,"这是Y = " + ((float) animation.getAnimatedValue()) + "，" + mSupOffsetY);
-                mCurMatrix.postTranslate(0, (float) animation.getAnimatedValue() - mSupOffsetY);
+//                LogUtil.d(TAG,"这是Y = " + ((float) animation.getAnimatedValue()) + "，" + mSupOffsetY);
+                float translateX = 0;
+                float translateY = (float) animation.getAnimatedValue() - mSupOffsetY;
+                mCurMatrix.postTranslate(translateX, translateY);
                 invalidate();
                 mSupOffsetY = (float) animation.getAnimatedValue();
                 //需要不断地设置上一矩阵，防止中断动画的时候发生抖动
                 setmLastMatrix();
+                setTopLeftNew(translateX,translateY);
             }
         });
 
@@ -761,8 +778,8 @@ public class ImageViewer4 extends View {
                     mSupZoomOffsetX = mTranslateX;
                     mSupZoomOffsetY = mTranslateY;
                     setmLastMatrix();
-                    setTopLeft();
-                    setmBitmapSize(mBitmap.getHeight() * mZoomFactor, mBitmap.getWidth() * mZoomFactor);
+                    setTopLeftNew(mTranslateX - mSupZoomOffsetX, mTranslateY - mSupZoomOffsetY);
+                    setmBitmapSize(mBitmap.getHeight() * mZoomFactor/mSupZoomFactor, mBitmap.getWidth() * mZoomFactor/mSupZoomFactor);
                     LogUtil.e(TAG,mCenterX+"， "+mCenterY);
                 }
             });
@@ -1000,9 +1017,9 @@ public class ImageViewer4 extends View {
 
     private void debug(){
 //        mCurMatrix.getValues(mMatrixValues);
-        mLastMatrix.getValues(mMatrixValues);
-        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
-//        LogUtil.d(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
+//        mLastMatrix.getValues(mMatrixValues);
+//        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
+        LogUtil.w(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
 //        LogUtil.w(TAG,"Bitmap的宽度： " + mBitmapWidth + "  ,  Bitmap的高度： " + mBitmapHeight);
 //        LogUtil.w(TAG,"放大倍数："+mMatrixValues[Matrix.MSCALE_X]);
     }
