@@ -303,7 +303,36 @@ public class ImageViewer extends View {
     }
 
     private void zoom(){
+        //首次接触屏幕时的双指距离
+        float distanceOf2PointFirstTouch = (float) Math.sqrt(Math.pow(mTouch_1_X - mTouch_2_X,2)+Math.pow(mTouch_1_Y - mTouch_2_Y,2));
+        //缩放时不断变化的双指距离
+        float distanceOf2Point = (float) Math.sqrt(Math.pow(mDown_1_X - mDown_2_X,2)+Math.pow(mDown_1_Y - mDown_2_Y,2));
+        if (distanceOf2Point == distanceOf2PointFirstTouch){
+            return;
+        }
+        //首次接触屏幕时的双指中心点，即缩放中心点
+        float zoomCenter_X = (mTouch_1_X + mTouch_2_X)/2f;
+        float zoomCenter_Y = (mTouch_1_Y + mTouch_2_Y)/2f;
 
+        //放大倍数是相对于上一矩阵
+        float zoomFactor = distanceOf2Point / distanceOf2PointFirstTouch;
+
+        //大于或小于极限值时不消化缩放
+        if (viewerSupport.mZoomFactor/viewerSupport.SCALE_RATIO <= LIMIT_MIN_SCALE){
+            mCurMatrix.postScale(1.0f,1.0f,zoomCenter_X, zoomCenter_Y);
+            invalidate();
+            return;
+        }
+        if (viewerSupport.mZoomFactor/viewerSupport.SCALE_RATIO >= LIMIT_MAX_SCALE){
+            mCurMatrix.postScale(1.0f,1.0f,zoomCenter_X, zoomCenter_Y);
+            invalidate();
+            return;
+        }
+
+        mCurMatrix.reset();
+        mCurMatrix.postScale(zoomFactor, zoomFactor, zoomCenter_X, zoomCenter_Y);
+        mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
+        invalidate();
     }
 
 
