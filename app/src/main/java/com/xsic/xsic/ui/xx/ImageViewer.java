@@ -249,7 +249,7 @@ public class ImageViewer extends View {
                     mDown_2_X = event.getX(1);
                     mDown_2_Y = event.getY(1);
 
-                    //zoom();
+                    zoom();
                 }else {
                     if (!isDoubleFinger){
                         mDownX = event.getX();
@@ -274,6 +274,7 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
+                setLastMatrix();
                 break;
 
             default:break;
@@ -318,21 +319,22 @@ public class ImageViewer extends View {
         float zoomFactor = distanceOf2Point / distanceOf2PointFirstTouch;
 
         //大于或小于极限值时不消化缩放
-        if (viewerSupport.mZoomFactor/viewerSupport.SCALE_RATIO <= LIMIT_MIN_SCALE){
-            mCurMatrix.postScale(1.0f,1.0f,zoomCenter_X, zoomCenter_Y);
-            invalidate();
-            return;
-        }
-        if (viewerSupport.mZoomFactor/viewerSupport.SCALE_RATIO >= LIMIT_MAX_SCALE){
-            mCurMatrix.postScale(1.0f,1.0f,zoomCenter_X, zoomCenter_Y);
-            invalidate();
-            return;
-        }
+//        if (viewerSupport.mZoomFactor/viewerSupport.SCALE_RATIO <= LIMIT_MIN_SCALE){
+//            mCurMatrix.postScale(1.0f,1.0f,zoomCenter_X, zoomCenter_Y);
+//            invalidate();
+//            return;
+//        }
+//        if (viewerSupport.mZoomFactor/viewerSupport.SCALE_RATIO >= LIMIT_MAX_SCALE){
+//            mCurMatrix.postScale(1.0f,1.0f,zoomCenter_X, zoomCenter_Y);
+//            invalidate();
+//            return;
+//        }
 
         mCurMatrix.reset();
         mCurMatrix.postScale(zoomFactor, zoomFactor, zoomCenter_X, zoomCenter_Y);
         mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
         invalidate();
+
     }
 
 
