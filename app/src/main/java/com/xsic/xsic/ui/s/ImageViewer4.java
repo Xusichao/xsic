@@ -721,8 +721,8 @@ public class ImageViewer4 extends View {
             centerY = (mTopLeft_Y +(mTopLeft_Y + mBitmapHeight))/2f;
         }
 
-        mSupZoomOffsetX = mTopLeft_X;
-        mSupZoomOffsetY = mTopLeft_Y;
+        //mSupZoomOffsetX = mTopLeft_X;
+        //mSupZoomOffsetY = mTopLeft_Y;
         //这里是绝对的放大倍数
         mSupZoomFactor = curZoomFactor*SCALE_RATIO;
 
@@ -764,36 +764,30 @@ public class ImageViewer4 extends View {
             });
         }else {
             //缩小后回弹+平移
+            float tempTopLeftX = mTopLeft_X;
+            float tempTopLeftY = mTopLeft_Y;
             valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     float mCenterX = (mTopLeft_X +(mTopLeft_X + mBitmapWidth))/2f;
                     float mCenterY = (mTopLeft_Y +(mTopLeft_Y + mBitmapHeight))/2f;
 
-                    float mTranslateX = (1 - animation.getAnimatedFraction()) * (mTopLeft_X - initTopLeft_X);
-                    float mTranslateY = (1 -animation.getAnimatedFraction()) * (mTopLeft_Y - initTopLeft_Y);
-//                    LogUtil.w(TAG, "X = "+ (mTranslateX-mSupZoomOffsetX)+"，"+mSupZoomOffsetX + "   --------      Y = "+ (mTranslateY - mSupZoomOffsetY)+" ， "+mSupZoomOffsetY);
-                    float mZoomFactor = ((1 -animation.getAnimatedFraction()) * (curZoomFactor - targetZoomFactor) + targetZoomFactor) * SCALE_RATIO;
+                    float mTranslateX = animation.getAnimatedFraction() * (initTopLeft_X - tempTopLeftX);
+                    float mTranslateY = animation.getAnimatedFraction() * (initTopLeft_Y - tempTopLeftY);
+                    float mZoomFactor = ((1 - animation.getAnimatedFraction()) * (curZoomFactor - targetZoomFactor) + targetZoomFactor) * SCALE_RATIO;
 
-                    mCurMatrix.postTranslate(mTranslateX - mSupZoomOffsetX, 0);//mTranslateY - mSupZoomOffsetY
-                    //mCurMatrix.postScale(mZoomFactor/mSupZoomFactor,mZoomFactor/mSupZoomFactor,mCenterX,mCenterY);
+                    mCurMatrix.postScale(mZoomFactor/mSupZoomFactor,mZoomFactor/mSupZoomFactor,centerX,centerY);
+                    mCurMatrix.postTranslate(mTranslateX - mSupZoomOffsetX, mTranslateY - mSupZoomOffsetY);
                     invalidate();
-
-
-                    setTopLeftNew(mTranslateX - mSupZoomOffsetX - springBackSupValueX, mTranslateY - mSupZoomOffsetY - springBackSupValueY);
-
-                    LogUtil.d(TAG,(mTranslateX - mSupZoomOffsetX)+"");
-                    springBackSupValueX = mTranslateX - mSupZoomOffsetX;
-                    springBackSupValueY = mTranslateY - mSupZoomOffsetY;
-                    debug();
+//                    LogUtil.d(TAG,mZoomFactor+" , " + mSupZoomFactor + " , "+ mZoomFactor/mSupZoomFactor + " , "+animation.getAnimatedFraction());
+                    setTopLeftNew(mTranslateX - mSupZoomOffsetX, mTranslateY - mSupZoomOffsetY);
 
                     mSupZoomFactor = mZoomFactor;
                     mSupZoomOffsetX = mTranslateX;
                     mSupZoomOffsetY = mTranslateY;
                     setmLastMatrix();
 
-                    setmBitmapSize(mBitmap.getHeight() * mZoomFactor/mSupZoomFactor, mBitmap.getWidth() * mZoomFactor/mSupZoomFactor);
-//                    LogUtil.e(TAG,mCenterX+"， "+mCenterY);
+                    setmBitmapSize(mBitmap.getHeight() * mZoomFactor, mBitmap.getWidth() * mZoomFactor);
                 }
             });
             valueAnimator.addListener(new Animator.AnimatorListener() {
@@ -1033,7 +1027,7 @@ public class ImageViewer4 extends View {
 //        mLastMatrix.getValues(mMatrixValues);
 //        LogUtil.i(TAG,"当前平移量： X轴 = " + mMatrixValues[Matrix.MTRANS_X] + "  ,  Y轴 = " + mMatrixValues[Matrix.MTRANS_Y]);
         LogUtil.w(TAG,"左上角坐标：  X = " + mTopLeft_X + "  ,  Y = " + mTopLeft_Y);
-//        LogUtil.w(TAG,"Bitmap的宽度： " + mBitmapWidth + "  ,  Bitmap的高度： " + mBitmapHeight);
+        LogUtil.w(TAG,"Bitmap的宽度： " + mBitmapWidth + "  ,  Bitmap的高度： " + mBitmapHeight);
 //        LogUtil.w(TAG,"放大倍数："+mMatrixValues[Matrix.MSCALE_X]);
     }
 }

@@ -548,7 +548,6 @@ public class ImageViewer5 extends View {
             @Override
             public void onAnimationEnd(Animator animation) {
                 ((ValueAnimator)animation).removeAllUpdateListeners();
-                LogUtil.d(TAG,"你说你妈呢");
                 setmLastMatrix();
                 setTopLeftManual(initTopLeft_X,initTopLeft_Y);
                 //mSupOffsetY = 0;
@@ -556,7 +555,6 @@ public class ImageViewer5 extends View {
             @Override
             public void onAnimationCancel(Animator animation) {
                 ((ValueAnimator)animation).removeAllUpdateListeners();
-                LogUtil.d(TAG,"傻逼");
                 setmLastMatrix();
                 //mSupOffsetX = 0;
 
