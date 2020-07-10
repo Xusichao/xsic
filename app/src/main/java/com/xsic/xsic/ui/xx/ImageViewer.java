@@ -193,7 +193,7 @@ public class ImageViewer extends View {
         super.onDraw(canvas);
         canvas.drawColor(Color.BLACK);
         canvas.drawBitmap(mBitmap,mCurMatrix,mPaint);
-        debug();
+//        debug();
     }
 
     private void setLastMatrix(){
@@ -239,6 +239,7 @@ public class ImageViewer extends View {
             case MotionEvent.ACTION_UP:
                 if (!isDoubleFinger){
                     resetSupValue();
+                    setLastMatrix();
                 }
                 break;
 
@@ -260,7 +261,6 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
-
                 isDoubleFinger = true;
                 mTouch_1_X = event.getX(0);
                 mTouch_1_Y = event.getY(0);
@@ -343,18 +343,27 @@ public class ImageViewer extends View {
         viewerSupport.mBitmapHeight = mBitmap.getHeight() * viewerSupport.mZoomFactor;
         viewerSupport.mBitmapWidth = mBitmap.getWidth() * viewerSupport.mZoomFactor;
         //设置左上角： 缩放点的xy轴是不变的，而左上角坐标与缩放点的距离： 距离 = 原距离 x 放大倍数
-        float offsetX = (zoomCenter_X - viewerSupport.mTopLeft_X) - (zoomCenter_X - viewerSupport.mTopLeft_X)*zoomFactor - mSupTransValueX;
-        float offsetY = (zoomCenter_Y - viewerSupport.mTopLeft_Y) - (zoomCenter_Y - viewerSupport.mTopLeft_Y)*zoomFactor - mSupTransValueY;
+        //float offsetX = (zoomCenter_X - viewerSupport.mTopLeft_X) - (zoomCenter_X - viewerSupport.mTopLeft_X)*zoomFactor - mSupTransValueX;
+        //float offsetY = (zoomCenter_Y - viewerSupport.mTopLeft_Y) - (zoomCenter_Y - viewerSupport.mTopLeft_Y)*zoomFactor - mSupTransValueY;
+        float offsetX = (zoomCenter_X - viewerSupport.mTopLeft_X)*zoomFactor - (zoomCenter_X - viewerSupport.mTopLeft_X);
+        float offsetY = (zoomCenter_Y - viewerSupport.mTopLeft_Y)*zoomFactor - (zoomCenter_Y - viewerSupport.mTopLeft_Y);
+//        LogUtil.d(TAG,(-mSupTransValueX)+"");
+        viewerSupport.mTopLeft_X += mSupTransValueX - offsetX;
+        viewerSupport.mTopLeft_Y += mSupTransValueY - offsetY;
         mSupTransValueX = offsetX;
         mSupTransValueY = offsetY;
-        //viewerSupport.mTopLeft_X += offsetX;
-        //viewerSupport.mTopLeft_Y += offsetY;
-
-
 
         LogUtil.d(TAG, viewerSupport.mTopLeft_X + "");
     }
 
+    /**
+     * 设置左上角坐标值
+     */
+    private void setTopLeft(){
+        mCurMatrix.getValues(mMatrixValues);
+        viewerSupport.mTopLeft_X = mMatrixValues[Matrix.MTRANS_X];
+        viewerSupport.mTopLeft_Y = mMatrixValues[Matrix.MTRANS_Y];
+    }
 
 
 

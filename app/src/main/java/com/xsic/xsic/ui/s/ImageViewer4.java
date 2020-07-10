@@ -258,7 +258,7 @@ public class ImageViewer4 extends View {
             case MotionEvent.ACTION_OUTSIDE:
             case MotionEvent.ACTION_UP:
                 if (!isDoubleFinger){
-                    //translateSpringBack();
+                    translateSpringBack();
                     setmLastMatrix();
                 }
                 break;
@@ -415,7 +415,7 @@ public class ImageViewer4 extends View {
      * 当前位置：已在一开始得到四个顶点位置
      */
     private void translateSpringBack(){
-        LogUtil.d(TAG,"调了这里");
+        //LogUtil.d(TAG,"调了这里");
         if (transAnimatorX!=null && transAnimatorY!=null){
             if (transAnimatorX.isRunning() || transAnimatorY.isRunning()){
                 clearTranslateAnimator();
@@ -595,7 +595,7 @@ public class ImageViewer4 extends View {
             @Override
             public void onAnimationEnd(Animator animation) {
                 ((ValueAnimator)animation).removeAllUpdateListeners();
-                LogUtil.d(TAG,"这是end");
+                //LogUtil.d(TAG,"这是end");
                 setmLastMatrix();
                 setTopLeftManual(initTopLeft_X,initTopLeft_Y);
                 //mSupOffsetY = 0;
@@ -603,7 +603,7 @@ public class ImageViewer4 extends View {
             @Override
             public void onAnimationCancel(Animator animation) {
                 ((ValueAnimator)animation).removeAllUpdateListeners();
-                LogUtil.d(TAG,"这是cancel");
+                //LogUtil.d(TAG,"这是cancel");
                 setmLastMatrix();
                 //mSupOffsetX = 0;
 
@@ -774,17 +774,20 @@ public class ImageViewer4 extends View {
 
                     float mTranslateX = animation.getAnimatedFraction() * (initTopLeft_X - tempTopLeftX);
                     float mTranslateY = animation.getAnimatedFraction() * (initTopLeft_Y - tempTopLeftY);
-                    float mZoomFactor = ((1 - animation.getAnimatedFraction()) * (curZoomFactor - targetZoomFactor) + targetZoomFactor) * SCALE_RATIO;
+                    float mZoomFactor = ((1 - (float)animation.getAnimatedValue()) * (curZoomFactor - targetZoomFactor) + targetZoomFactor) * SCALE_RATIO;
 
-                    mCurMatrix.postScale(mZoomFactor/mSupZoomFactor,mZoomFactor/mSupZoomFactor,centerX,centerY);
-                    mCurMatrix.postTranslate(mTranslateX - mSupZoomOffsetX, mTranslateY - mSupZoomOffsetY);
+                    mCurMatrix.postScale(mZoomFactor/mSupZoomFactor,mZoomFactor/mSupZoomFactor,mCenterX,mCenterY);
+                    //mCurMatrix.postTranslate(mTranslateX - mSupZoomOffsetX, mTranslateY - mSupZoomOffsetY);
                     invalidate();
-//                    LogUtil.d(TAG,mZoomFactor+" , " + mSupZoomFactor + " , "+ mZoomFactor/mSupZoomFactor + " , "+animation.getAnimatedFraction());
+                    LogUtil.d(TAG,mZoomFactor+" , " + mSupZoomFactor + " , "+ mZoomFactor/mSupZoomFactor + " , "+animation.getAnimatedFraction());
+                    mCurMatrix.getValues(mMatrixValues);
+                    LogUtil.w(TAG,mMatrixValues[Matrix.MSCALE_X]+"");
                     setTopLeftNew(mTranslateX - mSupZoomOffsetX, mTranslateY - mSupZoomOffsetY);
 
                     mSupZoomFactor = mZoomFactor;
                     mSupZoomOffsetX = mTranslateX;
                     mSupZoomOffsetY = mTranslateY;
+
                     setmLastMatrix();
 
                     setmBitmapSize(mBitmap.getHeight() * mZoomFactor, mBitmap.getWidth() * mZoomFactor);
@@ -795,10 +798,12 @@ public class ImageViewer4 extends View {
                 public void onAnimationStart(Animator animation) {}
                 @Override
                 public void onAnimationEnd(Animator animation) {
+                    LogUtil.d(TAG,"我要的end");
                     ((ValueAnimator)animation).removeAllUpdateListeners();
                     setmLastMatrix();
                     setmBitmapSize(mInitBitmapHeight,mInitBitmapWidth);
                     setTopLeftManual(initTopLeft_X,initTopLeft_Y);
+                    //mSupZoomFactor = 0;
                 }
                 @Override
                 public void onAnimationCancel(Animator animation) {
