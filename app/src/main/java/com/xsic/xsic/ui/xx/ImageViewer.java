@@ -299,7 +299,7 @@ public class ImageViewer extends View {
         //设置辅助变量
         mSupTransValueX = translateX;
         mSupTransValueY = translateY;
-        //不断设置上一矩阵的值
+        //不断设置上一矩阵的值，为了拿到净偏移量
         setLastMatrix();
     }
 
@@ -334,6 +334,8 @@ public class ImageViewer extends View {
         mCurMatrix.postScale(zoomFactor, zoomFactor, zoomCenter_X, zoomCenter_Y);
         mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
         invalidate();
+
+
 
     }
 
