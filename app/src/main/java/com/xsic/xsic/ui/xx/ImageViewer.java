@@ -294,12 +294,12 @@ public class ImageViewer extends View {
         //设置左上角坐标
         viewerSupport.mTopLeft_X += translateX - mSupTransValueX;
         viewerSupport.mTopLeft_Y += translateY - mSupTransValueY;
-        debug();
+        //debug();
 
         //设置辅助变量
         mSupTransValueX = translateX;
         mSupTransValueY = translateY;
-        //不断设置上一矩阵的值，为了拿到净偏移量
+        //不断设置上一矩阵的值
         setLastMatrix();
     }
 
@@ -336,7 +336,23 @@ public class ImageViewer extends View {
         invalidate();
 
 
+        //设置放大倍数
+        mCurMatrix.getValues(mMatrixValues);
+        viewerSupport.mZoomFactor = mMatrixValues[Matrix.MSCALE_X];
+        //设置图片大小
+        viewerSupport.mBitmapHeight = mBitmap.getHeight() * viewerSupport.mZoomFactor;
+        viewerSupport.mBitmapWidth = mBitmap.getWidth() * viewerSupport.mZoomFactor;
+        //设置左上角： 缩放点的xy轴是不变的，而左上角坐标与缩放点的距离： 距离 = 原距离 x 放大倍数
+        float offsetX = (zoomCenter_X - viewerSupport.mTopLeft_X) - (zoomCenter_X - viewerSupport.mTopLeft_X)*zoomFactor - mSupTransValueX;
+        float offsetY = (zoomCenter_Y - viewerSupport.mTopLeft_Y) - (zoomCenter_Y - viewerSupport.mTopLeft_Y)*zoomFactor - mSupTransValueY;
+        mSupTransValueX = offsetX;
+        mSupTransValueY = offsetY;
+        //viewerSupport.mTopLeft_X += offsetX;
+        //viewerSupport.mTopLeft_Y += offsetY;
 
+
+
+        LogUtil.d(TAG, viewerSupport.mTopLeft_X + "");
     }
 
 
