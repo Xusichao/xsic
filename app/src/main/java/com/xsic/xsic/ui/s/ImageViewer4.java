@@ -727,7 +727,7 @@ public class ImageViewer4 extends View {
         mSupZoomFactor = curZoomFactor*SCALE_RATIO;
 
         valueAnimator = ValueAnimator.ofFloat(0, 1);
-        valueAnimator.setDuration(ANIMATION_DURATION);
+        valueAnimator.setDuration(ANIMATION_DURATION * 50);
         valueAnimator.setInterpolator(new LinearInterpolator());
         valueAnimator.start();
         if (isBigger){
@@ -766,30 +766,58 @@ public class ImageViewer4 extends View {
             //缩小后回弹+平移
             float tempTopLeftX = mTopLeft_X;
             float tempTopLeftY = mTopLeft_Y;
+            float tempBitmapWidth = mBitmapWidth;
+            float tempBitmapHeight = mBitmapHeight;
+
+            float mCenterX = (tempTopLeftX +(tempTopLeftX + tempBitmapWidth))/2f;
+            float mCenterY = (tempTopLeftY +(tempTopLeftY + tempBitmapHeight))/2f;
+            float topLeftXAfterZoom = mCenterX - (mCenterX - tempTopLeftX)/curZoomFactor;
+            float topLeftYAfterZoom = mCenterX - (mCenterX - tempTopLeftY)/curZoomFactor;
+
+
             valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
-                    float mCenterX = (mTopLeft_X +(mTopLeft_X + mBitmapWidth))/2f;
-                    float mCenterY = (mTopLeft_Y +(mTopLeft_Y + mBitmapHeight))/2f;
+//                    float mCenterX = (mTopLeft_X +(mTopLeft_X + mBitmapWidth))/2f;
+//                    float mCenterY = (mTopLeft_Y +(mTopLeft_Y + mBitmapHeight))/2f;
 
-                    float mTranslateX = animation.getAnimatedFraction() * (initTopLeft_X - tempTopLeftX);
-                    float mTranslateY = animation.getAnimatedFraction() * (initTopLeft_Y - tempTopLeftY);
+//                    float mTranslateX = animation.getAnimatedFraction() * (initTopLeft_X - tempTopLeftX);
+//                    float mTranslateY = animation.getAnimatedFraction() * (initTopLeft_Y - tempTopLeftY);
                     float mZoomFactor = ((1 - (float)animation.getAnimatedValue()) * (curZoomFactor - targetZoomFactor) + targetZoomFactor) * SCALE_RATIO;
 
-                    mCurMatrix.postScale(mZoomFactor/mSupZoomFactor,mZoomFactor/mSupZoomFactor,mCenterX,mCenterY);
-                    //mCurMatrix.postTranslate(mTranslateX - mSupZoomOffsetX, mTranslateY - mSupZoomOffsetY);
+
+
+
+                    float mTranslateX = animation.getAnimatedFraction() * (initTopLeft_X - topLeftXAfterZoom);
+                    float mTranslateY = animation.getAnimatedFraction() * (initTopLeft_Y - topLeftYAfterZoom);
+
+                    //结束的时候修正
+
+                    mLastMatrix.getValues(mMatrixValues);
+                    float mlastZoomFactor = mMatrixValues[Matrix.MSCALE_X];
+                    mCurMatrix.reset();
+                    mCurMatrix.setScale(mZoomFactor/mlastZoomFactor,mZoomFactor/mlastZoomFactor,mCenterX,mCenterY);
+                    mCurMatrix.postTranslate(mTranslateX - mSupZoomOffsetX, 0);
+                    mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
                     invalidate();
-                    LogUtil.d(TAG,mZoomFactor+" , " + mSupZoomFactor + " , "+ mZoomFactor/mSupZoomFactor + " , "+animation.getAnimatedFraction());
-                    mCurMatrix.getValues(mMatrixValues);
-                    LogUtil.w(TAG,mMatrixValues[Matrix.MSCALE_X]+"");
+
+                    LogUtil.d(TAG,mMatrixValues[Matrix.MTRANS_X]+" , " + (mTranslateX - mSupZoomOffsetX));
+
                     setTopLeftNew(mTranslateX - mSupZoomOffsetX, mTranslateY - mSupZoomOffsetY);
 
                     mSupZoomFactor = mZoomFactor;
                     mSupZoomOffsetX = mTranslateX;
                     mSupZoomOffsetY = mTranslateY;
 
-                    setmLastMatrix();
 
+
+
+
+
+
+
+
+                    setmLastMatrix();
                     setmBitmapSize(mBitmap.getHeight() * mZoomFactor, mBitmap.getWidth() * mZoomFactor);
                 }
             });

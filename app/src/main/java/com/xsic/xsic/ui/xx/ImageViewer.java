@@ -185,7 +185,6 @@ public class ImageViewer extends View {
         viewerSupport.mZoomFactor = initScaleFactor;
         viewerSupport.mTopLeft_X = initTranslateX;
         viewerSupport.mTopLeft_Y = initTranslateY;
-
     }
 
     @Override

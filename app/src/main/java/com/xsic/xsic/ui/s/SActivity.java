@@ -17,7 +17,7 @@ public class SActivity extends BaseDataBindingActivity<TestBinding, SViewModel> 
 
     @Override
     protected void initView() {
-        ImageViewer imageViewer2 = new ImageViewer(mContext);
+        ImageViewer4 imageViewer2 = new ImageViewer4(mContext);
         viewBinding.container.addView(imageViewer2);
     }
 
