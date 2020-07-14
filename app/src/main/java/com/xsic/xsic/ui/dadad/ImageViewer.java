@@ -88,14 +88,6 @@ public class ImageViewer extends View {
 
     ValueAnimator animator = ValueAnimator.ofFloat(0,0);
 
-    ValueAnimator zoomAnimator = ValueAnimator.ofFloat(0,0);
-    ValueAnimator translateXAnimator = ValueAnimator.ofFloat(0,0);
-    ValueAnimator translateYAnimator = ValueAnimator.ofFloat(0,0);
-
-    AnimatorSet animatorSet = new AnimatorSet();
-
-
-    //动画分开
 
 
 
@@ -318,8 +310,8 @@ public class ImageViewer extends View {
     }
 
     private void setTopLeftManualy(float x, float y){
-        viewerSupport.mTopLeft_X = x;
-        viewerSupport.mTopLeft_Y = y;
+        viewerSupport.mTopLeft_X += x;
+        viewerSupport.mTopLeft_Y += y;
     }
 
     private void resetSupValue(){
@@ -341,6 +333,9 @@ public class ImageViewer extends View {
         invalidate();
 
         setTopLeft();
+
+        mCurMatrix.getValues(mMatrixValues);
+        LogUtil.d(TAG,mMatrixValues[Matrix.MTRANS_X] + " , " );
     }
 
     private void zoom(){
@@ -384,7 +379,6 @@ public class ImageViewer extends View {
         setmBitmapSize(mBitmap.getHeight() * mMatrixValues[Matrix.MSCALE_Y],mBitmap.getWidth() * mMatrixValues[Matrix.MSCALE_X]);
         setIsWeakSideTouchedScreen();
 
-        //LogUtil.d(TAG,viewerSupport.mTopLeft_X+"");
     }
 
     private void zoomSpringBack(){
@@ -424,124 +418,114 @@ public class ImageViewer extends View {
             centerX = (viewerSupport.mTopLeft_X +(viewerSupport.mTopLeft_X + viewerSupport.mBitmapWidth))/2f;
             centerY = (viewerSupport.mTopLeft_Y +(viewerSupport.mTopLeft_Y + viewerSupport.mBitmapHeight))/2f;
         }
-        tempCenterX = centerX;
-        tempCenterY = centerY;
         //3、动画
-        mSupZoomValue = viewerSupport.mZoomFactor;
         mSupTransValueX = 0;
         mSupTransValueY = 0;
+        //1、算中点  2、算左上角
+        float offsetX = ScreenUtil.getScreenWidth()/2f - centerX;
+        float offsetY = ScreenUtil.getScreenHeight()/2f - centerY;
+
+        animator = ValueAnimator.ofFloat(0,1);
+        animator.setDuration(ANIMATION_DURATION);
+        animator.setInterpolator(new LinearInterpolator());
         if (zoomFactorRelativeTo1 > MAX_SCALE * viewerSupport.SCALE_RATIO){
 
         }else {
             //缩小后回弹
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float mCenterX = (viewerSupport.mTopLeft_X +(viewerSupport.mTopLeft_X + viewerSupport.mBitmapWidth))/2f;
+                    float mCenterY = (viewerSupport.mTopLeft_Y +(viewerSupport.mTopLeft_Y + viewerSupport.mBitmapHeight))/2f;
 
-            zoomAnimator = ValueAnimator.ofFloat(curZoomFactor,targetZoomFactor);
-            zoomAnimator.setDuration(ANIMATION_DURATION);
-            zoomAnimator.setInterpolator(new LinearInterpolator());
-            zoomAnimator.addUpdateListener(zoomListener);
+                    mLastMatrix.getValues(mMatrixValues);
+                    float lastZoomFactor = mMatrixValues[Matrix.MSCALE_X];
+                    float lastTranslateX = mMatrixValues[Matrix.MTRANS_X];
+                    float lastTranslateY = mMatrixValues[Matrix.MTRANS_Y];
 
-//            float offsetX = centerX - (targetZoomFactor*(centerX - viewerSupport.mTopLeft_X))/curZoomFactor;
-//            float offsetY = centerY - (targetZoomFactor*(centerY - viewerSupport.mTopLeft_Y))/curZoomFactor;
-            float offsetX = centerX - ScreenUtil.getScreenWidth()/2f;
-            float offsetY = centerY - ScreenUtil.getScreenHeight()/2f;
-            LogUtil.e(TAG,"offsetX = "+offsetX);
-            translateXAnimator = ValueAnimator.ofFloat(0, -offsetX);
-            translateXAnimator.setDuration(ANIMATION_DURATION);
-            translateXAnimator.setInterpolator(new LinearInterpolator());
-            translateXAnimator.addUpdateListener(translateXListener);
+                    float zoomFactor = animation.getAnimatedFraction() * (targetZoomFactor - curZoomFactor) + curZoomFactor;
+                    float translateX = animation.getAnimatedFraction() * offsetX;
+                    float translateY = animation.getAnimatedFraction() * offsetY;
 
-            translateYAnimator = ValueAnimator.ofFloat(0, -offsetY);
-            translateXAnimator.setDuration(ANIMATION_DURATION);
-            translateXAnimator.setInterpolator(new LinearInterpolator());
-            translateXAnimator.addUpdateListener(translateYListener);
 
-            animatorSet.setDuration(ANIMATION_DURATION);
-            animatorSet.setInterpolator(new LinearInterpolator());
-            animatorSet.playTogether(zoomAnimator);
-            animatorSet.addListener(animatorListener);
-            animatorSet.start();
+
+                    mCurMatrix.reset();
+                    mCurMatrix.postTranslate(translateX - mSupTransValueX,0);
+                    mCurMatrix.postScale(zoomFactor/lastZoomFactor,zoomFactor/lastZoomFactor,mCenterX,mCenterY);
+                    mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
+                    invalidate();
+
+                    mCurMatrix.getValues(mMatrixValues);
+                    setTopLeftManualy(mMatrixValues[Matrix.MTRANS_X]-lastTranslateX, mMatrixValues[Matrix.MTRANS_Y]-lastTranslateY);
+                    mCurMatrix.getValues(mMatrixValues);
+                    setmBitmapSize(mBitmap.getHeight() * mMatrixValues[Matrix.MSCALE_Y], mBitmap.getWidth() * mMatrixValues[Matrix.MSCALE_X]);
+                    viewerSupport.mZoomFactor = mMatrixValues[Matrix.MSCALE_X];
+
+
+                    mSupTransValueX = translateX;
+
+
+                    mCurMatrix.getValues(mMatrixValues);
+                    LogUtil.d(TAG,mMatrixValues[Matrix.MTRANS_Y] + " , " );
+//                    LogUtil.w(TAG,mCenterX +"");
+//                    LogUtil.i(TAG,viewerSupport.mTopLeft_X + " , " + viewerSupport.mBitmapWidth);
+
+                    //LogUtil.d(TAG,viewerSupport.mTopLeft_X+" , " + viewerSupport.mBitmapWidth);
+                    setLastMatrix();
+                }
+            });
+            animator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {}
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    //test.start();
+                }
+                @Override
+                public void onAnimationCancel(Animator animation) {
+
+                }
+                @Override
+                public void onAnimationRepeat(Animator animation) {}
+            });
+
+
         }
+        animator.start();
+
+        test = ValueAnimator.ofFloat(0,1);
+        test.setDuration(ANIMATION_DURATION * 10);
+        test.setInterpolator(new LinearInterpolator());
+        test.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mLastMatrix.getValues(mMatrixValues);
+                float lastZoomFactor = mMatrixValues[Matrix.MSCALE_X];
+                float lastTranslateX = mMatrixValues[Matrix.MTRANS_X];
+                float lastTranslateY = mMatrixValues[Matrix.MTRANS_Y];
+
+                float zoomFactor = animation.getAnimatedFraction() * (targetZoomFactor - curZoomFactor) + curZoomFactor;
+                float translateX = animation.getAnimatedFraction() * offsetX;
+                float translateY = animation.getAnimatedFraction() * offsetY;
+
+                mCurMatrix.reset();
+                //mCurMatrix.postTranslate(translateX - mSupTransValueX,0);
+                mCurMatrix.postScale(zoomFactor/lastZoomFactor,zoomFactor/lastZoomFactor,centerX,centerY);
+                mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
+                invalidate();
+
+                mSupTransValueX = translateX;
+
+                mCurMatrix.getValues(mMatrixValues);
+                LogUtil.d(TAG,(translateX - mSupTransValueX) + " , " + mMatrixValues[Matrix.MTRANS_X] + " , " + translateX);
+
+                setLastMatrix();
+            }
+        });
 
     }
 
-    float tempCenterX;
-    float tempCenterY;
-    private ValueAnimator.AnimatorUpdateListener zoomListener = new ValueAnimator.AnimatorUpdateListener() {
-        @Override
-        public void onAnimationUpdate(ValueAnimator animation) {
-            mLastMatrix.getValues(mMatrixValues);
-
-            mCurMatrix.reset();
-            mCurMatrix.postScale((float)animation.getAnimatedValue()/mMatrixValues[Matrix.MSCALE_X],(float)animation.getAnimatedValue()/mMatrixValues[Matrix.MSCALE_Y],
-                    tempCenterX,tempCenterY);
-            mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
-            invalidate();
-
-            setLastMatrix();
-            //setTopLeftManualy();
-        }
-    };
-    float aaa = 0;
-    private ValueAnimator.AnimatorUpdateListener translateXListener = new ValueAnimator.AnimatorUpdateListener() {
-        @Override
-        public void onAnimationUpdate(ValueAnimator animation) {
-            float[] a = new float[9];
-            mCurMatrix.getValues(a);
-            float[] b = new float[9];
-            mLastMatrix.getValues(b);
-            LogUtil.e(TAG,a[Matrix.MTRANS_X] + " , " + b[Matrix.MTRANS_X]);
-
-
-//            mCurMatrix.reset();
-//            mCurMatrix.postTranslate((float)animation.getAnimatedValue() - mSupTransValueX, 0);
-//            mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
-//            invalidate();
-
-            mCurMatrix.reset();
-            mCurMatrix.postTranslate((float)animation.getAnimatedValue() - mSupTransValueX, 0);
-            mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
-            invalidate();
-            aaa += (float)animation.getAnimatedValue() - mSupTransValueX;
-            LogUtil.w(TAG,(float)animation.getAnimatedValue() + " , " + mSupTransValueX + " , " +
-                    ((float)animation.getAnimatedValue() - mSupTransValueX) + " , " + aaa);
-
-            mSupTransValueX = (float)animation.getAnimatedValue();
-            setLastMatrix();
-            //setTopLeftManualy();
-        }
-    };
-
-    private ValueAnimator.AnimatorUpdateListener translateYListener = new ValueAnimator.AnimatorUpdateListener() {
-        @Override
-        public void onAnimationUpdate(ValueAnimator animation) {
-            mCurMatrix.reset();
-            mCurMatrix.postTranslate((float)animation.getAnimatedValue() - mSupTransValueY, 0);
-            mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
-            invalidate();
-
-            mSupTransValueY = (float)animation.getAnimatedValue();
-            setLastMatrix();
-            //setTopLeftManualy();
-        }
-    };
-    private AnimatorSet.AnimatorListener animatorListener = new AnimatorListenerAdapter() {
-        @Override
-        public void onAnimationCancel(Animator animation) {
-            super.onAnimationCancel(animation);
-        }
-
-        @Override
-        public void onAnimationEnd(Animator animation) {
-            super.onAnimationEnd(animation);
-            //resetSupValue();
-            mCurMatrix.getValues(mMatrixValues);
-            LogUtil.e(TAG,mMatrixValues[Matrix.MTRANS_X]+"");
-            translateXAnimator.start();
-
-        }
-    };
-
-
+    private ValueAnimator test = ValueAnimator.ofFloat(0,1);
 
 
 
