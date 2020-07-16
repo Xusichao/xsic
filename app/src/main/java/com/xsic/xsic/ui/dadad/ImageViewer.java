@@ -292,6 +292,7 @@ public class ImageViewer extends View {
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
+                setSupMatrix(mLastMatrix);
                 setLastMatrix();
                 zoomSpringBack();
                 setLastMatrix();
@@ -350,6 +351,7 @@ public class ImageViewer extends View {
     }
 
     private void zoom(){
+        clearAnimator();
         //首次接触屏幕时的双指距离
         float distanceOf2PointFirstTouch = (float) Math.sqrt(Math.pow(mTouch_1_X - mTouch_2_X,2)+Math.pow(mTouch_1_Y - mTouch_2_Y,2));
         //缩放时不断变化的双指距离
@@ -732,36 +734,6 @@ public class ImageViewer extends View {
         });
         animator.start();
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     private GestureDetector.OnGestureListener mOnGestureListener = new GestureDetector.OnGestureListener() {
