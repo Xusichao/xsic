@@ -253,6 +253,7 @@ public class ImageViewer extends View {
             case MotionEvent.ACTION_OUTSIDE:
             case MotionEvent.ACTION_UP:
                 if (!isDoubleFinger){
+                    translateSpringBack();
                     setLastMatrix();
                 }
                 break;
@@ -383,6 +384,7 @@ public class ImageViewer extends View {
 
     private void zoomSpringBack(){
         zoomSpringBackLimitSituation();
+        zoomFixMarginVertical();
     }
 
     private void zoomSpringBackLimitSituation(){
@@ -421,7 +423,7 @@ public class ImageViewer extends View {
         //3、动画
         mSupTransValueX = 0;
         mSupTransValueY = 0;
-        //1、算中点  2、算左上角
+        //1、算中点 now  2、算左上角
         float offsetX = ScreenUtil.getScreenWidth()/2f - centerX;
         float offsetY = ScreenUtil.getScreenHeight()/2f - centerY;
 
@@ -429,7 +431,44 @@ public class ImageViewer extends View {
         animator.setDuration(ANIMATION_DURATION);
         animator.setInterpolator(new LinearInterpolator());
         if (zoomFactorRelativeTo1 > MAX_SCALE * viewerSupport.SCALE_RATIO){
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    mLastMatrix.getValues(mMatrixValues);
+                    float lastZoomFactor = mMatrixValues[Matrix.MSCALE_X];
+                    float lastTranslateX = mMatrixValues[Matrix.MTRANS_X];
+                    float lastTranslateY = mMatrixValues[Matrix.MTRANS_Y];
 
+                    float zoomFactor = animation.getAnimatedFraction() * (targetZoomFactor - curZoomFactor) + curZoomFactor;
+
+                    mCurMatrix.reset();
+                    mCurMatrix.postScale(zoomFactor/lastZoomFactor,zoomFactor/lastZoomFactor,centerX,centerY);
+                    mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
+                    invalidate();
+
+                    mCurMatrix.getValues(mMatrixValues);
+                    setTopLeftManualy(mMatrixValues[Matrix.MTRANS_X]-lastTranslateX, mMatrixValues[Matrix.MTRANS_Y]-lastTranslateY);
+                    setmBitmapSize(mBitmap.getHeight() * mMatrixValues[Matrix.MSCALE_Y], mBitmap.getWidth() * mMatrixValues[Matrix.MSCALE_X]);
+                    viewerSupport.mZoomFactor = mMatrixValues[Matrix.MSCALE_X];
+
+                    setLastMatrix();
+                }
+            });
+            animator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {}
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+
+                }
+                @Override
+                public void onAnimationCancel(Animator animation) {
+
+                }
+                @Override
+                public void onAnimationRepeat(Animator animation) {}
+            });
         }else {
             //缩小后回弹
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -450,27 +489,18 @@ public class ImageViewer extends View {
 
 
                     mCurMatrix.reset();
-                    mCurMatrix.postTranslate(translateX - mSupTransValueX,0);
+                    mCurMatrix.postTranslate(translateX - mSupTransValueX,translateY - mSupTransValueY);
                     mCurMatrix.postScale(zoomFactor/lastZoomFactor,zoomFactor/lastZoomFactor,mCenterX,mCenterY);
                     mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
                     invalidate();
 
                     mCurMatrix.getValues(mMatrixValues);
                     setTopLeftManualy(mMatrixValues[Matrix.MTRANS_X]-lastTranslateX, mMatrixValues[Matrix.MTRANS_Y]-lastTranslateY);
-                    mCurMatrix.getValues(mMatrixValues);
                     setmBitmapSize(mBitmap.getHeight() * mMatrixValues[Matrix.MSCALE_Y], mBitmap.getWidth() * mMatrixValues[Matrix.MSCALE_X]);
                     viewerSupport.mZoomFactor = mMatrixValues[Matrix.MSCALE_X];
 
-
                     mSupTransValueX = translateX;
-
-
-                    mCurMatrix.getValues(mMatrixValues);
-                    LogUtil.d(TAG,mMatrixValues[Matrix.MTRANS_Y] + " , " );
-//                    LogUtil.w(TAG,mCenterX +"");
-//                    LogUtil.i(TAG,viewerSupport.mTopLeft_X + " , " + viewerSupport.mBitmapWidth);
-
-                    //LogUtil.d(TAG,viewerSupport.mTopLeft_X+" , " + viewerSupport.mBitmapWidth);
+                    mSupTransValueY = translateY;
                     setLastMatrix();
                 }
             });
@@ -479,7 +509,7 @@ public class ImageViewer extends View {
                 public void onAnimationStart(Animator animation) {}
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    //test.start();
+                    resetSupValue();
                 }
                 @Override
                 public void onAnimationCancel(Animator animation) {
@@ -488,46 +518,210 @@ public class ImageViewer extends View {
                 @Override
                 public void onAnimationRepeat(Animator animation) {}
             });
-
-
         }
         animator.start();
+    }
 
-        test = ValueAnimator.ofFloat(0,1);
-        test.setDuration(ANIMATION_DURATION * 10);
-        test.setInterpolator(new LinearInterpolator());
-        test.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+    private void zoomFixMarginVertical(){
+        if (!isWeakSideTouchScreen && viewerSupport.mZoomFactor > 1f * viewerSupport.SCALE_RATIO){
+            float mBottomLeftY = viewerSupport.mTopLeft_Y + viewerSupport.mBitmapHeight;
+            if (viewerSupport.mTopLeft_Y != (ScreenUtil.getScreenHeight() - mBottomLeftY)){
+                animator = ValueAnimator.ofFloat(0,1);
+                animator.setDuration(ANIMATION_DURATION);
+                animator.setInterpolator(new LinearInterpolator());
+                animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        mLastMatrix.getValues(mMatrixValues);
+                        float lastTranslateY = mMatrixValues[Matrix.MTRANS_Y];
+                        float translateOffset = ((ScreenUtil.getScreenHeight() - mBottomLeftY) - viewerSupport.mTopLeft_Y)/2f * animation.getAnimatedFraction();
+
+                        mCurMatrix.reset();
+                        mCurMatrix.postTranslate(0,translateOffset - mSupTransValueY);
+                        mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
+                        invalidate();
+
+                        mSupTransValueY = translateOffset;
+
+                        mCurMatrix.getValues(mMatrixValues);
+                        setTopLeftManualy(0, mMatrixValues[Matrix.MTRANS_Y]-lastTranslateY);
+                        setLastMatrix();
+                    }
+                });
+                animator.addListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {}
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        resetSupValue();
+                    }
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+
+                    }
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {}
+                });
+                animator.start();
+            }
+        }
+    }
+
+    private void translateSpringBack(){
+        // 松手时4个顶点坐标
+        float mTopRight_X = viewerSupport.mTopLeft_X + viewerSupport.mBitmapWidth;
+        float mTopRight_Y = viewerSupport.mTopLeft_Y;
+        float mBottomRight_X = viewerSupport.mTopLeft_X + viewerSupport.mBitmapWidth;
+        float mBottomRight_Y = viewerSupport.mTopLeft_Y + viewerSupport.mBitmapHeight;
+        float mBottomLeft_X = viewerSupport.mTopLeft_X;
+        float mBottomLeft_Y = viewerSupport.mTopLeft_Y + viewerSupport.mBitmapHeight;
+
+        // 边界点
+        float topLeftLimit_X = 0;
+        float topLeftLimit_Y = 0;
+        float topRightLimit_X = 0;
+        float topRightLimit_Y = 0;
+        float bottomLeftLimit_X = 0;
+        float bottomLeftLimit_Y = 0;
+        float bottomRightLimit_X = 0;
+        float bottomRightLimit_Y = 0;
+        if (isWeakSideTouchScreen){
+            topLeftLimit_X = 0;
+            topLeftLimit_Y = 0;
+            topRightLimit_X = ScreenUtil.getScreenWidth();
+            topRightLimit_Y = 0;
+            bottomRightLimit_X = ScreenUtil.getScreenWidth();
+            bottomRightLimit_Y = ScreenUtil.getScreenWidth();
+            bottomLeftLimit_X = 0;
+            bottomLeftLimit_Y = ScreenUtil.getScreenHeight();
+        }else {
+            if (viewerSupport.mBitmapHeight == ScreenUtil.getScreenHeight() || viewerSupport.mBitmapWidth == ScreenUtil.getScreenWidth()){
+                //相当于放大倍数为1.0时
+                topLeftLimit_X = mInitTopLeft_X;
+                topLeftLimit_Y = mInitTopLeft_Y;
+                topRightLimit_X = topLeftLimit_X + viewerSupport.mBitmapWidth;
+                topRightLimit_Y = topLeftLimit_Y;
+                bottomRightLimit_X = topLeftLimit_X + viewerSupport.mBitmapWidth;
+                bottomRightLimit_Y = topLeftLimit_Y + viewerSupport.mBitmapHeight;
+                bottomLeftLimit_X = topLeftLimit_X;
+                bottomLeftLimit_Y = topLeftLimit_Y + viewerSupport.mBitmapHeight;
+            }
+            if (viewerSupport.mBitmapWidth > ScreenUtil.getScreenWidth()){
+                //图片宽度大于屏幕，有平移的空间
+                mLastMatrix.getValues(mMatrixValues);
+                topLeftLimit_X = 0;
+                topLeftLimit_Y = mMatrixValues[Matrix.MTRANS_Y];
+                topRightLimit_X = ScreenUtil.getScreenWidth();
+                topRightLimit_Y = topLeftLimit_Y;
+                bottomRightLimit_X = ScreenUtil.getScreenWidth();
+                bottomRightLimit_Y = topLeftLimit_Y + viewerSupport.mBitmapHeight;
+                bottomLeftLimit_X = 0;
+                bottomLeftLimit_Y = topLeftLimit_Y + viewerSupport.mBitmapHeight;
+            }
+            if (viewerSupport.mBitmapHeight > ScreenUtil.getScreenHeight()){
+                //图片高度大于屏幕，有平移的空间
+                mLastMatrix.getValues(mMatrixValues);
+                topLeftLimit_X = mMatrixValues[Matrix.MTRANS_X];
+                topLeftLimit_Y = 0;
+                topRightLimit_X = topLeftLimit_X + viewerSupport.mBitmapWidth;
+                topRightLimit_Y = 0;
+                bottomRightLimit_X = topLeftLimit_X + viewerSupport.mBitmapWidth;
+                bottomRightLimit_Y = ScreenUtil.getScreenHeight();
+                bottomLeftLimit_X = topLeftLimit_X;
+                bottomLeftLimit_Y = ScreenUtil.getScreenHeight();
+            }
+        }
+
+        float offsetX = 0;
+        float offsetY = 0;
+        //当前某一顶点的XY
+        float curPoint_X = 0;
+        float curPoint_Y = 0;
+
+        // 不影响，因为左下横坐标和右上纵坐标分别等于左上角x，y，最后指向的点还是左上角
+        if (viewerSupport.mTopLeft_X > topLeftLimit_X){
+            offsetX = topLeftLimit_X - viewerSupport.mTopLeft_X;
+            curPoint_X = viewerSupport.mTopLeft_X;
+        }
+        if (viewerSupport.mTopLeft_Y > topLeftLimit_Y){
+            offsetY = topLeftLimit_Y - viewerSupport.mTopLeft_Y;
+            curPoint_Y = viewerSupport.mTopLeft_Y;
+        }
+        if (mTopRight_X < topRightLimit_X){
+            offsetX = topRightLimit_X - mTopRight_X;
+            curPoint_X = mTopRight_X;
+        }
+        if (mTopRight_Y > topRightLimit_Y){
+            offsetY = topRightLimit_Y - mTopRight_Y;
+            curPoint_Y = mTopRight_Y;
+        }
+        if (mBottomRight_X < bottomRightLimit_X){
+            offsetX = bottomRightLimit_X - mBottomRight_X;
+            curPoint_X = mBottomRight_X;
+        }
+        if (mBottomRight_Y < bottomRightLimit_Y){
+            offsetY = bottomRightLimit_Y - mBottomRight_Y;
+            curPoint_Y = mBottomRight_Y;
+        }
+        if (mBottomLeft_X > bottomLeftLimit_X){
+            offsetX = bottomLeftLimit_X - mBottomLeft_X;
+            curPoint_X = mBottomLeft_X;
+        }
+        if (mBottomLeft_Y < bottomLeftLimit_Y){
+            offsetY = bottomLeftLimit_Y - mBottomLeft_Y;
+            curPoint_Y = mBottomLeft_Y;
+        }
+
+        mSupTransValueX = curPoint_X;
+        mSupTransValueY = curPoint_Y;
+
+        animator = ValueAnimator.ofFloat(0,1);
+        animator.setDuration(ANIMATION_DURATION);
+        animator.setInterpolator(new LinearInterpolator());
+        float finalOffsetX = offsetX;
+        float finalOffsetY = offsetY;
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 mLastMatrix.getValues(mMatrixValues);
-                float lastZoomFactor = mMatrixValues[Matrix.MSCALE_X];
                 float lastTranslateX = mMatrixValues[Matrix.MTRANS_X];
                 float lastTranslateY = mMatrixValues[Matrix.MTRANS_Y];
 
-                float zoomFactor = animation.getAnimatedFraction() * (targetZoomFactor - curZoomFactor) + curZoomFactor;
-                float translateX = animation.getAnimatedFraction() * offsetX;
-                float translateY = animation.getAnimatedFraction() * offsetY;
+                float translateX = animation.getAnimatedFraction() * finalOffsetX;
+                float translateY = animation.getAnimatedFraction() * finalOffsetY;
 
                 mCurMatrix.reset();
-                //mCurMatrix.postTranslate(translateX - mSupTransValueX,0);
-                mCurMatrix.postScale(zoomFactor/lastZoomFactor,zoomFactor/lastZoomFactor,centerX,centerY);
+                mCurMatrix.postTranslate(translateX - mSupTransValueX,translateY - mSupTransValueY);
                 mCurMatrix.setConcat(mCurMatrix,mLastMatrix);
                 invalidate();
 
+                mCurMatrix.getValues(mMatrixValues);
+                LogUtil.d(TAG,(translateX - mSupTransValueX) + " , " + mMatrixValues[Matrix.MTRANS_X]);
+
                 mSupTransValueX = translateX;
+                mSupTransValueY = translateY;
 
                 mCurMatrix.getValues(mMatrixValues);
-                LogUtil.d(TAG,(translateX - mSupTransValueX) + " , " + mMatrixValues[Matrix.MTRANS_X] + " , " + translateX);
-
+                setTopLeftManualy(mMatrixValues[Matrix.MTRANS_X]-lastTranslateX, mMatrixValues[Matrix.MTRANS_Y]-lastTranslateY);
                 setLastMatrix();
             }
         });
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {}
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                resetSupValue();
+            }
+            @Override
+            public void onAnimationCancel(Animator animation) {
 
+            }
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+        });
+        animator.start();
     }
-
-    private ValueAnimator test = ValueAnimator.ofFloat(0,1);
-
-
 
 
 
