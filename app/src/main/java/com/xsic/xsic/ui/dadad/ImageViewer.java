@@ -253,6 +253,7 @@ public class ImageViewer extends View {
             case MotionEvent.ACTION_OUTSIDE:
             case MotionEvent.ACTION_UP:
                 if (!isDoubleFinger){
+                    setLastMatrix();
                     translateSpringBack();
                     setLastMatrix();
                 }
@@ -315,6 +316,13 @@ public class ImageViewer extends View {
         viewerSupport.mTopLeft_Y += y;
     }
 
+    private void clearAnimator(){
+        if (animator!=null && animator.isRunning()){
+            animator.cancel();
+            animator.removeAllUpdateListeners();
+        }
+    }
+
     private void resetSupValue(){
         mSupTransValueX = 0;
         mSupTransValueY = 0;
@@ -322,6 +330,8 @@ public class ImageViewer extends View {
     }
 
     private void translate(){
+        clearAnimator();
+
         mLastMatrix.getValues(mMatrixValues);
         float curTranslateX = mMatrixValues[Matrix.MTRANS_X] + (mDownX - mTouchX);
         float curTranslateY = mMatrixValues[Matrix.MTRANS_Y] + (mDownY - mTouchY);
@@ -672,8 +682,8 @@ public class ImageViewer extends View {
             curPoint_Y = mBottomLeft_Y;
         }
 
-        mSupTransValueX = curPoint_X;
-        mSupTransValueY = curPoint_Y;
+        mSupTransValueX = 0;//curPoint_X;
+        mSupTransValueY = 0;//curPoint_Y;
 
         animator = ValueAnimator.ofFloat(0,1);
         animator.setDuration(ANIMATION_DURATION);
