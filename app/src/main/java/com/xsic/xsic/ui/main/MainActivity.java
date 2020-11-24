@@ -36,6 +36,11 @@ public class MainActivity extends BaseDataBindingActivity<ActivityMainBinding,Ma
     private final int mEndColor = 0xFF000000;
 
     @Override
+    protected void setUpUi() {
+
+    }
+
+    @Override
     protected int getContentViewId() {
         return R.layout.activity_main;
     }

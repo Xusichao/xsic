@@ -1,8 +1,6 @@
-package com.xsic.xsic.ui.dadad;
+package com.xsic.xsic.ui.imageViewer;
 
 import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -23,7 +21,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.xsic.xsic.R;
-import com.xsic.xsic.ui.xx.ViewerSupport;
 import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
 

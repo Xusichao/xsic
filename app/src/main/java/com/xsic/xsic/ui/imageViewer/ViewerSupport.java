@@ -1,4 +1,4 @@
-package com.xsic.xsic.ui.dadad;
+package com.xsic.xsic.ui.imageViewer;
 
 public class ViewerSupport {
     public float SCALE_RATIO;

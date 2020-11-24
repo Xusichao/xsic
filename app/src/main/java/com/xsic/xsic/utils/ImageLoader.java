@@ -66,12 +66,9 @@ public class ImageLoader {
      * 加载网络图片
      * @param url
      * @param view
-     * @param radius
      */
-    public void displayUrl(String url, ImageView view, int radius){
-        RoundedCorners roundedCorners = new RoundedCorners(radius);
-        RequestOptions requestOptions = RequestOptions.bitmapTransform(roundedCorners);
-        Glide.with(BaseApplication.getBaseApplication()).load(url).apply(requestOptions).into(view);
+    public void displayUrl(String url, ImageView view){
+        Glide.with(BaseApplication.getBaseApplication()).load(url).into(view);
     }
 
     /**

@@ -1,15 +1,18 @@
-package com.xsic.xsic.ui.s;
+package com.xsic.xsic.ui.testAct;
 
 import android.view.View;
 
 import com.xsic.xsic.R;
 import com.xsic.xsic.base.BaseDataBindingActivity;
 import com.xsic.xsic.databinding.TestBinding;
-import com.xsic.xsic.ui.b.ImageViewer2;
-import com.xsic.xsic.ui.b.ImageViewer3;
-import com.xsic.xsic.ui.dadad.ImageViewer;
+import com.xsic.xsic.ui.imageViewer.ImageViewer;
 
 public class SActivity extends BaseDataBindingActivity<TestBinding, SViewModel> {
+    @Override
+    protected void setUpUi() {
+
+    }
+
     @Override
     protected int getContentViewId() {
         return R.layout.test;
@@ -17,8 +20,8 @@ public class SActivity extends BaseDataBindingActivity<TestBinding, SViewModel> 
 
     @Override
     protected void initView() {
-        ImageViewer imageViewer2 = new ImageViewer(mContext);
-        viewBinding.container.addView(imageViewer2);
+        ImageViewer imageViewer = new ImageViewer(mContext);
+        viewBinding.container.addView(imageViewer);
     }
 
     @Override

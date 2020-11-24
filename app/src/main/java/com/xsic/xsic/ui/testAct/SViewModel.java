@@ -1,4 +1,4 @@
-package com.xsic.xsic.ui.s;
+package com.xsic.xsic.ui.testAct;
 
 import android.app.Application;
 

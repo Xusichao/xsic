@@ -12,6 +12,11 @@ public class SplashActivity extends BaseDataBindingActivity<ActivitySplashBindin
     private int skipTime = 2000;
 
     @Override
+    protected void setUpUi() {
+
+    }
+
+    @Override
     protected int getContentViewId() {
         return R.layout.activity_splash;
     }
