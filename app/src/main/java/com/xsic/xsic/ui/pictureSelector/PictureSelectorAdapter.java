@@ -43,7 +43,8 @@ public class PictureSelectorAdapter extends RecyclerView.Adapter<BaseViewHolder>
     }
 
     @Override
-    public int getItemCount() {
+    public int getItemCount(){
+        //LogUtil.i("piciiisssx","刷新了："+mDatas.size());
         if (mDatas.size() > 0){
             return mDatas.size();
         }

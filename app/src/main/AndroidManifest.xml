@@ -21,7 +21,8 @@
         <activity android:name=".ui.main.MainActivity">
 
         </activity>
-        <activity android:name=".ui.pictureSelector.PictureSelectorActivity">
+        <activity android:name=".ui.pictureSelector.PictureSelectorActivity"/>
+        <activity android:name=".ui.tailor.TailorActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW"/>
