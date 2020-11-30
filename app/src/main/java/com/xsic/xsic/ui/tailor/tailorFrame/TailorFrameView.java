@@ -39,20 +39,26 @@ public class TailorFrameView extends View {
     private Path mController_3 = new Path();    //右下
     private Path mController_4 = new Path();    //左下
 
-    private Matrix mControllerMatrix_1 = new Matrix();
-    private Matrix mControllerMatrix_2 = new Matrix();
-    private Matrix mControllerMatrix_3 = new Matrix();
-    private Matrix mControllerMatrix_4 = new Matrix();
-
     private Path mLine_1 = new Path();
     private Path mLine_2 = new Path();
     private Path mLine_3 = new Path();
     private Path mLine_4 = new Path();
 
+    //手指接触时候的坐标，不随move操作变化
+    private float mTouch_1_X;
+    private float mTouch_1_Y;
+    private float mTouch_2_X;
+    private float mTouch_2_Y;
+    //手指实时坐标，随move操作变化
     private float mDown_1_X;
     private float mDown_1_Y;
     private float mDown_2_X;
     private float mDown_2_Y;
+    //辅助值，用来记录上一次move操作时的[x，y]，用来计算偏移量
+    private float mSup_1_X;
+    private float mSup_1_Y;
+    private float mSup_2_X;
+    private float mSup_2_Y;
 
     /**
      * 界限值，超过该值不响应缩放操作
@@ -155,6 +161,7 @@ public class TailorFrameView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        clearPath();
         canvas.drawColor(Color.BLACK);
         setmRectFSize(mViewSupport.mTop,mViewSupport.mRight,mViewSupport.mBottom,mViewSupport.mLeft);
         canvas.drawRect(mRectF,mPaint);
@@ -162,11 +169,50 @@ public class TailorFrameView extends View {
         drawLine(canvas);
     }
 
+    private void clearPath(){
+        mController_1.reset();
+        mController_2.reset();
+        mController_3.reset();
+        mController_4.reset();
+        mLine_1.reset();
+        mLine_2.reset();
+        mLine_3.reset();
+        mLine_4.reset();
+    }
+
+    /**
+     * 重新设置矩形尺寸
+     * @param t top
+     * @param r right
+     * @param b bottom
+     * @param l left
+     */
     private void setmRectFSize(float t, float r, float b, float l){
         mRectF.left = l;
         mRectF.top = t;
         mRectF.right = r;
         mRectF.bottom = b;
+    }
+
+    private void setmRectFSize(){
+        mRectF.left = mViewSupport.mLeft;
+        mRectF.top = mViewSupport.mTop;
+        mRectF.right = mViewSupport.mRight;
+        mRectF.bottom = mViewSupport.mBottom;
+    }
+
+    /**
+     * 设置矩形尺寸，需要加上mViewSupport里面原本的位移量
+     * @param t top
+     * @param r right
+     * @param b bottom
+     * @param l left
+     */
+    private void setmRectFSizeByIncrement(float t, float r, float b, float l){
+        mRectF.left = l + mViewSupport.mLeft;
+        mRectF.top = t + mViewSupport.mTop;
+        mRectF.right = r + mViewSupport.mRight;
+        mRectF.bottom = b + mViewSupport.mBottom;
     }
 
     /**
@@ -217,21 +263,40 @@ public class TailorFrameView extends View {
         return false;
     }
 
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (!isPointInRect(event.getX(),event.getY())){
-            //接触点在操作框外
-            return false;
-        }
-        // TODO: 2020/11/27
+    /**
+     * //判断触点，从而判断是1、整个矩形做平移操作  2、整个矩形做缩放操作
+     * @param event 事件
+     */
+    private void setOptionState(MotionEvent event){
         if (!isPointInController(event.getX(),event.getY())){
             mSate = STATE_MOVE;
         }else {
             mSate = STATE_CONTROL;
         }
+    }
+
+    /**
+     * 如果在操作框则忽略触摸事件
+     * @param event 事件
+     * @return 是否在操作框内
+     */
+    private boolean ignoreIfPointOutside(MotionEvent event){
+        //接触点在操作框外
+        return isPointInRect(event.getX(), event.getY());
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction() & MotionEvent.ACTION_MASK){
             case MotionEvent.ACTION_DOWN:
+                mTouch_1_X = event.getX();
+                mTouch_1_Y = event.getY();
+                mSup_1_X = mTouch_1_X;
+                mSup_1_Y = mTouch_1_Y;
+                if (!ignoreIfPointOutside(event)){
+                    return false;
+                }
+                setOptionState(event);
                 break;
 
             case MotionEvent.ACTION_UP:
@@ -243,14 +308,26 @@ public class TailorFrameView extends View {
                     mDown_1_Y = event.getY(0);
                     mDown_2_X = event.getX(1);
                     mDown_2_Y = event.getY(1);
+
+                    doAction(mSate);
                 }else {
                     mDown_1_X = event.getX();
                     mDown_1_Y = event.getY();
-                    //LogUtil.d("usahdfhaf",mDown_1_X+" ， "+mDown_1_Y);
+
+                    doAction(mSate);
                 }
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
+                mTouch_1_X = event.getX(0);
+                mTouch_1_Y = event.getY(0);
+                mTouch_2_X = event.getX(1);
+                mTouch_2_Y = event.getY(1);
+
+                mSup_1_X = mTouch_1_X;
+                mSup_1_Y = mTouch_1_Y;
+                mSup_2_X = mTouch_2_X;
+                mSup_2_Y = mTouch_2_Y;
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
@@ -261,17 +338,39 @@ public class TailorFrameView extends View {
 
     private void doAction(int state){
         if (state == STATE_MOVE){
-
+            move();
         }else if (state == STATE_CONTROL){
-
+            zoom();
         }
     }
 
-    private void move(float touchX, float touchY){
-
+    private void move(){
+        float offsetX = mDown_1_X - mSup_1_X;
+        float offsetY = mDown_1_Y - mSup_1_Y;
+        mViewSupport.setTopLeft(offsetX,offsetY);
+        mViewSupport.setTopRight(offsetX,offsetY);
+        mViewSupport.setBottomRight(offsetX,offsetY);
+        mViewSupport.setBottomLeft(offsetX,offsetY);
+        mSup_1_X = mDown_1_X;
+        mSup_1_Y = mDown_1_Y;
+        setmRectFSize();
+        invalidate();
     }
 
     private void zoom(){
+        //初次接触屏幕时两指距离
+        float distanceOf2PointFirstTouch = (float) Math.sqrt(Math.pow(mTouch_1_X - mTouch_2_X,2)+Math.pow(mTouch_1_Y - mTouch_2_Y,2));
+        //缩放时不断变化的双指距离
+        float distanceOf2Point = (float) Math.sqrt(Math.pow(mDown_1_X - mDown_2_X,2)+Math.pow(mDown_1_Y - mDown_2_Y,2));
+        if (distanceOf2Point == distanceOf2PointFirstTouch){
+            return;
+        }
+        //首次接触屏幕时的双指中心点，即缩放中心点
+        float zoomCenter_X = (mTouch_1_X + mTouch_2_X)/2f;
+        float zoomCenter_Y = (mTouch_1_Y + mTouch_2_Y)/2f;
+
+        //缩放倍数
+        float zoomFactor = distanceOf2Point / distanceOf2PointFirstTouch;
 
     }
 

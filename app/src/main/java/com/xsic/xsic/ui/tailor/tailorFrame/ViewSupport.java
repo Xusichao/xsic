@@ -7,6 +7,18 @@ import com.xsic.xsic.utils.ScreenUtil;
  * 外部通过改变这里的值来改变TailorFrameView的框比例
  */
 public class ViewSupport {
+    /**
+     * 界限值，超过该值不响应缩放操作
+     * 有可能由：
+     *          1、图片大小所限制
+     *          2、框的比例
+     */
+    private float LIMIT_TOP_LEFT_X;
+    private float LIMIT_TOP_LEFT_Y;
+    private float LIMIT_BOTTOM_RIGHT_X;
+    private float LIMIT_BOTTOM_RIGHT_Y;
+
+
     //矩形四个顶点坐标
     //左上角
     public float mTopLeft_X;
@@ -65,26 +77,27 @@ public class ViewSupport {
     }
 
     public void setTopLeft(float x, float y){
-        mTopLeft_X = x;
-        mTopLeft_Y = y;
+        mTopLeft_X += x;
+        mTopLeft_Y += y;
+        LogUtil.d("xsafafaf","mTopLeft_X = "+mTopLeft_X + " ， mTopLeft_Y = " + mTopLeft_Y);
         updateRelativeData();
     }
 
     public void setTopRight(float x, float y){
-        mTopRight_X = x;
-        mTopRight_Y = y;
+        mTopRight_X += x;
+        mTopRight_Y += y;
         updateRelativeData();
     }
 
     public void setBottomRight(float x, float y){
-        mBottomRight_X = x;
-        mBottomRight_Y = y;
+        mBottomRight_X += x;
+        mBottomRight_Y += y;
         updateRelativeData();
     }
 
     public void setBottomLeft(float x, float y){
-        mBottomLeft_X = x;
-        mBottomLeft_Y = y;
+        mBottomLeft_X += x;
+        mBottomLeft_Y += y;
         updateRelativeData();
     }
 
