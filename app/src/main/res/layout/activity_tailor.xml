@@ -9,7 +9,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <com.xsic.xsic.ui.tailor.tailorFrame.TailorFrameView
+        <com.xsic.xsic.ui.tailor.tailorFrame.TailorFrameViewNew
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
     </LinearLayout>

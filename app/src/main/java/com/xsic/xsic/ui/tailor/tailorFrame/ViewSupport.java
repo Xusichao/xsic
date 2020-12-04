@@ -1,5 +1,7 @@
 package com.xsic.xsic.ui.tailor.tailorFrame;
 
+import android.graphics.Matrix;
+
 import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
 
@@ -18,6 +20,8 @@ public class ViewSupport {
     private float LIMIT_BOTTOM_RIGHT_X;
     private float LIMIT_BOTTOM_RIGHT_Y;
 
+    public Matrix mMatrix = new Matrix();
+    public float mZoomFactor = 1.0f;
 
     //矩形四个顶点坐标
     //左上角
@@ -60,6 +64,7 @@ public class ViewSupport {
     public float mLine_4_end_X;
     public float mLine_4_end_Y;
 
+
     public ViewSupport() {
 
         /* 只需要改变这部份 */
@@ -101,6 +106,18 @@ public class ViewSupport {
         updateRelativeData();
     }
 
+    public void setPointByZoom(float zoomFactor){
+        mTopLeft_X *= zoomFactor;
+        mTopLeft_Y *= zoomFactor;
+        mTopRight_X *= zoomFactor;
+        mTopRight_Y *= zoomFactor;
+        mBottomRight_X *= zoomFactor;
+        mBottomRight_Y *= zoomFactor;
+        mBottomLeft_X *= zoomFactor;
+        mBottomLeft_Y *= zoomFactor;
+        updateRelativeData();
+    }
+
     private void updateRelativeData(){
         mTop = mTopLeft_Y;
         mLeft = mTopLeft_X;
@@ -126,5 +143,9 @@ public class ViewSupport {
         mLine_4_start_Y = (mBottom - mTop) * (2f/3f) + mTop;
         mLine_4_end_X = mRight;
         mLine_4_end_Y = mLine_4_start_Y;
+    }
+
+    public void debug4Point(String flag){
+        LogUtil.d(flag, " ： mTopLeft_X = " +mTopLeft_X + " ， mTopLeft_Y = " + mTopLeft_Y);
     }
 }

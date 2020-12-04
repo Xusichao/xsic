@@ -8,7 +8,6 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,7 +17,7 @@ import androidx.annotation.Nullable;
 import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
 
-public class TailorFrameView extends View {
+public class TailorFrameViewNew extends View {
     private static final int STATE_CONTROL = 1;     //作用在操作点上的缩放
     private static final int STATE_ZOOM = 2;        //双指缩放
     private static final int STATE_MOVE = 3;        //单指移动
@@ -42,7 +41,7 @@ public class TailorFrameView extends View {
 
     private final int mColor = Color.WHITE;
     private RectF mRectF = new RectF();
-    private ViewSupport mViewSupport = new ViewSupport();
+    private ViewSupportNew mViewSupport = new ViewSupportNew();
     private final float mControllerLength = 100;      //控制点的长度
     private float mScreenWidth = ScreenUtil.getScreenWidth();
     private float mScreenHeight = ScreenUtil.getScreenHeight();
@@ -86,15 +85,15 @@ public class TailorFrameView extends View {
     private float LIMIT_BOTTOM_RIGHT_X;
     private float LIMIT_BOTTOM_RIGHT_Y;
 
-    public TailorFrameView(Context context) {
+    public TailorFrameViewNew(Context context) {
         this(context,null,0);
     }
 
-    public TailorFrameView(Context context, @Nullable AttributeSet attrs) {
+    public TailorFrameViewNew(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs,0);
     }
 
-    public TailorFrameView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public TailorFrameViewNew(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
     }
@@ -415,24 +414,37 @@ public class TailorFrameView extends View {
         }else if (state == STATE_CONTROL){
             control();
         }else if (state == STATE_ZOOM){
-            zoomMatrix();
+            zoom();
         }
     }
 
     private void move(){
         float offsetX = mDown_1_X - mSup_1_X;
         float offsetY = mDown_1_Y - mSup_1_Y;
-        mViewSupport.setTopLeft(offsetX,offsetY);
-        mViewSupport.setTopRight(offsetX,offsetY);
-        mViewSupport.setBottomRight(offsetX,offsetY);
-        mViewSupport.setBottomLeft(offsetX,offsetY);
+//        if (mViewSupport.mIsLeftOutOfBoundary && offsetX < 0){
+//            //左边已经靠在边界上，不允许再向左平移
+//            offsetX = 0;
+//        }
+//        if (mViewSupport.mIsRightOutOfBoundary && offsetX > 0){
+//            offsetX = 0;
+//        }
+//        if (mViewSupport.mIsTopOutOfBoundary && offsetY < 0){
+//            offsetY = 0;
+//        }
+//        if (mViewSupport.mIsBottomOutOfBoundary && offsetY > 0){
+//            offsetY = 0;
+//        }
+        setApexByIncre(offsetX, offsetY);
         mSup_1_X = mDown_1_X;
         mSup_1_Y = mDown_1_Y;
         setmRectFSize();
         invalidate();
     }
 
-    private void zoom(){
+    /**
+     * @deprecated
+     */
+    private void zoomDeprecated(){
         //初次接触屏幕时两指距离
         float distanceOf2PointFirstTouch = (float) Math.sqrt(Math.pow(mTouch_1_X - mTouch_2_X,2)+Math.pow(mTouch_1_Y - mTouch_2_Y,2));
         //缩放时不断变化的双指距离
@@ -452,7 +464,7 @@ public class TailorFrameView extends View {
         invalidate();
     }
 
-    private void zoomMatrix(){
+    private void zoom(){
         //初次接触屏幕时两指距离
         float distanceOf2PointFirstTouch = (float) Math.sqrt(Math.pow(mTouch_1_X - mTouch_2_X,2)+Math.pow(mTouch_1_Y - mTouch_2_Y,2));
         //缩放时不断变化的双指距离
@@ -466,31 +478,32 @@ public class TailorFrameView extends View {
 
         //缩放倍数
         float zoomFactor = distanceOf2Point / distanceOf2PointFirstTouch;
-        mMatrix.reset();
-        mMatrix.setScale(zoomFactor,zoomFactor,zoomCenter_X,zoomCenter_Y);
-        float[] f = new float[9];
-        mMatrix.getValues(f);
-        LogUtil.w("mapRectF",f[Matrix.MSCALE_X]+"");
 
+        mMatrix.setScale(zoomFactor/mSup_zoomFactor,zoomFactor/mSup_zoomFactor,zoomCenter_X,zoomCenter_Y);
         mMatrix.mapRect(mRectF);
-
-        // TODO: 2020/12/3 应该由 l,t,r,b去改变其他坐标
-        LogUtil.v("mapRectF","Left = "+mRectF.left + "， Right = " + mRectF.right +
-                "， Top = " + mRectF.top + "， Bottom = " + mRectF.bottom);
-        //setApex();
+        setApex();
+        mSup_zoomFactor = zoomFactor;
         invalidate();
-        //mViewSupport.debug4Point("mapRectF");
     }
+
 
     /**
      * 设置顶点坐标
      */
     private void setApex(){
-        mViewSupport.setTopLeft(mRectF.left, mRectF.top);
-        mViewSupport.setTopRight(mRectF.right, mRectF.top);
-        mViewSupport.setBottomRight(mRectF.right, mRectF.bottom);
-        mViewSupport.setBottomLeft(mRectF.left, mRectF.bottom);
+        mViewSupport.setLeft_Free(mRectF.left);
+        mViewSupport.setTop_Free(mRectF.top);
+        mViewSupport.setRight_Free(mRectF.right);
+        mViewSupport.setBottom_Free(mRectF.bottom);
     }
+
+    private void setApexByIncre(float x, float y){
+        mViewSupport.setLeft_Move(x);
+        mViewSupport.setTop_Move(y);
+        mViewSupport.setRight_Move(x);
+        mViewSupport.setBottom_Move(y);
+    }
+
 
     private void setViewSupportMatrix(){
         mViewSupport.mMatrix.set(mMatrix);
