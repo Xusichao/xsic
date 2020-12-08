@@ -10,21 +10,40 @@ import com.xsic.xsic.utils.ScreenUtil;
  */
 public class ViewSupportNew {
     /**
+     * 取zoomFactor数组时的index
+     */
+    public static final int ZOOM_X = 0;
+    public static final int ZOOM_Y = 1;
+    /**
+     * 控制点区域的index
+     */
+    public static final int NONE = -1;
+    public static final int LEFT_TOP = 0;
+    public static final int RIGHT_TOP = 1;
+    public static final int BOTTOM_RIGHT = 2;
+    public static final int BOTTOM_LEFT = 3;
+    /**
      * 界限值，超过该值不响应缩放操作
      * 有可能由：
      *          1、图片大小所限制
      *          2、框的比例
      */
-    private float LIMIT_TOP_LEFT_X;
-    private float LIMIT_TOP_LEFT_Y;
-    private float LIMIT_BOTTOM_RIGHT_X;
-    private float LIMIT_BOTTOM_RIGHT_Y;
+    private float LIMIT_TOP_LEFT_X_MAX;
+    private float LIMIT_TOP_LEFT_Y_MAX;
+    private float LIMIT_BOTTOM_RIGHT_X_MAX;
+    private float LIMIT_BOTTOM_RIGHT_Y_MAX;
 
     /**
-     * 宽度与高度的界限值，为最大值的0.1倍
+     * 界限缩放值：
+     *          1、最小值：为最大值的0.1倍，即0.1
+     *          2、最大值：由LIMIT值算出
      */
-    private float LIMIT_HEIGHT;
-    private float LIMIT_WIDTH;
+    public static final float LIMIT_ZOOMFACTOR_MIN = 0.4f;
+    public static float LIMIT_ZOOMFACTOR_MAX;
+
+    //实际当前缩放倍数，相对于初始状态
+    private float mZoomFactor_X = 1.0f;
+    private float mZoomFactor_Y = 1.0f;
 
     public Matrix mMatrix = new Matrix();
 
@@ -91,110 +110,80 @@ public class ViewSupportNew {
         mWidth = mRight - mLeft;
         mHeight = mBottom - mTop;
 
-        LIMIT_TOP_LEFT_X = 0;
-        LIMIT_TOP_LEFT_Y = 0;
-        LIMIT_BOTTOM_RIGHT_X = ScreenUtil.getScreenWidth();
-        LIMIT_BOTTOM_RIGHT_Y = ScreenUtil.getScreenHeight();
+        LIMIT_TOP_LEFT_X_MAX = 0;
+        LIMIT_TOP_LEFT_Y_MAX = 0;
+        LIMIT_BOTTOM_RIGHT_X_MAX = ScreenUtil.getScreenWidth();
+        LIMIT_BOTTOM_RIGHT_Y_MAX = ScreenUtil.getScreenHeight();
 
-
+        setLimitZoomfactorMax();
 
         updateRelativeData();
+    }
+
+    // TODO: 2020/12/8
+    private void setLimitZoomfactorMax(){
+        LIMIT_ZOOMFACTOR_MAX = (LIMIT_BOTTOM_RIGHT_X_MAX - LIMIT_TOP_LEFT_X_MAX) / mWidth;
     }
 
     public void setLeft_Move(float l){
         if (mIsRightOutOfBoundary){
-            //当对角点抵达边界时，重新更新本点的坐标
-            mLeft = LIMIT_BOTTOM_RIGHT_X - mWidth;
+            //当对角点抵达边界时，重新调整本点的坐标，去除误差
+            mLeft = LIMIT_BOTTOM_RIGHT_X_MAX - mWidth;
             updateRelativeData();
             return;
         }
+        LogUtil.w("controlss","mLeft = "+mLeft+" , l = "+l+" , (mLeft + l) = "+(mLeft + l));
         mLeft += l;
-        if ((mLeft += l) <= LIMIT_TOP_LEFT_X){
-            mLeft = LIMIT_TOP_LEFT_X;
+        if ((mLeft + l) <= LIMIT_TOP_LEFT_X_MAX){
+            mLeft = LIMIT_TOP_LEFT_X_MAX;
             mIsLeftOutOfBoundary = true;
         }else {
             mIsLeftOutOfBoundary = false;
         }
         updateRelativeData();
-    }
-
-    public void setLeft_Free(float l){
-        mLeft = l;
-        if (mLeft <= LIMIT_TOP_LEFT_X){
-            mLeft = LIMIT_TOP_LEFT_X;
-            mIsLeftOutOfBoundary = true;
-        }else {
-            mIsLeftOutOfBoundary = false;
-        }
-        updateRelativeData();
-        updateHeightAndWidth();
     }
 
     public void setTop_Move(float t){
         if (mIsBottomOutOfBoundary){
-            mTop = LIMIT_BOTTOM_RIGHT_Y - mHeight;
+            mTop = LIMIT_BOTTOM_RIGHT_Y_MAX - mHeight;
             updateRelativeData();
             return;
         }
         mTop += t;
-        if ((mTop += t) <= LIMIT_TOP_LEFT_Y){
-            mTop = LIMIT_TOP_LEFT_Y;
+        if ((mTop + t) <= LIMIT_TOP_LEFT_Y_MAX){
+            mTop = LIMIT_TOP_LEFT_Y_MAX;
             mIsTopOutOfBoundary = true;
         }else {
             mIsTopOutOfBoundary = false;
         }
         updateRelativeData();
-    }
-
-    public void setTop_Free(float t){
-        mTop = t;
-        if (mTop <= LIMIT_TOP_LEFT_Y){
-            mLeft = LIMIT_TOP_LEFT_Y;
-            mIsTopOutOfBoundary = true;
-        }else {
-            mIsTopOutOfBoundary = false;
-        }
-        updateRelativeData();
-        updateHeightAndWidth();
     }
 
     public void setRight_Move(float r){
         if (mIsLeftOutOfBoundary){
-            mRight = LIMIT_TOP_LEFT_X + mWidth;
+            mRight = LIMIT_TOP_LEFT_X_MAX + mWidth;
             updateRelativeData();
             return;
         }
         mRight += r;
-        if ((mRight += r) >= LIMIT_BOTTOM_RIGHT_X){
-            mRight = LIMIT_BOTTOM_RIGHT_X;
+        if ((mRight + r) >= LIMIT_BOTTOM_RIGHT_X_MAX){
+            mRight = LIMIT_BOTTOM_RIGHT_X_MAX;
             mIsRightOutOfBoundary = true;
         }else {
             mIsRightOutOfBoundary = false;
         }
         updateRelativeData();
-    }
-
-    public void setRight_Free(float r){
-        mRight = r;
-        if (mRight >= LIMIT_BOTTOM_RIGHT_X){
-            mRight = LIMIT_BOTTOM_RIGHT_X;
-            mIsRightOutOfBoundary = true;
-        }else {
-            mIsRightOutOfBoundary = false;
-        }
-        updateRelativeData();
-        updateHeightAndWidth();
     }
 
     public void setBottom_Move(float b){
         if (mIsTopOutOfBoundary){
-            mBottom = LIMIT_TOP_LEFT_Y + mHeight;
+            mBottom = LIMIT_TOP_LEFT_Y_MAX + mHeight;
             updateRelativeData();
             return;
         }
         mBottom += b;
-        if ((mBottom += b) >= LIMIT_BOTTOM_RIGHT_Y){
-            mBottom = LIMIT_BOTTOM_RIGHT_Y;
+        if ((mBottom + b) >= LIMIT_BOTTOM_RIGHT_Y_MAX){
+            mBottom = LIMIT_BOTTOM_RIGHT_Y_MAX;
             mIsBottomOutOfBoundary = true;
         }else {
             mIsBottomOutOfBoundary = false;
@@ -202,23 +191,180 @@ public class ViewSupportNew {
         updateRelativeData();
     }
 
-    public void setBottom_Free(float b){
-        mBottom = b;
-        if (mBottom >= LIMIT_BOTTOM_RIGHT_Y){
-            mBottom = LIMIT_BOTTOM_RIGHT_Y;
-            mIsBottomOutOfBoundary = true;
-        }else {
-            mIsBottomOutOfBoundary = false;
+
+
+    public float[] getZoomFactor(){
+        return new float[]{mZoomFactor_X,mZoomFactor_Y};
+    }
+
+    public void setZoomFactor(float zf_x, float zf_y){
+        float tempZoomX = mZoomFactor_X * zf_x;
+        float tempZoomY = mZoomFactor_Y * zf_y;
+
+        mZoomFactor_X *= zf_x;
+        mZoomFactor_Y *= zf_y;
+
+        if (tempZoomX >= LIMIT_ZOOMFACTOR_MAX){
+            mZoomFactor_X = LIMIT_ZOOMFACTOR_MAX;
+        }
+        if (tempZoomY * zf_y >= LIMIT_ZOOMFACTOR_MAX){
+            mZoomFactor_Y = LIMIT_ZOOMFACTOR_MAX;
+        }
+
+        LogUtil.d("zoomFactor",mZoomFactor_X + " , " + mZoomFactor_Y);
+    }
+
+    public void setLeft_Zoom(float l){
+        mLeft = l;
+        if (mLeft <= LIMIT_TOP_LEFT_X_MAX){
+            mLeft = LIMIT_TOP_LEFT_X_MAX;
         }
         updateRelativeData();
         updateHeightAndWidth();
     }
 
+    public void setTop_Zoom(float t){
+        mTop = t;
+        if (mTop <= LIMIT_TOP_LEFT_Y_MAX){
+            mTop = LIMIT_TOP_LEFT_Y_MAX;
+        }
+        updateRelativeData();
+        updateHeightAndWidth();
+    }
+
+    public void setRight_Zoom(float r){
+        mRight = r;
+        if (mRight >= LIMIT_BOTTOM_RIGHT_X_MAX){
+            mRight = LIMIT_BOTTOM_RIGHT_X_MAX;
+        }
+        updateRelativeData();
+        updateHeightAndWidth();
+    }
+
+    public void setBottom_Zoom(float b){
+        mBottom = b;
+        if (mBottom >= LIMIT_BOTTOM_RIGHT_Y_MAX){
+            mBottom = LIMIT_BOTTOM_RIGHT_Y_MAX;
+        }
+        updateRelativeData();
+        updateHeightAndWidth();
+    }
+
+
+
+
+
+
+    public void setLeft_Free(float l){
+        //如果当前的mLeft加上偏移量会导致触发临界机制的话，则将l重新赋值
+//        if ((mRight - (mLeft+l))/(LIMIT_BOTTOM_RIGHT_X_MAX- LIMIT_TOP_LEFT_X_MAX) <= LIMIT_ZOOMFACTOR_MIN){
+//            l = 0;
+//        }
+        if (mZoomFactor_X <= LIMIT_ZOOMFACTOR_MIN){
+            l = 0;
+        }
+        mLeft += l;
+        if (mLeft <= LIMIT_TOP_LEFT_X_MAX){
+            mLeft = LIMIT_TOP_LEFT_X_MAX;
+            mIsLeftOutOfBoundary = true;
+        }else {
+            mIsLeftOutOfBoundary = false;
+        }
+        updateZoomFactor();
+        updateRelativeData();
+        updateHeightAndWidth();
+    }
+
+    public void setTop_Free(float t){
+//        if ((mBottom - (mTop+t))/(LIMIT_BOTTOM_RIGHT_Y_MAX- LIMIT_TOP_LEFT_Y_MAX) <= LIMIT_ZOOMFACTOR_MIN){
+//            t = 0;
+//        }
+        if (mZoomFactor_Y <= LIMIT_ZOOMFACTOR_MIN){
+            t = 0;
+        }
+        mTop += t;
+        if (mTop <= LIMIT_TOP_LEFT_Y_MAX){
+            mLeft = LIMIT_TOP_LEFT_Y_MAX;
+            mIsTopOutOfBoundary = true;
+        }else {
+            mIsTopOutOfBoundary = false;
+        }
+        updateZoomFactor();
+        updateRelativeData();
+        updateHeightAndWidth();
+    }
+
+    public void setRight_Free(float r){
+//        if (((mRight+r) - mLeft)/(LIMIT_BOTTOM_RIGHT_X_MAX- LIMIT_TOP_LEFT_X_MAX) <= LIMIT_ZOOMFACTOR_MIN){
+//            r = 0;
+//        }
+        if (mZoomFactor_X <= LIMIT_ZOOMFACTOR_MIN){
+            r = 0;
+        }
+        mRight += r;
+        if (mRight >= LIMIT_BOTTOM_RIGHT_X_MAX){
+            mRight = LIMIT_BOTTOM_RIGHT_X_MAX;
+            mIsRightOutOfBoundary = true;
+        }else {
+            mIsRightOutOfBoundary = false;
+        }
+        updateZoomFactor();
+        updateRelativeData();
+        updateHeightAndWidth();
+    }
+
+    public void setBottom_Free(float b){
+//        if (((mBottom+b) - mTop)/(LIMIT_BOTTOM_RIGHT_Y_MAX- LIMIT_TOP_LEFT_Y_MAX) <= LIMIT_ZOOMFACTOR_MIN){
+//            b = 0;
+//        }
+        if (mZoomFactor_Y <= LIMIT_ZOOMFACTOR_MIN){
+            b = 0;
+        }
+        mBottom += b;
+        if (mBottom >= LIMIT_BOTTOM_RIGHT_Y_MAX){
+            mBottom = LIMIT_BOTTOM_RIGHT_Y_MAX;
+            mIsBottomOutOfBoundary = true;
+        }else {
+            mIsBottomOutOfBoundary = false;
+        }
+        updateZoomFactor();
+        updateRelativeData();
+        updateHeightAndWidth();
+    }
+
+
+
+
+
+    private void updateZoomFactor(){
+        mZoomFactor_X = (mRight - mLeft)/((LIMIT_BOTTOM_RIGHT_X_MAX - LIMIT_TOP_LEFT_X_MAX)*LIMIT_ZOOMFACTOR_MAX);
+        mZoomFactor_Y = (mBottom - mTop)/((LIMIT_BOTTOM_RIGHT_Y_MAX - LIMIT_TOP_LEFT_Y_MAX)*LIMIT_ZOOMFACTOR_MAX);
+    }
+
     public void setPointByZoom(float zoomFactor){
+        mZoomFactor_X *= zoomFactor;
+        mZoomFactor_Y *= zoomFactor;
+        LogUtil.d("zoomFactor",mZoomFactor_X + " , " + mZoomFactor_Y);
+
         mLeft *= zoomFactor;
         mTop *= zoomFactor;
         mRight *= zoomFactor;
         mBottom *= zoomFactor;
+
+        //大于临界值
+        if (mLeft <= LIMIT_TOP_LEFT_X_MAX){
+            mLeft = LIMIT_TOP_LEFT_X_MAX;
+        }
+        if (mTop <= LIMIT_TOP_LEFT_Y_MAX){
+            mTop = LIMIT_TOP_LEFT_Y_MAX;
+        }
+        if (mRight >= LIMIT_BOTTOM_RIGHT_X_MAX){
+            mRight = LIMIT_BOTTOM_RIGHT_X_MAX;
+        }
+        if (mBottom >= LIMIT_BOTTOM_RIGHT_Y_MAX){
+            mBottom = LIMIT_BOTTOM_RIGHT_Y_MAX;
+        }
+
         updateRelativeData();
         updateHeightAndWidth();
     }
@@ -229,6 +375,7 @@ public class ViewSupportNew {
     }
 
     private void updateRelativeData(){
+        LogUtil.e("controlss","mLeft = " +mLeft);
         mTopLeft_X = mLeft;
         mTopLeft_Y = mTop;
         mTopRight_X = mRight;
@@ -237,14 +384,6 @@ public class ViewSupportNew {
         mBottomRight_Y = mBottom;
         mBottomLeft_X = mLeft;
         mBottomLeft_Y = mBottom;
-
-        LogUtil.d("updateRelativeData","mTopLeft = ("+mTopLeft_X+" , "+mTopLeft_Y+")"+", " +
-                "mTopRight = ("+mTopRight_X+" , "+mTopRight_Y+")"+", " +
-                "mBottomRight = ("+mBottomRight_X+" , "+mBottomRight_Y+")"+", " +
-                "mBottomLeft = ("+mBottomLeft_X+" , "+mBottomLeft_Y+")");
-
-
-        LogUtil.i("updateRelativeData",(mRight - mLeft) +"");
 
         mLine_1_start_X = (mRight - mLeft) * (1f/3f) + mLeft;
         mLine_1_start_Y = mTop;
@@ -265,6 +404,19 @@ public class ViewSupportNew {
         mLine_4_start_Y = (mBottom - mTop) * (2f/3f) + mTop;
         mLine_4_end_X = mRight;
         mLine_4_end_Y = mLine_4_start_Y;
+
+
+        // TODO: 2020/12/8 待验证
+        //mZoomFactor_X = (mRight - mLeft)/((LIMIT_BOTTOM_RIGHT_X_MAX - LIMIT_TOP_LEFT_X_MAX)*LIMIT_ZOOMFACTOR_MAX);
+        //mZoomFactor_Y = (mBottom - mTop)/((LIMIT_BOTTOM_RIGHT_Y_MAX - LIMIT_TOP_LEFT_Y_MAX)*LIMIT_ZOOMFACTOR_MAX);
+
+        LogUtil.d("updateRelativeData","mTopLeft = ("+mTopLeft_X+" , "+mTopLeft_Y+")"+", " +
+                "mTopRight = ("+mTopRight_X+" , "+mTopRight_Y+")"+", " +
+                "mBottomRight = ("+mBottomRight_X+" , "+mBottomRight_Y+")"+", " +
+                "mBottomLeft = ("+mBottomLeft_X+" , "+mBottomLeft_Y+")");
+
+
+        LogUtil.i("zoomFactror","mZoomFactor_X = "+mZoomFactor_X + " , mZoomFactor_Y = "+mZoomFactor_Y);
     }
 
 }

@@ -32,6 +32,10 @@ public class TailorFrameViewNew extends View {
 
     //从双指操作中抬起一根手指，
     private boolean mHasUp1FingerFromLastOption = false;
+    //当前是否在操作某一控制点
+    private boolean mIsControlling = false;
+    //如果当前在操作某一控制点，当前控制点为：
+    private int mCurController = ViewSupportNew.NONE;
 
     private Paint mPaint;
     private Paint mControllerPaint;
@@ -328,8 +332,6 @@ public class TailorFrameViewNew extends View {
     }
 
     /**@deprecated
-     * @param event
-     * @return
      */
     private boolean ignoreIf2PointOutside(MotionEvent event){
         return is2PointInRect(event.getX(0),event.getY(0),
@@ -338,7 +340,6 @@ public class TailorFrameViewNew extends View {
 
     private void resetSupZoomFactor(){
         mSup_zoomFactor = 1.0f;
-        LogUtil.e("sdada",mSup_zoomFactor+"");
     }
 
     private void resetOptionState(){
@@ -362,6 +363,7 @@ public class TailorFrameViewNew extends View {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_OUTSIDE:
                 mHasUp1FingerFromLastOption = false;
+                mIsControlling = false;
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -370,8 +372,6 @@ public class TailorFrameViewNew extends View {
                     mDown_1_Y = event.getY(0);
                     mDown_2_X = event.getX(1);
                     mDown_2_Y = event.getY(1);
-
-                    doAction(mState);
                 }else {
                     //如果是从双指切换到单指，不让响应单指的move操作
                     if (mHasUp1FingerFromLastOption){
@@ -379,9 +379,8 @@ public class TailorFrameViewNew extends View {
                     }
                     mDown_1_X = event.getX();
                     mDown_1_Y = event.getY();
-
-                    doAction(mState);
                 }
+                doAction(mState);
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
@@ -421,45 +420,9 @@ public class TailorFrameViewNew extends View {
     private void move(){
         float offsetX = mDown_1_X - mSup_1_X;
         float offsetY = mDown_1_Y - mSup_1_Y;
-//        if (mViewSupport.mIsLeftOutOfBoundary && offsetX < 0){
-//            //左边已经靠在边界上，不允许再向左平移
-//            offsetX = 0;
-//        }
-//        if (mViewSupport.mIsRightOutOfBoundary && offsetX > 0){
-//            offsetX = 0;
-//        }
-//        if (mViewSupport.mIsTopOutOfBoundary && offsetY < 0){
-//            offsetY = 0;
-//        }
-//        if (mViewSupport.mIsBottomOutOfBoundary && offsetY > 0){
-//            offsetY = 0;
-//        }
         setApexByIncre(offsetX, offsetY);
         mSup_1_X = mDown_1_X;
         mSup_1_Y = mDown_1_Y;
-        setmRectFSize();
-        invalidate();
-    }
-
-    /**
-     * @deprecated
-     */
-    private void zoomDeprecated(){
-        //初次接触屏幕时两指距离
-        float distanceOf2PointFirstTouch = (float) Math.sqrt(Math.pow(mTouch_1_X - mTouch_2_X,2)+Math.pow(mTouch_1_Y - mTouch_2_Y,2));
-        //缩放时不断变化的双指距离
-        float distanceOf2Point = (float) Math.sqrt(Math.pow(mDown_1_X - mDown_2_X,2)+Math.pow(mDown_1_Y - mDown_2_Y,2));
-        if (distanceOf2Point == distanceOf2PointFirstTouch){
-            return;
-        }
-        //首次接触屏幕时的双指中心点，即缩放中心点
-        float zoomCenter_X = (mTouch_1_X + mTouch_2_X)/2f;
-        float zoomCenter_Y = (mTouch_1_Y + mTouch_2_Y)/2f;
-
-        //缩放倍数
-        float zoomFactor = distanceOf2Point / distanceOf2PointFirstTouch;
-        mViewSupport.setPointByZoom(zoomFactor / mSup_zoomFactor);
-        mSup_zoomFactor = zoomFactor;
         setmRectFSize();
         invalidate();
     }
@@ -478,19 +441,112 @@ public class TailorFrameViewNew extends View {
 
         //缩放倍数
         float zoomFactor = distanceOf2Point / distanceOf2PointFirstTouch;
+        zoomFactor = fixZoomFactorIfLimitMin(zoomFactor,mSup_zoomFactor);
 
         mMatrix.setScale(zoomFactor/mSup_zoomFactor,zoomFactor/mSup_zoomFactor,zoomCenter_X,zoomCenter_Y);
         mMatrix.mapRect(mRectF);
-        setApex();
+        setApexByZoom(zoomFactor/mSup_zoomFactor,zoomFactor/mSup_zoomFactor);
         mSup_zoomFactor = zoomFactor;
         invalidate();
     }
 
+    private void control(){
+        moveFree(determinePointAt(mDown_1_X,mDown_1_Y));
+    }
+
+    private void moveFree(int location){
+        float offsetX = mDown_1_X - mSup_1_X;
+        float offsetY = mDown_1_Y - mSup_1_Y;
+        if (location == ViewSupportNew.LEFT_TOP){
+            mViewSupport.setLeft_Free(offsetX);
+            mViewSupport.setTop_Free(offsetY);
+        }else if (location == ViewSupportNew.RIGHT_TOP){
+            mViewSupport.setRight_Free(offsetX);
+            mViewSupport.setTop_Free(offsetY);
+        }else if (location == ViewSupportNew.BOTTOM_RIGHT){
+            mViewSupport.setBottom_Free(offsetY);
+            mViewSupport.setRight_Free(offsetX);
+        }else if (location == ViewSupportNew.BOTTOM_LEFT){
+            mViewSupport.setLeft_Free(offsetX);
+            mViewSupport.setBottom_Free(offsetY);
+        }
+        mSup_1_X = mDown_1_X;
+        mSup_1_Y = mDown_1_Y;
+        setmRectFSize();
+        invalidate();
+    }
 
     /**
-     * 设置顶点坐标
+     * 判断操作坐标在哪个控制点上
+     * @return  {@link ViewSupportNew#LEFT_TOP}
+     *          {@link ViewSupportNew#RIGHT_TOP}
+     *          {@link ViewSupportNew#BOTTOM_RIGHT}
+     *          {@link ViewSupportNew#BOTTOM_LEFT}
      */
-    private void setApex(){
+    private int determinePointAt(float touchX, float touchY){
+        if (mIsControlling) return mCurController;
+        //左上角控制点
+        if (touchX >= mViewSupport.mTopLeft_X && touchX <= mViewSupport.mTopLeft_X + mControllerLength &&
+                touchY >= mViewSupport.mTopLeft_Y && touchY <= mViewSupport.mTopLeft_Y + mControllerLength){
+            mIsControlling = true;
+            mCurController = ViewSupportNew.LEFT_TOP;
+            return ViewSupportNew.LEFT_TOP;
+        }
+        //右上角控制点
+        if (touchX >= mViewSupport.mTopRight_X - mControllerLength && touchX <= mViewSupport.mTopRight_X &&
+                touchY >= mViewSupport.mTopLeft_Y && touchY <= mViewSupport.mTopLeft_Y + mControllerLength){
+            mIsControlling = true;
+            mCurController = ViewSupportNew.RIGHT_TOP;
+            return ViewSupportNew.RIGHT_TOP;
+        }
+        //右下角控制点
+        if (touchX >= mViewSupport.mBottomRight_X - mControllerLength && touchX <= mViewSupport.mBottomRight_X &&
+                touchY >= mViewSupport.mBottomRight_Y - mControllerLength && touchY <= mViewSupport.mBottomRight_Y){
+            mIsControlling = true;
+            mCurController = ViewSupportNew.BOTTOM_RIGHT;
+            return ViewSupportNew.BOTTOM_RIGHT;
+        }
+        //左下角控制点
+        if (touchX >= mViewSupport.mBottomLeft_X && touchX <= mViewSupport.mBottomLeft_X + mControllerLength &&
+                touchY >= mViewSupport.mBottomLeft_Y - mControllerLength && touchY <= mViewSupport.mBottomLeft_Y){
+            mIsControlling = true;
+            mCurController = ViewSupportNew.BOTTOM_LEFT;
+            return ViewSupportNew.BOTTOM_LEFT;
+        }
+        return ViewSupportNew.NONE;
+    }
+
+    /**
+     * 如果缩放小于{@link ViewSupportNew#LIMIT_ZOOMFACTOR_MIN}时，将缩放倍数控制在该值
+     * 否则不处理，原值返回
+     * @param curZoomFactor 当前
+     * @param supZoomFactor 辅助
+     * @return 返回值
+     */
+    private float fixZoomFactorIfLimitMin(float curZoomFactor, float supZoomFactor){
+        float result = curZoomFactor;
+        float mLastRealZoomFactor = mViewSupport.getZoomFactor()[ViewSupportNew.ZOOM_X];
+        //预乘结果，如果小于0.1，则直接将其控制在0.1
+        if (curZoomFactor/supZoomFactor * mLastRealZoomFactor <= ViewSupportNew.LIMIT_ZOOMFACTOR_MIN){
+            result = supZoomFactor * ViewSupportNew.LIMIT_ZOOMFACTOR_MIN / mLastRealZoomFactor;
+            LogUtil.v("zoomFactor",result + " , " + (curZoomFactor/supZoomFactor * mLastRealZoomFactor));
+            return result;
+        }
+        //不处理
+        return result;
+    }
+
+
+
+    private void setApexByZoom(float zf_x, float zf_y){
+        mViewSupport.setZoomFactor(zf_x, zf_y);
+        mViewSupport.setLeft_Zoom(mRectF.left);
+        mViewSupport.setTop_Zoom(mRectF.top);
+        mViewSupport.setRight_Zoom(mRectF.right);
+        mViewSupport.setBottom_Zoom(mRectF.bottom);
+    }
+
+    private void setApexByFree(){
         mViewSupport.setLeft_Free(mRectF.left);
         mViewSupport.setTop_Free(mRectF.top);
         mViewSupport.setRight_Free(mRectF.right);
@@ -509,10 +565,5 @@ public class TailorFrameViewNew extends View {
         mViewSupport.mMatrix.set(mMatrix);
         LogUtil.e("mapRectF",mViewSupport.mMatrix+"");
     }
-
-    private void control(){
-
-    }
-
 
 }
