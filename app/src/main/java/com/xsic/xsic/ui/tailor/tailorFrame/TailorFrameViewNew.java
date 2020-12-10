@@ -76,7 +76,8 @@ public class TailorFrameViewNew extends View {
     private float mSup_2_X;
     private float mSup_2_Y;
 
-    private float mSup_zoomFactor = 1.0f;
+    private float mSup_zoomFactor_X = 1.0f;
+    private float mSup_zoomFactor_Y = 1.0f;
 
     /**
      * 界限值，超过该值不响应缩放操作
@@ -339,7 +340,8 @@ public class TailorFrameViewNew extends View {
     }
 
     private void resetSupZoomFactor(){
-        mSup_zoomFactor = 1.0f;
+        mSup_zoomFactor_X = 1.0f;
+        mSup_zoomFactor_Y = 1.0f;
     }
 
     private void resetOptionState(){
@@ -440,13 +442,18 @@ public class TailorFrameViewNew extends View {
         float zoomCenter_Y = (mTouch_1_Y + mTouch_2_Y)/2f;
 
         //缩放倍数
-        float zoomFactor = distanceOf2Point / distanceOf2PointFirstTouch;
-        zoomFactor = fixZoomFactorIfLimitMin(zoomFactor,mSup_zoomFactor);
+        float zoomFactorX = distanceOf2Point / distanceOf2PointFirstTouch;
+        float zoomFactorY = distanceOf2Point / distanceOf2PointFirstTouch;
+        zoomFactorX = fixZoomFactorIfLimitMin(zoomFactorX,mSup_zoomFactor_X,true);
+        zoomFactorY = fixZoomFactorIfLimitMin(zoomFactorY,mSup_zoomFactor_Y,false);
 
-        mMatrix.setScale(zoomFactor/mSup_zoomFactor,zoomFactor/mSup_zoomFactor,zoomCenter_X,zoomCenter_Y);
+        //当一边到达临界状态时，只对另一边进行缩放，进入不等比例缩放
+
+        mMatrix.setScale(zoomFactorX/mSup_zoomFactor_X,zoomFactorY/mSup_zoomFactor_Y,zoomCenter_X,zoomCenter_Y);
         mMatrix.mapRect(mRectF);
-        setApexByZoom(zoomFactor/mSup_zoomFactor,zoomFactor/mSup_zoomFactor);
-        mSup_zoomFactor = zoomFactor;
+        setApexByZoom(zoomFactorX/mSup_zoomFactor_X,zoomFactorY/mSup_zoomFactor_Y);
+        mSup_zoomFactor_X = zoomFactorX;
+        mSup_zoomFactor_Y = zoomFactorY;
         invalidate();
     }
 
@@ -521,15 +528,22 @@ public class TailorFrameViewNew extends View {
      * 否则不处理，原值返回
      * @param curZoomFactor 当前
      * @param supZoomFactor 辅助
+     * @param isX 是否X
      * @return 返回值
      */
-    private float fixZoomFactorIfLimitMin(float curZoomFactor, float supZoomFactor){
+    private float fixZoomFactorIfLimitMin(float curZoomFactor, float supZoomFactor, boolean isX){
         float result = curZoomFactor;
-        float mLastRealZoomFactor = mViewSupport.getZoomFactor()[ViewSupportNew.ZOOM_X];
-        //预乘结果，如果小于0.1，则直接将其控制在0.1
+        float mLastRealZoomFactor;
+        if (isX){
+            mLastRealZoomFactor = mViewSupport.getZoomFactor()[ViewSupportNew.ZOOM_X];
+        }else {
+            mLastRealZoomFactor = mViewSupport.getZoomFactor()[ViewSupportNew.ZOOM_Y];
+        }
+        //LogUtil.i("fixZoomFactorIfLimitMin","mLastRealZoomFactor = " +mLastRealZoomFactor);
+        //预乘结果，如果小于{@link ViewSupportNew#LIMIT_ZOOMFACTOR_MIN}，则直接将其控制在{@link ViewSupportNew#LIMIT_ZOOMFACTOR_MIN}
         if (curZoomFactor/supZoomFactor * mLastRealZoomFactor <= ViewSupportNew.LIMIT_ZOOMFACTOR_MIN){
             result = supZoomFactor * ViewSupportNew.LIMIT_ZOOMFACTOR_MIN / mLastRealZoomFactor;
-            LogUtil.v("zoomFactor",result + " , " + (curZoomFactor/supZoomFactor * mLastRealZoomFactor));
+            //LogUtil.v("fixZoomFactorIfLimitMin",result + " , " + (curZoomFactor/supZoomFactor * mLastRealZoomFactor));
             return result;
         }
         //不处理
