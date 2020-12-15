@@ -5,7 +5,6 @@ import android.view.View;
 import com.xsic.xsic.R;
 import com.xsic.xsic.base.BaseDataBindingActivity;
 import com.xsic.xsic.databinding.ActivityTailorBinding;
-import com.xsic.xsic.ui.tailor.tailorFrame.TailorFrameView;
 
 public class TailorActivity extends BaseDataBindingActivity<ActivityTailorBinding,TailorViewmodel> {
     @Override

@@ -284,8 +284,10 @@ public class ViewSupportNew {
     public void setLeft_Free(float l){
         //如果当前的mLeft加上偏移量会导致触发临界机制的话，则将l重新赋值
         if ((mRight - (mLeft+l))/(mInitWidth) <= LIMIT_ZOOMFACTOR_MIN){
+            //当抵达边界时mLeft应该的值
+            float limitLeft = mRight + l - (LIMIT_ZOOMFACTOR_MIN * mInitWidth);
+            l = limitLeft - mLeft;
             mZoomFactor_X = LIMIT_ZOOMFACTOR_MIN;
-            l = 0;
         }
 //        if (mZoomFactor_X < LIMIT_ZOOMFACTOR_MIN){
 //            mZoomFactor_X = LIMIT_ZOOMFACTOR_MIN;
@@ -309,8 +311,9 @@ public class ViewSupportNew {
 
     public void setTop_Free(float t){
         if ((mBottom - (mTop+t))/(mInitHeight) <= LIMIT_ZOOMFACTOR_MIN){
+            float limitTop = mBottom + t - (LIMIT_ZOOMFACTOR_MIN * mInitHeight);
+            t = limitTop - mTop;
             mZoomFactor_Y = LIMIT_ZOOMFACTOR_MIN;
-            t = 0;
         }
         mTop += t;
         if (mTop <= LIMIT_TOP_LEFT_Y_MAX){
@@ -327,8 +330,9 @@ public class ViewSupportNew {
 
     public void setRight_Free(float r){
         if (((mRight+r) - mLeft)/(mInitWidth) <= LIMIT_ZOOMFACTOR_MIN){
+            float limitRight = mLeft - r + (LIMIT_ZOOMFACTOR_MIN * mInitWidth);
+            r = limitRight - mRight;
             mZoomFactor_X = LIMIT_ZOOMFACTOR_MIN;
-            r = 0;
         }
         mRight += r;
         if (mRight >= LIMIT_BOTTOM_RIGHT_X_MAX){
@@ -345,9 +349,9 @@ public class ViewSupportNew {
 
     public void setBottom_Free(float b){
         if (((mBottom+b) - mTop)/(mInitHeight) <= LIMIT_ZOOMFACTOR_MIN){
-            LogUtil.e("zoomFactrorFuck",((mBottom+b) - mTop)/(mInitHeight)+" , " + b);
+            float limitBottom = mTop - b + (LIMIT_ZOOMFACTOR_MIN * mInitHeight);
+            b = limitBottom - mBottom;
             mZoomFactor_Y = LIMIT_ZOOMFACTOR_MIN;
-            b = 0;
         }
         mBottom += b;
         if (mBottom >= LIMIT_BOTTOM_RIGHT_Y_MAX){
