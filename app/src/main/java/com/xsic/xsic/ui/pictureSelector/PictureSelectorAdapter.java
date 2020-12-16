@@ -10,17 +10,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.xsic.xsic.R;
 import com.xsic.xsic.base.BaseViewHolder;
+import com.xsic.xsic.ui.pictureSelector.customBean.CustomBean;
 import com.xsic.xsic.utils.ImageLoader;
 import com.xsic.xsic.utils.LogUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class PictureSelectorAdapter extends RecyclerView.Adapter<BaseViewHolder> {
     private Context mContext;
-    private List<String> mDatas = new ArrayList<>();
+    private List<CustomBean> mDatas = new ArrayList<>();
     private PictureSelectorCallBack mPictureSelectorCallBack;
-    private List<String> mSelectedUrl = new ArrayList<>();
+    private List<String> mSelectedUrl = new LinkedList<>();
     private int mMode = PICTURE_SELECTOR;
     private int mMaxCount = 1;      //最大可选数，1~9
     /**
@@ -44,7 +46,7 @@ public class PictureSelectorAdapter extends RecyclerView.Adapter<BaseViewHolder>
         this.mContext = mContext;
     }
 
-    public void setData(List<String> datas){
+    public void setData(List<CustomBean> datas){
         mDatas = datas;
     }
 
@@ -89,10 +91,37 @@ public class PictureSelectorAdapter extends RecyclerView.Adapter<BaseViewHolder>
             });
         }
         if (getItemViewType(position) == PHOTO){
-            ImageLoader.getInstance().displayUrl(mDatas.get(position),holder.getView(R.id.image));
+            initSelected(holder,mDatas.get(position).isSeleted());
+            ImageLoader.getInstance().displayUrl(mDatas.get(position).getUrl(),holder.getView(R.id.image));
             holder.getConvertView().setOnClickListener(v->{
-                // TODO: 2020/12/15
+                setSelectedWhileClick(holder,mDatas.get(position));
             });
+        }
+    }
+
+    private void initSelected(BaseViewHolder holder, boolean isSeleted){
+        if (isSeleted){
+            holder.getView(R.id.mask).setVisibility(View.VISIBLE);
+        }else {
+            holder.getView(R.id.mask).setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void setSelectedWhileClick(BaseViewHolder holder, CustomBean data){
+        if (mSelectedUrl.size() >= mMaxCount) return;
+        if (data.isSeleted()){
+            holder.getView(R.id.mask).setVisibility(View.VISIBLE);
+            if (mSelectedUrl.contains(data.getUrl()) && data.getUrl() != null){
+                mSelectedUrl.remove(data.getUrl());
+            }
+        }else {
+            holder.getView(R.id.mask).setVisibility(View.INVISIBLE);
+            if (!mSelectedUrl.contains(data.getUrl()) && data.getUrl() != null){
+                mSelectedUrl.add(data.getUrl());
+            }
+        }
+        if (mPictureSelectorCallBack!=null){
+            mPictureSelectorCallBack.onSelector(mSelectedUrl);
         }
     }
 

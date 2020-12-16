@@ -7,6 +7,7 @@ import android.provider.MediaStore;
 
 import com.xsic.xsic.R;
 import com.xsic.xsic.app.BaseApplication;
+import com.xsic.xsic.ui.pictureSelector.customBean.CustomBean;
 import com.xsic.xsic.utils.DeviceUtil;
 import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
@@ -26,7 +27,7 @@ public class DataMgr {
 
     private static DataMgr mInstance = null;
     private int mCursor = 0;         //每次截取源数据后的游标位置
-    private List<String> mData = new ArrayList<>();       //需要给适配器持有的数据
+    private List<CustomBean> mData = new ArrayList<>();       //需要给适配器持有的数据
 
     public static DataMgr getInstance(){
         if (mInstance == null){
@@ -88,7 +89,6 @@ public class DataMgr {
         Cursor cursor = contentResolver.query(uri, null, null, null, null);
 
         if (cursor == null || cursor.getCount() <= 0){
-            LogUtil.i("nothing","没有图片");
             return ; // 没有图片
         }
 
@@ -111,12 +111,13 @@ public class DataMgr {
             }
             //移动游标
             mCursor = position;
-            LogUtil.i("piciiissstt",mCursor+"");
             String path = cursor.getString(columnIndex); // 文件地址
             File file = new File(path);
             if (file.exists()) {
-                mData.add(path);
-                LogUtil.i("piciiisss",position+ " ： " +path + " ， "+LOAD_SCREEN_COUNT + " ， " + getLoadCount());
+                CustomBean customBean = new CustomBean();
+                customBean.setUrl(path);
+                customBean.setSeleted(false);
+                mData.add(customBean);
             }
         }
         if (iDataMgr!=null){
@@ -125,7 +126,7 @@ public class DataMgr {
         cursor.close();
     }
 
-    public List<String> getmData(){
+    public List<CustomBean> getmData(){
         return mData;
     }
 
