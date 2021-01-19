@@ -2,12 +2,18 @@ package com.xsic.xsic.ui.pictureSelector;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,13 +24,20 @@ import com.xsic.xsic.databinding.ActivityPictureSelectorBinding;
 import com.xsic.xsic.ui.pictureSelector.DataMgr.DataMgr;
 import com.xsic.xsic.ui.pictureSelector.DataMgr.IDataMgr;
 import com.xsic.xsic.ui.pictureSelector.animation.PictureSelectorItemAnimator;
+import com.xsic.xsic.ui.pictureSelector.config.Config;
 import com.xsic.xsic.ui.pictureSelector.itemDecorator.PictureSelectorItemDecorator;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static androidx.core.content.FileProvider.getUriForFile;
+
 
 public class PictureSelectorActivity extends BaseDataBindingActivity<ActivityPictureSelectorBinding,PictureSelectorViewmodel> {
+    private final static int REQ = 100;
+
     private PictureSelectorAdapter mPictureSelectorAdapter;
 
     //是否正在加载更多系统图片
@@ -66,10 +79,43 @@ public class PictureSelectorActivity extends BaseDataBindingActivity<ActivityPic
     protected void setUpUi() {
         mPictureSelectorAdapter = new PictureSelectorAdapter(mContext);
         mPictureSelectorAdapter.setHasStableIds(true);
+        mPictureSelectorAdapter.setCallBack(mPictureSelectorCallBack);
+        mPictureSelectorAdapter.setmMaxCount(9);
+        mPictureSelectorAdapter.setMode(PictureSelectorAdapter.PUZZLE);
         viewBinding.recyclerView.setLayoutManager(new GridLayoutManager(mContext,3));
         viewBinding.recyclerView.addItemDecoration(new PictureSelectorItemDecorator());
         viewBinding.recyclerView.addOnScrollListener(mOnScrollListener);
         viewBinding.recyclerView.setAdapter(mPictureSelectorAdapter);
+    }
+
+    private PictureSelectorAdapter.PictureSelectorCallBack mPictureSelectorCallBack = new PictureSelectorAdapter.PictureSelectorCallBack() {
+        @Override
+        public void onSelected(List<String> urls) {
+
+        }
+
+        @Override
+        public void onCamera() {
+            Intent openCameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            Uri imageUri = Uri.fromFile(Config.file);
+            openCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+            startActivityForResult(openCameraIntent, REQ);
+        }
+    };
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == REQ){
+//            if (data!=null && data.getExtras()!=null){
+//                Bitmap bm = (Bitmap) data.getExtras().get("data");
+//                //该方式获取到的图片是原图
+//                FileInputStream fis = null;
+//                try {
+//                    fis = new FileInputStream(photoFile);
+//                    Bitmap bitmap = BitmapFactory.decodeStream(fis);
+//            }
+//        }
     }
 
     private RecyclerView.OnScrollListener mOnScrollListener = new RecyclerView.OnScrollListener() {

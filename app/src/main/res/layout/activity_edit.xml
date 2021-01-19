@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#141414"
+        >
+
+        <com.xsic.xsic.illusionTest.editPannel.Previewer
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_400"
+            android:id="@+id/img"
+            />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="#040a08"
+            >
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/page_type_list"
+            android:layout_gravity="bottom|center_horizontal"
+            android:paddingBottom="@dimen/dp_24"
+            android:paddingTop="@dimen/dp_24"
+            />
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_48"
+            android:id="@+id/top_bar"
+            >
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/back_btn"
+                android:layout_gravity="center_vertical">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/dp_13"
+                    android:background="@drawable/icon_quit"
+                    />
+            </FrameLayout>
+
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/sure_btn"
+                android:layout_gravity="center_vertical|right">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/dp_13"
+                    android:background="@drawable/puzzle_export"
+                    />
+            </FrameLayout>
+
+        </FrameLayout>
+
+        <ImageView
+            android:layout_width="@dimen/dp_32"
+            android:layout_height="@dimen/dp_32"
+            android:src="@drawable/edit_compared"
+            android:id="@+id/comparison"
+            android:layout_gravity="bottom|right"
+            android:layout_marginBottom="@dimen/dp_108"
+            android:layout_marginRight="@dimen/dp_12"
+            />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="@dimen/dp_8"
+            android:layout_marginBottom="@dimen/dp_108"
+            >
+
+            <ImageView
+                android:layout_width="@dimen/dp_32"
+                android:layout_height="@dimen/dp_32"
+                android:id="@+id/last"
+                android:background="@drawable/edit_recall"
+                />
+
+            <ImageView
+                android:layout_width="@dimen/dp_32"
+                android:layout_height="@dimen/dp_32"
+                android:id="@+id/next"
+                android:layout_marginLeft="@dimen/dp_8"
+                android:background="@drawable/edit_redo"
+                />
+        </LinearLayout>
+    </FrameLayout>
+</layout>

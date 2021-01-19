@@ -25,6 +25,7 @@ public class PictureSelectorAdapter extends RecyclerView.Adapter<BaseViewHolder>
     private List<String> mSelectedUrl = new LinkedList<>();
     private int mMode = PICTURE_SELECTOR;
     private int mMaxCount = 1;      //最大可选数，1~9
+    private boolean mHasLocked = false; //是否锁住不能再选
     /**
      * 表现模式
      * 目前有：
@@ -61,7 +62,7 @@ public class PictureSelectorAdapter extends RecyclerView.Adapter<BaseViewHolder>
     @Override
     public int getItemViewType(int position){
         if (mMode == PICTURE_SELECTOR){
-            if (position == 1){
+            if (position == 0){
                 return CAMERA_ICON;
             }else {
                 return PHOTO;
@@ -102,27 +103,44 @@ public class PictureSelectorAdapter extends RecyclerView.Adapter<BaseViewHolder>
     private void initSelected(BaseViewHolder holder, boolean isSeleted){
         if (isSeleted){
             holder.getView(R.id.mask).setVisibility(View.VISIBLE);
+            holder.getView(R.id.locked_mask).setVisibility(View.INVISIBLE);
         }else {
+            if (mHasLocked){
+                holder.getView(R.id.locked_mask).setVisibility(View.VISIBLE);
+            }else {
+                holder.getView(R.id.locked_mask).setVisibility(View.INVISIBLE);
+            }
             holder.getView(R.id.mask).setVisibility(View.INVISIBLE);
         }
     }
 
     private void setSelectedWhileClick(BaseViewHolder holder, CustomBean data){
-        if (mSelectedUrl.size() >= mMaxCount) return;
         if (data.isSeleted()){
-            holder.getView(R.id.mask).setVisibility(View.VISIBLE);
+            data.setSeleted(false);
+            holder.getView(R.id.mask).setVisibility(View.INVISIBLE);
             if (mSelectedUrl.contains(data.getUrl()) && data.getUrl() != null){
                 mSelectedUrl.remove(data.getUrl());
             }
         }else {
-            holder.getView(R.id.mask).setVisibility(View.INVISIBLE);
+            //已锁住，不允许再选更多
+            if (mHasLocked) return;
+            data.setSeleted(true);
+            holder.getView(R.id.mask).setVisibility(View.VISIBLE);
             if (!mSelectedUrl.contains(data.getUrl()) && data.getUrl() != null){
                 mSelectedUrl.add(data.getUrl());
             }
         }
         if (mPictureSelectorCallBack!=null){
-            mPictureSelectorCallBack.onSelector(mSelectedUrl);
+            mPictureSelectorCallBack.onSelected(mSelectedUrl);
         }
+        if (mSelectedUrl.size() >= mMaxCount){
+            mHasLocked = true;
+            notifyDataSetChanged();
+        }else {
+            mHasLocked = false;
+            notifyDataSetChanged();
+        }
+        LogUtil.d("sdadafff",mSelectedUrl+"");
     }
 
 
@@ -144,7 +162,7 @@ public class PictureSelectorAdapter extends RecyclerView.Adapter<BaseViewHolder>
     }
 
     public interface PictureSelectorCallBack{
-        void onSelector(List<String> urls);
+        void onSelected(List<String> urls);
         void onCamera();
     }
     public void setCallBack(PictureSelectorCallBack pictureSelectorCallBack){
