@@ -1,4 +1,4 @@
-package com.xsic.xsic.ui.s;
+package com.xsic.xsic.ui.imageViewer;
 
 import android.app.Application;
 

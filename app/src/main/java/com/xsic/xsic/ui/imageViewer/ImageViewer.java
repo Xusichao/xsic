@@ -1,4 +1,4 @@
-package com.xsic.xsic.ui.s;
+package com.xsic.xsic.ui.imageViewer;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -12,7 +12,6 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -26,7 +25,7 @@ import com.xsic.xsic.R;
 import com.xsic.xsic.utils.LogUtil;
 import com.xsic.xsic.utils.ScreenUtil;
 
-public class ImageViewer4 extends View {
+public class ImageViewer extends View {
     //常量
     private final String TAG = "ImageViewer";
     private final float MAX_SCALE = 2.5f;
@@ -113,15 +112,15 @@ public class ImageViewer4 extends View {
 
     private boolean isDoingTranslateAnimation = false;
 
-    public ImageViewer4(Context context) {
+    public ImageViewer(Context context) {
         this(context,null,0);
     }
 
-    public ImageViewer4(Context context, @Nullable AttributeSet attrs) {
+    public ImageViewer(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs,0);
     }
 
-    public ImageViewer4(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ImageViewer(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
         initAttrs(attrs, defStyleAttr);
