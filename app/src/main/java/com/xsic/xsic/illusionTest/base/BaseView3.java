@@ -1,6 +1,7 @@
 package com.xsic.xsic.illusionTest.base;
 
 import android.content.Context;
+import android.graphics.Matrix;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
@@ -149,6 +150,15 @@ public class BaseView3 extends BaseView2 {
             viewSupport.mMatrix.postTranslate(viewSupport.mX,viewSupport.mY);
             viewSupport.mMatrix.postScale(viewSupport.mScaleX,viewSupport.mScaleY,viewSupport.mCenterX,viewSupport.mCenterY);
             viewSupport.mMatrix.postRotate(viewSupport.mRotate);
+        }
+    }
+
+    protected void postMatrix(Matrix matrix, ViewSupport viewSupport){
+        if (matrix!=null){
+            matrix.reset();
+            matrix.postTranslate(viewSupport.mX,viewSupport.mY);
+            matrix.postScale(viewSupport.mScaleX,viewSupport.mScaleY,viewSupport.mCenterX,viewSupport.mCenterY);
+            matrix.postRotate(viewSupport.mRotate);
         }
     }
 

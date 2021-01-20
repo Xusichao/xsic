@@ -1,21 +1,25 @@
-package com.xsic.xsic.illusionTest.editPannel;
+package com.xsic.xsic.illusionTest.editPannel.previewerView;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
 import androidx.annotation.Nullable;
 
-import com.xsic.xsic.illusionTest.base.BaseView3;
 import com.xsic.xsic.illusionTest.base.BaseView4;
 import com.xsic.xsic.illusionTest.base.ViewSupport;
 import com.xsic.xsic.utils.LogUtil;
 
 public class Previewer extends BaseView4 {
     private boolean mIsHandlingMorePoint = false;
-    private ViewSupport mTempSourceImg = new ViewSupport();
+    private RectFItem mRectItem = new RectFItem();
+    private RectFItem mSpringBackItem = new RectFItem();
 
     public Previewer(Context context) {
         super(context);
@@ -32,17 +36,18 @@ public class Previewer extends BaseView4 {
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        initLimitParams();
+        init();
     }
 
-    private void initLimitParams(){
-        mTempSourceImg = mSourceImg.clone();
-        MIN_SCALE *= mSourceImg.mScaleX;
-        MAX_SCALE *= mSourceImg.mScaleX;
+    private void init(){
+        mRectItem.mRectF.set(mShowRect);
+        mSpringBackItem.set(mSourceImg.clone());
+        mSpringBackItem.mRectF.set(mShowRect);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        //if (!isPointAtImg(event.getX(),event.getY())) return false;
         switch (event.getAction() & event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
                 if (mIsAnimating && valueAnimator!=null && valueAnimator.isRunning()){
@@ -65,11 +70,22 @@ public class Previewer extends BaseView4 {
                     morePointTranslate(mSourceImg,event);
                     morePointScale(mSourceImg,event);
                     postMatrix(mSourceImg);
+                    //矩形区域缩放
+                    morePointTranslate(mRectItem,event);
+                    morePointScale(mRectItem,event);
+                    postMatrix(mRectItem);
+                    mRectItem.mRectF.set(mShowRect);
+                    mRectItem.mMatrix.mapRect(mRectItem.mRectF);
                 }else {
                     if (mIsHandlingMorePoint) break;
                     mSourceImg.set(mTempProperty);
                     translate(mSourceImg,event.getX(),event.getY());
                     postMatrix(mSourceImg);
+                    //矩形区域平移
+                    translate(mRectItem,event.getX(),event.getY());
+                    postMatrix(mRectItem);
+                    mRectItem.mRectF.set(mShowRect);
+                    mRectItem.mMatrix.mapRect(mRectItem.mRectF);
                 }
                 break;
 
@@ -81,13 +97,13 @@ public class Previewer extends BaseView4 {
                 doSpringBackIfNeed();
                 break;
         }
+        LogUtil.d("ttteeee",mRectItem.mRectF.toString());
         invalidate();
-        LogUtil.w("ttttqww",mSourceImg.toString());
         return true;
     }
 
     private boolean isPointAtImg(float x, float y){
-        return false;
+        return false;//mRectF.contains(x, y);
     }
 
     public void setImage(String filePath){
@@ -102,10 +118,9 @@ public class Previewer extends BaseView4 {
     }
 
     private void doSpringBackIfNeed(){
-        if (mSourceImg.mScaleX >= MIN_SCALE || mSourceImg.mScaleX <= MAX_SCALE){
-            return;
-        }
-        springBackAnimation(mSourceImg,mTempSourceImg);
+        springBackAnimation(mSourceImg,mSpringBackItem,mRectItem);
+        LogUtil.d("ttteeee",mRectItem.mRectF.toString());
+
     }
 
     @Override

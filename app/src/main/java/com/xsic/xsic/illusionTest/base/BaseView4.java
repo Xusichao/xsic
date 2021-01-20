@@ -30,7 +30,13 @@ public class BaseView4 extends BaseView3 {
         super(context, attrs, defStyleAttr);
     }
 
-    protected void springBackAnimation(ViewSupport curProperty, ViewSupport initProperty){
+    /**
+     * 回弹动画
+     * @param curProperty 当前图片的属性
+     * @param initProperty 初始位置的属性
+     * @param rectProperty 图片所属矩形的属性
+     */
+    protected void springBackAnimation(ViewSupport curProperty, ViewSupport initProperty, ViewSupport rectProperty){
         valueAnimator = ValueAnimator.ofFloat(0,1f);
         valueAnimator.setDuration(DURATION);
         float tempX = curProperty.mX;
@@ -39,11 +45,17 @@ public class BaseView4 extends BaseView3 {
         float tempCenterY = curProperty.mCenterY;
         float tempScaleX = curProperty.mScaleX;
         float tempScaleY = curProperty.mScaleY;
-        LogUtil.i("weqewqe",curProperty.mX+"");
-        LogUtil.i("weqewqe",initProperty.mX+"");
+
+        float rectX = rectProperty.mX;
+        float rectY = rectProperty.mY;
+        float rectCenterX = rectProperty.mCenterX;
+        float rectCenterY = rectProperty.mCenterY;
+        float rectScaleX = rectProperty.mScaleX;
+        float rectScaleY = rectProperty.mScaleY;
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
+                //图片回弹
                 curProperty.mX = tempX + animation.getAnimatedFraction() * (initProperty.mX - tempX);
                 curProperty.mY = tempY + animation.getAnimatedFraction() * (initProperty.mY - tempY);
                 curProperty.mCenterX = tempCenterX + animation.getAnimatedFraction() * (initProperty.mCenterX - tempCenterX);
@@ -51,8 +63,16 @@ public class BaseView4 extends BaseView3 {
                 curProperty.mScaleX = tempScaleX + animation.getAnimatedFraction() * (initProperty.mScaleX - tempScaleX);
                 curProperty.mScaleY = tempScaleY + animation.getAnimatedFraction() * (initProperty.mScaleY - tempScaleY);
                 postMatrix(curProperty);
+//                //矩形回弹
+                rectProperty.mX = rectX + animation.getAnimatedFraction() * (initProperty.mX - rectX);
+                rectProperty.mY = rectY + animation.getAnimatedFraction() * (initProperty.mY - rectY);
+                rectProperty.mCenterX = rectCenterX + animation.getAnimatedFraction() * (initProperty.mCenterX - rectCenterX);
+                rectProperty.mCenterY = rectCenterY + animation.getAnimatedFraction() * (initProperty.mCenterY - rectCenterY);
+                rectProperty.mScaleX = rectScaleX + animation.getAnimatedFraction() * (initProperty.mScaleX - rectScaleX);
+                rectProperty.mScaleY = rectScaleY + animation.getAnimatedFraction() * (initProperty.mScaleY - rectScaleY);
+                postMatrix(rectProperty);
+
                 invalidate();
-                LogUtil.d("weqewqe",curProperty.mX+"");
             }
         });
         valueAnimator.addListener(new AnimatorListenerAdapter() {

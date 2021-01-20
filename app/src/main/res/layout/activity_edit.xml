@@ -11,7 +11,7 @@
         android:background="#141414"
         >
 
-        <com.xsic.xsic.illusionTest.editPannel.Previewer
+        <com.xsic.xsic.illusionTest.editPannel.previewerView.Previewer
             android:layout_width="match_parent"
             android:layout_height="@dimen/dp_400"
             android:id="@+id/img"
