@@ -12,7 +12,7 @@ import com.xsic.xsic.illusionTest.editPannel.previewerView.RectFItem;
 import com.xsic.xsic.utils.LogUtil;
 
 public class BaseView4 extends BaseView3 {
-    protected static float MIN_SCALE = 0.4f;
+    protected static float MIN_SCALE = 1.0f;
     protected static float MAX_SCALE = 2.5f;
     protected final int DURATION = 300;
 
@@ -35,9 +35,8 @@ public class BaseView4 extends BaseView3 {
      * 回弹动画
      * @param curProperty 当前图片的属性
      * @param springBackProperty 回弹位置的属性
-     * @param rectProperty 图片所属矩形的属性
      */
-    protected void springBackAnimation(ViewSupport curProperty, ViewSupport springBackProperty, RectFItem rectProperty){
+    protected void springBackAnimation(ViewSupport curProperty, ViewSupport springBackProperty){
         valueAnimator = ValueAnimator.ofFloat(0,1f);
         valueAnimator.setDuration(DURATION);
         float tempX = curProperty.mX;
@@ -47,12 +46,6 @@ public class BaseView4 extends BaseView3 {
         float tempScaleX = curProperty.mScaleX;
         float tempScaleY = curProperty.mScaleY;
 
-        float rectX = rectProperty.mX;
-        float rectY = rectProperty.mY;
-        float rectCenterX = rectProperty.mCenterX;
-        float rectCenterY = rectProperty.mCenterY;
-        float rectScaleX = rectProperty.mScaleX;
-        float rectScaleY = rectProperty.mScaleY;
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
@@ -64,17 +57,6 @@ public class BaseView4 extends BaseView3 {
                 curProperty.mScaleX = tempScaleX + animation.getAnimatedFraction() * (springBackProperty.mScaleX - tempScaleX);
                 curProperty.mScaleY = tempScaleY + animation.getAnimatedFraction() * (springBackProperty.mScaleY - tempScaleY);
                 postMatrix(curProperty);
-//                //矩形回弹
-                rectProperty.mX = rectX + animation.getAnimatedFraction() * (springBackProperty.mX - rectX);
-                rectProperty.mY = rectY + animation.getAnimatedFraction() * (springBackProperty.mY - rectY);
-                rectProperty.mCenterX = rectCenterX + animation.getAnimatedFraction() * (springBackProperty.mCenterX - rectCenterX);
-                rectProperty.mCenterY = rectCenterY + animation.getAnimatedFraction() * (springBackProperty.mCenterY - rectCenterY);
-                rectProperty.mScaleX = rectScaleX + animation.getAnimatedFraction() * (springBackProperty.mScaleX - rectScaleX);
-                rectProperty.mScaleY = rectScaleY + animation.getAnimatedFraction() * (springBackProperty.mScaleY - rectScaleY);
-                postMatrix(rectProperty);
-                rectProperty.mRectF.set(mShowRect);
-                rectProperty.mMatrix.mapRect(rectProperty.mRectF);
-                LogUtil.d("weqewqeq",rectProperty.mY+"");
                 invalidate();
             }
         });

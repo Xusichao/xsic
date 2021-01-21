@@ -18,9 +18,8 @@ import com.xsic.xsic.utils.LogUtil;
 
 public class Previewer extends BaseView4 {
     private boolean mIsHandlingMorePoint = false;
-    private RectFItem mRectItem = new RectFItem();
-    private RectFItem mRectTempItem = new RectFItem();
-    private RectFItem mSpringBackItem = new RectFItem();
+    private ViewSupport mSpringBackItem = new ViewSupport();
+    private ViewSupport mInitItem = new ViewSupport();
 
     public Previewer(Context context) {
         super(context);
@@ -41,27 +40,25 @@ public class Previewer extends BaseView4 {
     }
 
     private void init(){
-        mRectItem.mRectF.set(mShowRect);
-        mSpringBackItem.set(mSourceImg.clone());
-        mSpringBackItem.mRectF.set(mShowRect);
+        mSpringBackItem = mSourceImg.clone();
+        mInitItem = mSourceImg.clone();
+        MIN_SCALE *= mInitItem.mScaleX;
+        MAX_SCALE *= mInitItem.mScaleX;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        //if (!isPointAtImg(event.getX(),event.getY())) return false;
         switch (event.getAction() & event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
                 if (mIsAnimating && valueAnimator!=null && valueAnimator.isRunning()){
                     valueAnimator.cancel();
                 }
                 mTempProperty = mSourceImg.clone();
-                mRectTempItem = mRectItem.clone();
                 initTranslate(event.getX(),event.getY());
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
                 mTempProperty = mSourceImg.clone();
-                mRectTempItem = mRectItem.clone();
                 initMorePointTranslate(mSourceImg,event);
                 initMorePointScale(event);
                 break;
@@ -72,25 +69,22 @@ public class Previewer extends BaseView4 {
                     mSourceImg.set(mTempProperty);
                     morePointTranslate(mSourceImg,event);
                     morePointScale(mSourceImg,event);
+                    if (mSourceImg.mScaleX > MAX_SCALE){
+                        mSpringBackItem.mScaleX = MAX_SCALE;
+                        mSpringBackItem.mScaleY = MAX_SCALE;
+                    }else if (mSourceImg.mScaleX < MIN_SCALE){
+                        mSpringBackItem.mScaleX = MIN_SCALE;
+                        mSpringBackItem.mScaleY = MIN_SCALE;
+                    }else {
+                        mSpringBackItem.mScaleX = mSourceImg.mScaleX;
+                        mSpringBackItem.mScaleY = mSourceImg.mScaleY;
+                    }
                     postMatrix(mSourceImg);
-                    //矩形区域缩放
-                    mRectItem.set(mRectTempItem);
-                    morePointTranslate(mRectItem,event);
-                    morePointScale(mRectItem,event);
-                    postMatrix(mRectItem);
-                    mRectItem.mRectF.set(mShowRect);
-                    mRectItem.mMatrix.mapRect(mRectItem.mRectF);
                 }else {
                     if (mIsHandlingMorePoint) break;
                     mSourceImg.set(mTempProperty);
                     translate(mSourceImg,event.getX(),event.getY());
                     postMatrix(mSourceImg);
-                    //矩形区域平移
-                    mRectItem.set(mRectTempItem);
-                    translate(mRectItem,event.getX(),event.getY());
-                    postMatrix(mRectItem);
-                    mRectItem.mRectF.set(mShowRect);
-                    mRectItem.mMatrix.mapRect(mRectItem.mRectF);
                 }
                 break;
 
@@ -103,37 +97,50 @@ public class Previewer extends BaseView4 {
                 break;
         }
         invalidate();
-        LogUtil.d("ttteeee",mRectItem.mRectF.toString());
         return true;
-    }
-
-    private boolean isPointAtImg(float x, float y){
-        return false;//mRectF.contains(x, y);
     }
 
     public void setImage(String filePath){
         super.setImage(BitmapFactory.decodeFile(filePath));
     }
 
-    /**
-     * 每次操作后更新回弹边界状态
-     */
-    private void updateBoundary(){
-
-    }
-
     private void doSpringBackIfNeed(){
-        springBackAnimation(mSourceImg,mSpringBackItem,mRectItem);
-        LogUtil.d("ttteeee",mRectItem.mRectF.toString());
+        float maxWidth = MAX_SCALE*mInitItem.mBitmap.getWidth();
+        float maxHeight = MAX_SCALE*mInitItem.mBitmap.getHeight();
+
+        float minCenterX = getWidth() - maxWidth/2f;
+        float minCenterY = getHeight() - maxHeight/2f;
+        float maxCenterX = maxWidth/2f;
+        float maxCenterY = maxHeight/2f;
+
+//        mSpringBackItem.mX = mSourceImg.mX;
+//        mSpringBackItem.mY = mSourceImg.mY;
+//        mSpringBackItem.mCenterX = mSourceImg.mCenterX;
+//        mSpringBackItem.mCenterY = mSourceImg.mCenterY;
+
+        if (mSourceImg.mCenterX < minCenterX){
+            mSpringBackItem.mCenterX = minCenterX;
+            mSpringBackItem.mX += minCenterX - mSpringBackItem.mCenterX;
+        }
+        if (mSourceImg.mCenterX > maxCenterX){
+            mSpringBackItem.mCenterX = maxCenterX;
+            mSpringBackItem.mX += maxCenterX - mSpringBackItem.mCenterX;
+        }
+        if (mSourceImg.mCenterY < minCenterY){
+            mSpringBackItem.mCenterY = minCenterY;
+            mSpringBackItem.mY += minCenterY - mSpringBackItem.mCenterY;
+        }
+        if (mSourceImg.mCenterY > maxCenterY){
+            mSpringBackItem.mCenterY = maxCenterY;
+            mSpringBackItem.mY += maxCenterY - mSpringBackItem.mCenterY;
+        }
+
+        springBackAnimation(mSourceImg,mSpringBackItem);
 
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        Paint paint = new Paint();
-        paint.setColor(Color.YELLOW);
-        paint.setStrokeWidth(10);
-        canvas.drawRect(mRectItem.mRectF,paint);
     }
 }
