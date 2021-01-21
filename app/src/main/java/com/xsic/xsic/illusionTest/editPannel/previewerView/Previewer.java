@@ -19,6 +19,7 @@ import com.xsic.xsic.utils.LogUtil;
 public class Previewer extends BaseView4 {
     private boolean mIsHandlingMorePoint = false;
     private RectFItem mRectItem = new RectFItem();
+    private RectFItem mRectTempItem = new RectFItem();
     private RectFItem mSpringBackItem = new RectFItem();
 
     public Previewer(Context context) {
@@ -54,11 +55,13 @@ public class Previewer extends BaseView4 {
                     valueAnimator.cancel();
                 }
                 mTempProperty = mSourceImg.clone();
+                mRectTempItem = mRectItem.clone();
                 initTranslate(event.getX(),event.getY());
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
                 mTempProperty = mSourceImg.clone();
+                mRectTempItem = mRectItem.clone();
                 initMorePointTranslate(mSourceImg,event);
                 initMorePointScale(event);
                 break;
@@ -71,6 +74,7 @@ public class Previewer extends BaseView4 {
                     morePointScale(mSourceImg,event);
                     postMatrix(mSourceImg);
                     //矩形区域缩放
+                    mRectItem.set(mRectTempItem);
                     morePointTranslate(mRectItem,event);
                     morePointScale(mRectItem,event);
                     postMatrix(mRectItem);
@@ -82,6 +86,7 @@ public class Previewer extends BaseView4 {
                     translate(mSourceImg,event.getX(),event.getY());
                     postMatrix(mSourceImg);
                     //矩形区域平移
+                    mRectItem.set(mRectTempItem);
                     translate(mRectItem,event.getX(),event.getY());
                     postMatrix(mRectItem);
                     mRectItem.mRectF.set(mShowRect);
@@ -97,8 +102,8 @@ public class Previewer extends BaseView4 {
                 doSpringBackIfNeed();
                 break;
         }
-        LogUtil.d("ttteeee",mRectItem.mRectF.toString());
         invalidate();
+        LogUtil.d("ttteeee",mRectItem.mRectF.toString());
         return true;
     }
 
@@ -126,5 +131,9 @@ public class Previewer extends BaseView4 {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        Paint paint = new Paint();
+        paint.setColor(Color.YELLOW);
+        paint.setStrokeWidth(10);
+        canvas.drawRect(mRectItem.mRectF,paint);
     }
 }

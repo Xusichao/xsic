@@ -152,15 +152,4 @@ public class BaseView3 extends BaseView2 {
             viewSupport.mMatrix.postRotate(viewSupport.mRotate);
         }
     }
-
-    protected void postMatrix(Matrix matrix, ViewSupport viewSupport){
-        if (matrix!=null){
-            matrix.reset();
-            matrix.postTranslate(viewSupport.mX,viewSupport.mY);
-            matrix.postScale(viewSupport.mScaleX,viewSupport.mScaleY,viewSupport.mCenterX,viewSupport.mCenterY);
-            matrix.postRotate(viewSupport.mRotate);
-        }
-    }
-
-
 }

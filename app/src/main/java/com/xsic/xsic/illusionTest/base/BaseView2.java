@@ -70,41 +70,13 @@ public class BaseView2 extends View {
             mSourceImg.mScaleY = finalScale;
             mSourceImg.mMatrix.postScale(finalScale,finalScale,mSourceImg.mCenterX,mSourceImg.mCenterY);
 
-            float left = mSourceImg.mX;
-            float top = mSourceImg.mY;
-            float right = mSourceImg.mX + mSourceImg.mBitmap.getWidth()*mSourceImg.mScaleX;
-            float bottom = mSourceImg.mY + mSourceImg.mBitmap.getHeight()*mSourceImg.mScaleY;
+            float left = mSourceImg.mCenterX - bitmapW*finalScale/2f;
+            float top = mSourceImg.mCenterY - bitmapH*finalScale/2f;
+            float right = mSourceImg.mCenterX + bitmapW*finalScale/2f;
+            float bottom = mSourceImg.mCenterY + bitmapH*finalScale/2f;
             mShowRect.set(left,top,right,bottom);
+
         }
-//        float viewHeight = getHeight();
-//        float viewWidth = getWidth();
-//        if (mSourceImg != null && mSourceImg.mBitmap != null){
-//            mSourceImg.mMatrix.reset();
-//            float bitmapHeight = mSourceImg.mBitmap.getHeight();
-//            float bitmapWidth = mSourceImg.mBitmap.getWidth();
-//            //中心点
-//            mSourceImg.mCenterX = viewWidth/2f;
-//            mSourceImg.mCenterY = viewHeight/2f;
-//            //缩放
-//            float scaleX = viewWidth/bitmapWidth;
-//            float scaleY = viewHeight/bitmapHeight;
-//            float realScale = Math.min(scaleX,scaleY);
-//            mSourceImg.mScaleX = realScale;
-//            mSourceImg.mScaleY = realScale;
-//            mSourceImg.mMatrix.postScale(realScale,realScale,getLeft(),getTop());
-//            //平移
-//            float offsetX = (viewWidth - bitmapWidth*realScale)/2f;
-//            float offsetY = (viewHeight - bitmapHeight*realScale)/2f;
-//            mSourceImg.mX = offsetX;
-//            mSourceImg.mY = offsetY;
-//            mSourceImg.mMatrix.postTranslate(offsetX,offsetY);
-//
-//            float left = mSourceImg.mX;
-//            float top = mSourceImg.mY;
-//            float right = left + bitmapWidth * realScale;
-//            float bottom = top + bitmapHeight * realScale;
-//            mShowRect.set(left,top,right,bottom);
-//        }
     }
 
     protected void setImage(Bitmap bitmap){
