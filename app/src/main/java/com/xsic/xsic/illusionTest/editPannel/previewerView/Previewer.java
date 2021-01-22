@@ -118,24 +118,42 @@ public class Previewer extends BaseView4 {
 //        mSpringBackItem.mCenterX = mSourceImg.mCenterX;
 //        mSpringBackItem.mCenterY = mSourceImg.mCenterY;
 
-        if (mSourceImg.mCenterX < minCenterX){
-            mSpringBackItem.mCenterX = minCenterX;
-            mSpringBackItem.mX += minCenterX - mSpringBackItem.mCenterX;
+        if (mTempProperty.mCenterX < minCenterX){
+            mTempProperty.mCenterX = minCenterX;
+            mTempProperty.mX += minCenterX - mSpringBackItem.mCenterX;
         }
-        if (mSourceImg.mCenterX > maxCenterX){
-            mSpringBackItem.mCenterX = maxCenterX;
-            mSpringBackItem.mX += maxCenterX - mSpringBackItem.mCenterX;
+        if (mTempProperty.mCenterX > maxCenterX){
+            mTempProperty.mCenterX = maxCenterX;
+            mTempProperty.mX += maxCenterX - mSpringBackItem.mCenterX;
         }
-        if (mSourceImg.mCenterY < minCenterY){
-            mSpringBackItem.mCenterY = minCenterY;
-            mSpringBackItem.mY += minCenterY - mSpringBackItem.mCenterY;
+        if (mTempProperty.mCenterY < minCenterY){
+            mTempProperty.mCenterY = minCenterY;
+            mTempProperty.mY += minCenterY - mSpringBackItem.mCenterY;
         }
-        if (mSourceImg.mCenterY > maxCenterY){
-            mSpringBackItem.mCenterY = maxCenterY;
-            mSpringBackItem.mY += maxCenterY - mSpringBackItem.mCenterY;
+        if (mTempProperty.mCenterY > maxCenterY){
+            mTempProperty.mCenterY = maxCenterY;
+            mTempProperty.mY += maxCenterY - mSpringBackItem.mCenterY;
         }
 
-        springBackAnimation(mSourceImg,mSpringBackItem);
+        if (mTempProperty.mScaleX > MAX_SCALE){
+            mTempProperty.mScaleX = MAX_SCALE;
+            mTempProperty.mScaleY = MAX_SCALE;
+        }else if (mTempProperty.mScaleX < MIN_SCALE){
+            mTempProperty.mScaleX = MIN_SCALE;
+            mTempProperty.mScaleY = MIN_SCALE;
+        }else {
+            if (mSourceImg.mScaleX < MIN_SCALE){
+                mTempProperty.mScaleX = MIN_SCALE;
+                mTempProperty.mScaleY = MIN_SCALE;
+            }else {
+                mTempProperty.mScaleX = mSourceImg.mScaleX;
+                mTempProperty.mScaleY = mSourceImg.mScaleY;
+            }
+        }
+
+        LogUtil.d("weqewqe",mTempProperty.toString() +","+ MAX_SCALE +","+ MIN_SCALE);
+
+        springBackAnimation(mSourceImg,mTempProperty);
 
     }
 
