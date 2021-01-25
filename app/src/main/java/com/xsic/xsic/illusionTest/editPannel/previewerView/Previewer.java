@@ -18,7 +18,6 @@ import com.xsic.xsic.utils.LogUtil;
 
 public class Previewer extends BaseView4 {
     private boolean mIsHandlingMorePoint = false;
-    private ViewSupport mSpringBackItem = new ViewSupport();
     private ViewSupport mInitItem = new ViewSupport();
 
     public Previewer(Context context) {
@@ -40,7 +39,6 @@ public class Previewer extends BaseView4 {
     }
 
     private void init(){
-        mSpringBackItem = mSourceImg.clone();
         mInitItem = mSourceImg.clone();
         MIN_SCALE *= mInitItem.mScaleX;
         MAX_SCALE *= mInitItem.mScaleX;
@@ -69,16 +67,6 @@ public class Previewer extends BaseView4 {
                     mSourceImg.set(mTempProperty);
                     morePointTranslate(mSourceImg,event);
                     morePointScale(mSourceImg,event);
-                    if (mSourceImg.mScaleX > MAX_SCALE){
-                        mSpringBackItem.mScaleX = MAX_SCALE;
-                        mSpringBackItem.mScaleY = MAX_SCALE;
-                    }else if (mSourceImg.mScaleX < MIN_SCALE){
-                        mSpringBackItem.mScaleX = MIN_SCALE;
-                        mSpringBackItem.mScaleY = MIN_SCALE;
-                    }else {
-                        mSpringBackItem.mScaleX = mSourceImg.mScaleX;
-                        mSpringBackItem.mScaleY = mSourceImg.mScaleY;
-                    }
                     postMatrix(mSourceImg);
                 }else {
                     if (mIsHandlingMorePoint) break;
@@ -105,44 +93,44 @@ public class Previewer extends BaseView4 {
     }
 
     private void doSpringBackIfNeed(){
-        float maxWidth = MAX_SCALE*mInitItem.mBitmap.getWidth();
-        float maxHeight = MAX_SCALE*mInitItem.mBitmap.getHeight();
+        boolean needSpringBack = false;
 
-        float minCenterX = getWidth() - maxWidth/2f;
-        float minCenterY = getHeight() - maxHeight/2f;
-        float maxCenterX = maxWidth/2f;
-        float maxCenterY = maxHeight/2f;
+        float difX = mSourceImg.mBitmap.getWidth()*mSourceImg.mScaleX - getWidth();
+        float difY = mSourceImg.mBitmap.getHeight()*mSourceImg.mScaleY - getHeight();
 
-//        mSpringBackItem.mX = mSourceImg.mX;
-//        mSpringBackItem.mY = mSourceImg.mY;
-//        mSpringBackItem.mCenterX = mSourceImg.mCenterX;
-//        mSpringBackItem.mCenterY = mSourceImg.mCenterY;
+        float maxCenterX = mInitItem.mCenterX + difX;
+        float maxCenterY = mInitItem.mCenterY + difY;
+        float minCenterX = mInitItem.mCenterX - difX;
+        float minCenterY = mInitItem.mCenterY - difY;
 
-        if (mTempProperty.mCenterX < minCenterX){
-            mTempProperty.mCenterX = minCenterX;
-            mTempProperty.mX += minCenterX - mSpringBackItem.mCenterX;
-        }
-        if (mTempProperty.mCenterX > maxCenterX){
-            mTempProperty.mCenterX = maxCenterX;
-            mTempProperty.mX += maxCenterX - mSpringBackItem.mCenterX;
-        }
-        if (mTempProperty.mCenterY < minCenterY){
-            mTempProperty.mCenterY = minCenterY;
-            mTempProperty.mY += minCenterY - mSpringBackItem.mCenterY;
-        }
-        if (mTempProperty.mCenterY > maxCenterY){
-            mTempProperty.mCenterY = maxCenterY;
-            mTempProperty.mY += maxCenterY - mSpringBackItem.mCenterY;
-        }
+//        if (mTempProperty.mCenterX < minCenterX){
+//            mTempProperty.mCenterX = minCenterX;
+//            mTempProperty.mX += minCenterX - mSpringBackItem.mCenterX;
+//        }
+//        if (mTempProperty.mCenterX > maxCenterX){
+//            mTempProperty.mCenterX = maxCenterX;
+//            mTempProperty.mX += maxCenterX - mSpringBackItem.mCenterX;
+//        }
+//        if (mTempProperty.mCenterY < minCenterY){
+//            mTempProperty.mCenterY = minCenterY;
+//            mTempProperty.mY += minCenterY - mSpringBackItem.mCenterY;
+//        }
+//        if (mTempProperty.mCenterY > maxCenterY){
+//            mTempProperty.mCenterY = maxCenterY;
+//            mTempProperty.mY += maxCenterY - mSpringBackItem.mCenterY;
+//        }
 
         if (mTempProperty.mScaleX > MAX_SCALE){
+            needSpringBack = true;
             mTempProperty.mScaleX = MAX_SCALE;
             mTempProperty.mScaleY = MAX_SCALE;
         }else if (mTempProperty.mScaleX < MIN_SCALE){
+            needSpringBack = true;
             mTempProperty.mScaleX = MIN_SCALE;
             mTempProperty.mScaleY = MIN_SCALE;
         }else {
             if (mSourceImg.mScaleX < MIN_SCALE){
+                needSpringBack = true;
                 mTempProperty.mScaleX = MIN_SCALE;
                 mTempProperty.mScaleY = MIN_SCALE;
             }else {
@@ -151,9 +139,59 @@ public class Previewer extends BaseView4 {
             }
         }
 
+        if (mSourceImg.mCenterX > mTempProperty.mCenterX){
+            if (mSourceImg.mCenterX > maxCenterX){
+                if (mSourceImg.mCenterX - maxCenterX > 0){
+                    needSpringBack = true;
+                    mTempProperty.mCenterX = maxCenterX;
+                    mTempProperty.mX = mSourceImg.mCenterX - maxCenterX;
+                }else {
+                    mTempProperty.mCenterX = mSourceImg.mCenterX;
+                    mTempProperty.mX = mSourceImg.mX;
+                }
+            }
+        }else {
+            if (mSourceImg.mCenterX < minCenterX){
+                if (mSourceImg.mCenterX - minCenterX < 0){
+                    needSpringBack = true;
+                    mTempProperty.mCenterX = minCenterX;
+                    mTempProperty.mX = mSourceImg.mCenterX - minCenterX;
+                }else {
+                    mTempProperty.mCenterX = mSourceImg.mCenterX;
+                    mTempProperty.mX = mSourceImg.mX;
+                }
+            }
+        }
+
+        if (mSourceImg.mCenterY > mTempProperty.mCenterY){
+            if (mSourceImg.mCenterY > maxCenterY){
+                if (mSourceImg.mCenterY - maxCenterY > 0){
+                    needSpringBack = true;
+                    mTempProperty.mCenterY = maxCenterY;
+                    mTempProperty.mY = mSourceImg.mCenterY - maxCenterY;
+                }else {
+                    mTempProperty.mCenterY = mSourceImg.mCenterY;
+                    mTempProperty.mY = mSourceImg.mY;
+                }
+            }
+        }else {
+            if (mSourceImg.mCenterY < minCenterY){
+                if (mSourceImg.mCenterY - minCenterY < 0){
+                    needSpringBack = true;
+                    mTempProperty.mCenterY = minCenterY;
+                    mTempProperty.mY = mSourceImg.mCenterY - minCenterY;
+                }else {
+                    mTempProperty.mCenterY = mSourceImg.mCenterY;
+                    mTempProperty.mY = mSourceImg.mY;
+                }
+            }
+        }
+
         LogUtil.d("weqewqe",mTempProperty.toString() +","+ MAX_SCALE +","+ MIN_SCALE);
 
-        springBackAnimation(mSourceImg,mTempProperty);
+        if (needSpringBack){
+            springBackAnimation(mSourceImg,mTempProperty);
+        }
 
     }
 
