@@ -38,13 +38,17 @@ public abstract class BaseDataBindingActivity <T extends ViewDataBinding, E exte
         /*--分割线--*/
         StatusBarUtil.setTransparentStatusBar(this);
         setScreenRoate(true);
+        setUpUi();
         initView();
         registerClick();
         subscribeBaseUi();
     }
 
-    protected abstract int getContentViewId();
+    //初始化UI
+    protected abstract void setUpUi();
 
+    protected abstract int getContentViewId();
+    //初始化所有一切
     protected abstract void initView();
 
     protected abstract void registerClick();

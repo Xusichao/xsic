@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="@dimen/dp_104"
+    android:layout_height="@dimen/dp_104"
+    android:layout_marginTop="@dimen/dp_12"
+    android:layout_gravity="center"
+    android:background="@drawable/picture_selector_bg">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/image"
+        android:scaleType="centerCrop"/>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#4d000000"
+        android:visibility="invisible"
+        android:id="@+id/mask">
+        <ImageView
+            android:layout_width="@dimen/dp_16"
+            android:layout_height="@dimen/dp_16"
+            android:id="@+id/check_ic"
+            android:src="@drawable/icon_selected"
+            android:layout_margin="@dimen/dp_6"
+            android:layout_gravity="end|bottom"/>
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80ffffff"
+        android:id="@+id/locked_mask"
+        android:visibility="invisible"/>
+
+</FrameLayout>

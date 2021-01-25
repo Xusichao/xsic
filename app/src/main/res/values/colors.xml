@@ -52,4 +52,6 @@
     <color name="toast">#B3696969</color>
     <!--图片占位符颜色-->
     <color name="placeHolder">#D6D6D6</color>
+    <!--应用主色调-->
+    <color name="mainTheme">#202020</color>
 </resources>
