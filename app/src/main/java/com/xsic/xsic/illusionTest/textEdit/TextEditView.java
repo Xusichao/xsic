@@ -57,10 +57,12 @@ public class TextEditView extends BaseView3 {
         mTextItem.mCenterX = getWidth()/2f;
         mTextItem.mCenterY = getHeight()/2f;
         mTextPaint.getTextBounds(mTextItem.mText,0,mTextItem.mText.length()-1, mTextItem.mRect);
+        mTextItem.mRect.offset((int)(getWidth() - mTextItem.mRect.width()/2f),(int)(getHeight() - mTextItem.mRect.height()/2f));
         mTextItem.mRect.left = (int) (mTextItem.mRect.left - mTextItem.mGapX);
         mTextItem.mRect.top = (int) (mTextItem.mRect.top - mTextItem.mGapY);
         mTextItem.mRect.right = (int) (mTextItem.mRect.right + mTextItem.mGapX);
         mTextItem.mRect.bottom = (int) (mTextItem.mRect.bottom + mTextItem.mGapY);
+
         mTextItem.mX = getWidth() - mTextItem.mRect.width()/2f;
         mTextItem.mY = getHeight() - mTextItem.mRect.height()/2f;
         postMatrix(mTextItem);
