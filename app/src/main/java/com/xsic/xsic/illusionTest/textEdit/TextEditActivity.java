@@ -1,4 +1,4 @@
-package com.xsic.xsic.illusionTest.editPannel;
+package com.xsic.xsic.illusionTest.textEdit;
 
 import android.view.View;
 import android.widget.FrameLayout;
@@ -6,14 +6,12 @@ import android.widget.FrameLayout;
 import com.xsic.xsic.R;
 import com.xsic.xsic.base.BaseDataBindingActivity;
 import com.xsic.xsic.databinding.ActivityEditBinding;
-import com.xsic.xsic.illusionTest.DataMgr.DataMgr;
-import com.xsic.xsic.utils.LogUtil;
+import com.xsic.xsic.databinding.ActivityTextBinding;
 import com.xsic.xsic.utils.ScreenUtil;
 
-public class EditPannelActivity extends BaseDataBindingActivity<ActivityEditBinding,EditPannelViewmodel> {
+public class TextEditActivity extends BaseDataBindingActivity<ActivityTextBinding,TextEditViewmodel> {
     @Override
     protected void setUpUi() {
-        LogUtil.e("werqrqr",ScreenUtil.getScreenHeight()+"");
         int imgHeight = (int) (ScreenUtil.getScreenHeight() - getResources().getDimension(R.dimen.dp_96));
         FrameLayout.LayoutParams fl = (FrameLayout.LayoutParams) viewBinding.img.getLayoutParams();
         fl.height = imgHeight;
@@ -22,14 +20,12 @@ public class EditPannelActivity extends BaseDataBindingActivity<ActivityEditBind
 
     @Override
     protected int getContentViewId() {
-        return R.layout.activity_edit;
+        return R.layout.activity_text;
     }
 
     @Override
     protected void initView() {
-        DataMgr dataMgr = new DataMgr(mContext);
         viewBinding.img.setImage("/storage/emulated/0/新建文件夹/lADPBGnDao-sGcrNAfTNAfQ_500_500.jpg_720x720q90g - 副本 (1009) - 副本 - 副本 - 副本.jpg");
-        //viewBinding.img.setImage("/storage/emulated/0/DCIM/Camera/IMG_20210121_220934.jpg");
     }
 
     @Override
@@ -38,7 +34,7 @@ public class EditPannelActivity extends BaseDataBindingActivity<ActivityEditBind
     }
 
     @Override
-    protected void subscribeUi(EditPannelViewmodel viewModel) {
+    protected void subscribeUi(TextEditViewmodel viewModel) {
 
     }
 

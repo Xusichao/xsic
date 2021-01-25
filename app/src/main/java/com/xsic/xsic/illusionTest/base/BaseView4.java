@@ -8,10 +8,11 @@ import android.util.AttributeSet;
 
 import androidx.annotation.Nullable;
 
+import com.xsic.xsic.illusionTest.editPannel.previewerView.RectFItem;
 import com.xsic.xsic.utils.LogUtil;
 
 public class BaseView4 extends BaseView3 {
-    protected static float MIN_SCALE = 0.4f;
+    protected static float MIN_SCALE = 1.0f;
     protected static float MAX_SCALE = 2.5f;
     protected final int DURATION = 300;
 
@@ -30,7 +31,12 @@ public class BaseView4 extends BaseView3 {
         super(context, attrs, defStyleAttr);
     }
 
-    protected void springBackAnimation(ViewSupport curProperty, ViewSupport initProperty){
+    /**
+     * 回弹动画
+     * @param curProperty 当前图片的属性
+     * @param springBackProperty 回弹位置的属性
+     */
+    protected void springBackAnimation(ViewSupport curProperty, ViewSupport springBackProperty){
         valueAnimator = ValueAnimator.ofFloat(0,1f);
         valueAnimator.setDuration(DURATION);
         float tempX = curProperty.mX;
@@ -39,20 +45,19 @@ public class BaseView4 extends BaseView3 {
         float tempCenterY = curProperty.mCenterY;
         float tempScaleX = curProperty.mScaleX;
         float tempScaleY = curProperty.mScaleY;
-        LogUtil.i("weqewqe",curProperty.mX+"");
-        LogUtil.i("weqewqe",initProperty.mX+"");
+
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                curProperty.mX = tempX + animation.getAnimatedFraction() * (initProperty.mX - tempX);
-                curProperty.mY = tempY + animation.getAnimatedFraction() * (initProperty.mY - tempY);
-                curProperty.mCenterX = tempCenterX + animation.getAnimatedFraction() * (initProperty.mCenterX - tempCenterX);
-                curProperty.mCenterY = tempCenterY + animation.getAnimatedFraction() * (initProperty.mCenterY - tempCenterY);
-                curProperty.mScaleX = tempScaleX + animation.getAnimatedFraction() * (initProperty.mScaleX - tempScaleX);
-                curProperty.mScaleY = tempScaleY + animation.getAnimatedFraction() * (initProperty.mScaleY - tempScaleY);
+                //图片回弹
+                curProperty.mX = tempX + animation.getAnimatedFraction() * (springBackProperty.mX - tempX);
+                curProperty.mY = tempY + animation.getAnimatedFraction() * (springBackProperty.mY - tempY);
+                curProperty.mCenterX = tempCenterX + animation.getAnimatedFraction() * (springBackProperty.mCenterX - tempCenterX);
+                curProperty.mCenterY = tempCenterY + animation.getAnimatedFraction() * (springBackProperty.mCenterY - tempCenterY);
+                curProperty.mScaleX = tempScaleX + animation.getAnimatedFraction() * (springBackProperty.mScaleX - tempScaleX);
+                curProperty.mScaleY = tempScaleY + animation.getAnimatedFraction() * (springBackProperty.mScaleY - tempScaleY);
                 postMatrix(curProperty);
                 invalidate();
-                LogUtil.d("weqewqe",curProperty.mX+"");
             }
         });
         valueAnimator.addListener(new AnimatorListenerAdapter() {

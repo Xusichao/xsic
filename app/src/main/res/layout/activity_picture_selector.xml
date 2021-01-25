@@ -9,11 +9,70 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/mainTheme">
-        <include layout="@layout/base_tool_bar" android:id="@+id/base_toolbar"/>
-        <androidx.recyclerview.widget.RecyclerView
+        android:background="#040A08">
+
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/recycler_view" />
+            android:layout_height="match_parent">
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/normal_view">
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/recycler_view" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dp_128"
+                    android:id="@+id/puzzle_mode"
+                    android:orientation="vertical"
+                    android:layout_gravity="bottom"
+                    android:paddingHorizontal="@dimen/dp_16"
+                    android:paddingTop="@dimen/dp_12"
+                    android:visibility="gone"
+                    android:background="@color/mainTheme">
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/dp_20"
+                        android:layout_marginBottom="@dimen/dp_10">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Select (0/9) Photos"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/dp_12"
+                            android:layout_gravity="center_vertical"
+                            android:id="@+id/photo_count"/>
+                        <TextView
+                            android:layout_width="@dimen/dp_43"
+                            android:layout_height="@dimen/dp_18"
+                            android:textSize="@dimen/dp_10"
+                            android:text="Start"
+                            android:gravity="center"
+                            android:layout_gravity="end"
+                            android:id="@+id/start"/>
+                    </FrameLayout>
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:id="@+id/puzzle_mode_photo_list"/>
+                </LinearLayout>
+            </FrameLayout>
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/no_permission_view"
+                android:visibility="gone">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="点击重新获取权限"
+                    android:textColor="@color/white"
+                    android:id="@+id/reget_btn"/>
+            </FrameLayout>
+        </FrameLayout>
     </LinearLayout>
 </layout>

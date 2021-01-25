@@ -45,16 +45,16 @@ public class ViewSupport {
     @Override
     public String toString() {
         return "ViewSupport{" +
-                "mSource=" + mSource +
-                ", mBitmap=" + mBitmap +
-                ", mMatrix=" + mMatrix +
+//                "mSource=" + mSource +
+//                ", mBitmap=" + mBitmap +
+//                ", mMatrix=" + mMatrix +
                 ", mX=" + mX +
                 ", mY=" + mY +
                 ", mScaleX=" + mScaleX +
                 ", mScaleY=" + mScaleY +
                 ", mCenterX=" + mCenterX +
                 ", mCenterY=" + mCenterY +
-                ", mRotate=" + mRotate +
+//                ", mRotate=" + mRotate +
                 '}';
     }
 }

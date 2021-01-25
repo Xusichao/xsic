@@ -1,0 +1,62 @@
+package com.xsic.xsic.illusionTest.textEdit;
+
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Typeface;
+
+import androidx.core.app.CoreComponentFactory;
+
+import com.xsic.xsic.R;
+import com.xsic.xsic.illusionTest.base.ViewSupport;
+
+public class TextItem extends ViewSupport {
+    public final int mBitmapSize = 18;
+    public final float mGapX = 23.5f;
+    public final float mGapY = 13.5f;
+
+    public String mText;
+    public float mTextSize;
+    public Rect mRect = new Rect();
+    public int mTextColor = Color.WHITE;
+    public Typeface mTypeface;
+    public float mOpacity;
+
+    public void set(TextItem viewSupport) {
+        super.set(viewSupport);
+        mText = viewSupport.mText;
+        mTextSize = viewSupport.mTextSize;
+        mRect = viewSupport.mRect;
+        mTextColor = viewSupport.mTextColor;
+        mTypeface = viewSupport.mTypeface;
+        mOpacity = viewSupport.mOpacity;
+    }
+
+    @Override
+    public ViewSupport clone() {
+        TextItem out = new TextItem();
+        out.mSource = mSource;
+        out.mBitmap = mBitmap;
+        out.mMatrix.set(mMatrix);
+        out.mX = mX;
+        out.mY = mY;
+        out.mScaleX = mScaleX;
+        out.mScaleY = mScaleY;
+        out.mCenterX = mCenterX;
+        out.mCenterY = mCenterY;
+        out.mRotate = mRotate;
+        out.mText = mText;
+        out.mTextSize = mTextSize;
+        out.mRect.set(mRect);
+        out.mTextColor = mTextColor;
+        out.mTypeface = mTypeface;
+        out.mOpacity = mOpacity;
+        return out;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+}

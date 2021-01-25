@@ -16,7 +16,8 @@ import com.xsic.xsic.utils.LogUtil;
 public class BaseView2 extends View {
     private Paint mPicPaint = new Paint();
     protected ViewSupport mSourceImg;
-    public RectF mShowRect = new RectF();
+    protected RectF mShowRect = new RectF();
+    protected RectF mOrignalRectF = new RectF();
 
     public BaseView2(Context context) {
         this(context,null,0);
@@ -50,6 +51,8 @@ public class BaseView2 extends View {
             int bitmapW = mSourceImg.mBitmap.getWidth();
             int bitmapH = mSourceImg.mBitmap.getHeight();
 
+            mOrignalRectF.set(0,0,bitmapW,bitmapH);
+
             int x = (int) ((viewWidth - bitmapW)/2f);
             int y = (int) ((viewHeight - bitmapH)/2f);
 
@@ -62,16 +65,17 @@ public class BaseView2 extends View {
             float scaleX = viewWidth*1f/bitmapW;
             float scaleY = viewHeight*1f/bitmapH;
 
-            float finalScale = scaleX < scaleY ? scaleX:scaleY;
+            float finalScale = Math.min(scaleX, scaleY);
             mSourceImg.mScaleX = finalScale;
             mSourceImg.mScaleY = finalScale;
             mSourceImg.mMatrix.postScale(finalScale,finalScale,mSourceImg.mCenterX,mSourceImg.mCenterY);
 
-            float left = mSourceImg.mX;
-            float top = mSourceImg.mY;
-            float right = mSourceImg.mX + mSourceImg.mBitmap.getWidth()*mSourceImg.mScaleX;
-            float bottom = mSourceImg.mY + mSourceImg.mBitmap.getHeight()*mSourceImg.mScaleY;
+            float left = mSourceImg.mCenterX - bitmapW*finalScale/2f;
+            float top = mSourceImg.mCenterY - bitmapH*finalScale/2f;
+            float right = mSourceImg.mCenterX + bitmapW*finalScale/2f;
+            float bottom = mSourceImg.mCenterY + bitmapH*finalScale/2f;
             mShowRect.set(left,top,right,bottom);
+
         }
     }
 
