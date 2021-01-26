@@ -144,6 +144,62 @@ public class BaseView3 extends BaseView2 {
         }
     }
 
+    /**
+     * 初始化旋转
+     * x1y1食指，x2y2拇指
+     * 统一以与y轴夹角作为旋转角度
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
+    protected void initRotate(float x1, float y1, float x2, float y2){
+        if (x1 == x2){
+            if (y1 > y2){
+                mInitRotate = 180;
+            }else {
+                mInitRotate = 0;
+            }
+        }else if (y1 == y2){
+            if (x1 > x2){
+                mInitRotate = 90;
+            }else {
+                mInitRotate = 270;
+            }
+        }else {
+            mInitRotate = (float) Math.toDegrees(Math.atan2((y1-y2),(x2-x1)));
+            if (x1 < x2){
+                //镜像处理
+                mInitRotate += 180;
+            }
+        }
+    }
+
+    protected void rotate(ViewSupport viewSupport,float x1, float y1, float x2, float y2){
+        float tempDegree = 0;
+        if (x1 == x2){
+            if (y1 > y2){
+                tempDegree = 180;
+            }else {
+                tempDegree = 0;
+            }
+        }else if (y1 == y2){
+            if (x1 > x2){
+                tempDegree = 90;
+            }else {
+                tempDegree = 270;
+            }
+        }else {
+            tempDegree = (float) Math.toDegrees(Math.atan2((y1-y2),(x2-x1)));
+            if (x1 < x2){
+                //镜像处理
+                tempDegree += 180;
+            }
+        }
+        float degreeGap = mInitRotate - tempDegree;
+        viewSupport.mRotate += degreeGap;
+    }
+
     protected void postMatrix(ViewSupport viewSupport){
         if (viewSupport!=null){
             viewSupport.mMatrix.reset();
