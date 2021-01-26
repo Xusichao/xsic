@@ -12,7 +12,14 @@ import com.xsic.xsic.R;
 import com.xsic.xsic.illusionTest.base.ViewSupport;
 
 public class TextItem extends ViewSupport {
-    public final int mBitmapSize = 18;
+    public static final int NONE = -1;
+    public static final int DELETE = 1;
+    public static final int REVERSE = 2;
+    public static final int ADD = 3;
+    public static final int ROTATEANDSCALE = 4;
+
+    public static final int CONTROLLER_LENGTH = 30;
+    public final int mBitmapSize = 25;
     public final float mGapX = 23.5f;
     public final float mGapY = 13.5f;
 

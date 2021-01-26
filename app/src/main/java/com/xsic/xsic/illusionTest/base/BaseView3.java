@@ -24,6 +24,7 @@ public class BaseView3 extends BaseView2 {
 
     protected float mInitDistance;
     protected float mInitRotate;
+    protected float mRotateGap = 0;
 
 
     public BaseView3(Context context) {
@@ -142,6 +143,41 @@ public class BaseView3 extends BaseView2 {
             viewSupport.mScaleX = viewSupport.mScaleX*curScale;
             viewSupport.mScaleY = viewSupport.mScaleY*curScale;
         }
+    }
+
+    /**
+     * 初始化旋转
+     * x1y1食指，x2y2拇指
+     * 统一以与y轴夹角作为旋转角度
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
+    protected void initRotate(float x1, float y1, float x2, float y2){
+        if (x1 == x2){
+            if (y1 > y2){
+                mInitRotate = 180;
+            }else {
+                mInitRotate = 0;
+            }
+        }else if (y1 == y2){
+            if (x1 > x2){
+                mInitRotate = 90;
+            }else {
+                mInitRotate = 270;
+            }
+        }else {
+            mInitRotate = (float) Math.toDegrees(Math.atan2((y1-y2),(x2-x1)));
+            if (x1 < x2){
+                //镜像处理
+                mInitRotate += 180;
+            }
+        }
+    }
+
+    protected void rotate(ViewSupport viewSupport,float x1, float y1, float x2, float y2){
+        float tempDegree = 0;
     }
 
     protected void postMatrix(ViewSupport viewSupport){
