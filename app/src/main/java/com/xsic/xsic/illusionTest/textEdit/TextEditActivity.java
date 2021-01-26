@@ -7,6 +7,7 @@ import com.xsic.xsic.R;
 import com.xsic.xsic.base.BaseDataBindingActivity;
 import com.xsic.xsic.databinding.ActivityEditBinding;
 import com.xsic.xsic.databinding.ActivityTextBinding;
+import com.xsic.xsic.illusionTest.DataMgr.DataMgr;
 import com.xsic.xsic.utils.ScreenUtil;
 
 public class TextEditActivity extends BaseDataBindingActivity<ActivityTextBinding,TextEditViewmodel> {
