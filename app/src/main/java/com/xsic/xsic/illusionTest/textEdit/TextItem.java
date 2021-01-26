@@ -10,6 +10,7 @@ import androidx.core.app.CoreComponentFactory;
 
 import com.xsic.xsic.R;
 import com.xsic.xsic.illusionTest.base.ViewSupport;
+import com.xsic.xsic.utils.LogUtil;
 
 public class TextItem extends ViewSupport {
     public static final int NONE = -1;
@@ -40,8 +41,8 @@ public class TextItem extends ViewSupport {
         mOpacity = viewSupport.mOpacity;
     }
 
-    @Override
-    public ViewSupport clone() {
+
+    public TextItem clone() {
         TextItem out = new TextItem();
         out.mSource = mSource;
         out.mBitmap = mBitmap;
@@ -65,5 +66,20 @@ public class TextItem extends ViewSupport {
     @Override
     public String toString() {
         return super.toString();
+    }
+
+    public void debug(){
+        LogUtil.d("rtrtt","ViewSupport{" +
+//                "mSource=" + mSource +
+//                ", mBitmap=" + mBitmap +
+                ", mMatrix=" + mMatrix +
+                ", mX=" + mX +
+                ", mY=" + mY +
+                ", mScaleX=" + mScaleX +
+                ", mScaleY=" + mScaleY +
+                ", mCenterX=" + mCenterX +
+                ", mCenterY=" + mCenterY +
+                ", mRotate=" + mRotate +
+                '}');
     }
 }

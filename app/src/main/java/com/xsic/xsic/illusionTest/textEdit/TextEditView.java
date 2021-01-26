@@ -34,6 +34,7 @@ public class TextEditView extends BaseView3 {
 
     private List<TextItem> mItemList = new ArrayList<>();
     private boolean mIsShowController = true;
+    private boolean mIsHandlingMorePoint = false;
 
     private Paint mTextPaint;
     private Paint mRectPaint;
@@ -181,13 +182,43 @@ public class TextEditView extends BaseView3 {
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction() & event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
+                mTempItem = mTextItem.clone();
                 mCurController = getControlPointAt(event.getX(),event.getY());
+                initTranslate(event.getX(),event.getY());
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
+                mTempItem = mTextItem.clone();
+                initMorePointTranslate(mTempItem,event);
+                initMorePointScale(event);
+                initRotate(event.getX(1),event.getY(1),event.getX(2),event.getY(2));
                 break;
 
             case MotionEvent.ACTION_MOVE:
+                if (event.getPointerCount() > 1){
+                    mTextItem.set(mTempItem);
+                    morePointTranslate(mTextItem,event);
+                    morePointScale(mTextItem,event);
+                    rotate(mTextItem,event.getX(1),event.getY(1),event.getX(2),event.getY(2));
+                    postMatrix(mTextItem);
+                }else {
+                    if (mIsHandlingMorePoint) break;
+                    if (mCurController == TextItem.ADD){
+                        opsAdd();
+                    }else if (mCurController == TextItem.DELETE){
+                        opsDelete();
+                    }else if (mCurController == TextItem.REVERSE){
+                        opsReverse();
+                    }else if (mCurController == TextItem.ROTATEANDSCALE){
+                        opsRotateAndScale();
+                    }else {
+                        if (!mTextItem.mRect.contains((int)event.getX(),(int)event.getY())) break;
+                        mTextItem.set(mTempItem);
+                        translate(mTextItem,event.getX(),event.getY());
+                        postMatrix(mTextItem);
+                        mTextItem.debug();
+                    }
+                }
                 break;
 
             case MotionEvent.ACTION_UP:
@@ -196,7 +227,16 @@ public class TextEditView extends BaseView3 {
             case MotionEvent.ACTION_POINTER_UP:
                 break;
         }
+        invalidate();
         return true;
     }
+
+    private void opsAdd(){}
+
+    private void opsDelete(){}
+
+    private void opsReverse(){}
+
+    private void opsRotateAndScale(){}
 
 }
