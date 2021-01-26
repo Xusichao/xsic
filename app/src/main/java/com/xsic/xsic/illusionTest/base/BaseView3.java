@@ -24,7 +24,6 @@ public class BaseView3 extends BaseView2 {
 
     protected float mInitDistance;
     protected float mInitRotate;
-    protected float mRotateGap = 0;
 
 
     public BaseView3(Context context) {
@@ -178,6 +177,27 @@ public class BaseView3 extends BaseView2 {
 
     protected void rotate(ViewSupport viewSupport,float x1, float y1, float x2, float y2){
         float tempDegree = 0;
+        if (x1 == x2){
+            if (y1 > y2){
+                tempDegree = 180;
+            }else {
+                tempDegree = 0;
+            }
+        }else if (y1 == y2){
+            if (x1 > x2){
+                tempDegree = 90;
+            }else {
+                tempDegree = 270;
+            }
+        }else {
+            tempDegree = (float) Math.toDegrees(Math.atan2((y1-y2),(x2-x1)));
+            if (x1 < x2){
+                //镜像处理
+                tempDegree += 180;
+            }
+        }
+        float degreeGap = mInitRotate - tempDegree;
+        viewSupport.mRotate += degreeGap;
     }
 
     protected void postMatrix(ViewSupport viewSupport){
