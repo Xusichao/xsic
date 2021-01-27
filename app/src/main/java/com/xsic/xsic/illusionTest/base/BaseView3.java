@@ -146,58 +146,77 @@ public class BaseView3 extends BaseView2 {
 
     /**
      * 初始化旋转
-     * x1y1食指，x2y2拇指
-     * 统一以与y轴夹角作为旋转角度
+     * 统一以与x轴夹角作为旋转角度
      * @param x1
      * @param y1
      * @param x2
      * @param y2
      */
     protected void initRotate(float x1, float y1, float x2, float y2){
-        if (x1 == x2){
-            if (y1 > y2){
-                mInitRotate = 180;
-            }else {
-                mInitRotate = 0;
-            }
-        }else if (y1 == y2){
-            if (x1 > x2){
+        if(x1 - x2 == 0) {
+            if(y1 >= y2) {
                 mInitRotate = 90;
-            }else {
-                mInitRotate = 270;
             }
-        }else {
-            mInitRotate = (float) Math.toDegrees(Math.atan2((y1-y2),(x2-x1)));
-            if (x1 < x2){
-                //镜像处理
+            else {
+                mInitRotate = -90;
+            }
+        } else if(y1 - y2 != 0) {
+            mInitRotate = (float)Math.toDegrees(Math.atan(((double)(y1 - y2)) / (x1 - x2)));
+            if(x1 < x2) {
                 mInitRotate += 180;
             }
+        } else {
+            if(x1 >= x2) {
+                mInitRotate = 0;
+            } else {
+                mInitRotate = 180;
+            }
         }
+
+//        if (x1 == x2){
+//            if (y1 > y2){
+//                mInitRotate = 0;
+//            }else {
+//                mInitRotate = 180;
+//            }
+//        }else if (y1 == y2){
+//            if (x1 > x2){
+//                mInitRotate = 90;
+//            }else {
+//                mInitRotate = 270;
+//            }
+//        }else {
+//            mInitRotate = (float) Math.toDegrees(Math.atan2((y1-y2),(x2-x1)));
+//            if (x1 < x2){
+//                //镜像处理
+//                mInitRotate += 180;
+//            }
+//        }
     }
 
     protected void rotate(ViewSupport viewSupport,float x1, float y1, float x2, float y2){
         float tempDegree = 0;
-        if (x1 == x2){
-            if (y1 > y2){
-                tempDegree = 180;
-            }else {
-                tempDegree = 0;
-            }
-        }else if (y1 == y2){
-            if (x1 > x2){
+        if(x1 - x2 == 0) {
+            if(y1 >= y2) {
                 tempDegree = 90;
-            }else {
-                tempDegree = 270;
             }
-        }else {
-            tempDegree = (float) Math.toDegrees(Math.atan2((y1-y2),(x2-x1)));
-            if (x1 < x2){
-                //镜像处理
+            else {
+                tempDegree = -90;
+            }
+        } else if(y1 - y2 != 0) {
+            tempDegree = (float)Math.toDegrees(Math.atan(((double)(y1 - y2)) / (x1 - x2)));
+            if(x1 < x2) {
                 tempDegree += 180;
+            }
+        } else {
+            if(x1 >= x2) {
+                tempDegree = 0;
+            } else {
+                tempDegree = 180;
             }
         }
         float degreeGap = mInitRotate - tempDegree;
-        viewSupport.mRotate += degreeGap;
+        viewSupport.mRotate += (360 - degreeGap);
     }
 
     protected void postMatrix(ViewSupport viewSupport){
@@ -205,7 +224,7 @@ public class BaseView3 extends BaseView2 {
             viewSupport.mMatrix.reset();
             viewSupport.mMatrix.postTranslate(viewSupport.mX,viewSupport.mY);
             viewSupport.mMatrix.postScale(viewSupport.mScaleX,viewSupport.mScaleY,viewSupport.mCenterX,viewSupport.mCenterY);
-            viewSupport.mMatrix.postRotate(viewSupport.mRotate);
+            viewSupport.mMatrix.postRotate(viewSupport.mRotate,viewSupport.mCenterX,viewSupport.mCenterY);
         }
     }
 }

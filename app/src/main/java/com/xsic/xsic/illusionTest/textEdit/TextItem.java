@@ -13,20 +13,23 @@ import com.xsic.xsic.illusionTest.base.ViewSupport;
 import com.xsic.xsic.utils.LogUtil;
 
 public class TextItem extends ViewSupport {
+    public static final float MAX_SCALE = 8.0f;
+    public static final float MIN_SCALE = 0.4f;
+
     public static final int NONE = -1;
     public static final int DELETE = 1;
     public static final int REVERSE = 2;
     public static final int ADD = 3;
     public static final int ROTATEANDSCALE = 4;
 
-    public static final int CONTROLLER_LENGTH = 30;
+    public static final int CONTROLLER_LENGTH = 60;
     public final int mBitmapSize = 25;
     public final float mGapX = 23.5f;
     public final float mGapY = 13.5f;
 
     public String mText;
     public float mTextSize;
-    public Rect mRect = new Rect();
+    public RectF mRect = new RectF();
     public int mTextColor = Color.WHITE;
     public Typeface mTypeface;
     public float mOpacity;
@@ -63,15 +66,21 @@ public class TextItem extends ViewSupport {
         return out;
     }
 
+
     @Override
     public String toString() {
-        return super.toString();
-    }
-
-    public void debug(){
-        LogUtil.d("rtrtt","ViewSupport{" +
-//                "mSource=" + mSource +
-//                ", mBitmap=" + mBitmap +
+        return "TextItem{" +
+                "mBitmapSize=" + mBitmapSize +
+                ", mGapX=" + mGapX +
+                ", mGapY=" + mGapY +
+                ", mText='" + mText + '\'' +
+                ", mTextSize=" + mTextSize +
+                ", mRect=" + mRect +
+                ", mTextColor=" + mTextColor +
+                ", mTypeface=" + mTypeface +
+                ", mOpacity=" + mOpacity +
+                ", mSource=" + mSource +
+                ", mBitmap=" + mBitmap +
                 ", mMatrix=" + mMatrix +
                 ", mX=" + mX +
                 ", mY=" + mY +
@@ -80,6 +89,22 @@ public class TextItem extends ViewSupport {
                 ", mCenterX=" + mCenterX +
                 ", mCenterY=" + mCenterY +
                 ", mRotate=" + mRotate +
+                '}';
+    }
+
+    public void debug(){
+        LogUtil.d("rtrtt","ViewSupport{" +
+//                "mSource=" + mSource +
+//                ", mBitmap=" + mBitmap +
+                ", mRect=" + mRect +
+//                ", mMatrix=" + mMatrix +
+//                ", mX=" + mX +
+//                ", mY=" + mY +
+//                ", mScaleX=" + mScaleX +
+//                ", mScaleY=" + mScaleY +
+//                ", mCenterX=" + mCenterX +
+//                ", mCenterY=" + mCenterY +
+//                ", mRotate=" + mRotate +
                 '}');
     }
 }
