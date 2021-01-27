@@ -96,15 +96,15 @@ public class TextItem extends ViewSupport {
         LogUtil.d("rtrtt","ViewSupport{" +
 //                "mSource=" + mSource +
 //                ", mBitmap=" + mBitmap +
-                ", mRect=" + mRect +
+//                ", mRect=" + mRect +
 //                ", mMatrix=" + mMatrix +
-//                ", mX=" + mX +
-//                ", mY=" + mY +
+                ", mX=" + mX +
+                ", mY=" + mY +
 //                ", mScaleX=" + mScaleX +
 //                ", mScaleY=" + mScaleY +
 //                ", mCenterX=" + mCenterX +
 //                ", mCenterY=" + mCenterY +
-//                ", mRotate=" + mRotate +
+                ", mRotate=" + mRotate +
                 '}');
     }
 }

@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import com.xsic.xsic.R;
 import com.xsic.xsic.illusionTest.base.BaseView3;
 import com.xsic.xsic.illusionTest.textEdit.options.IEdit;
+import com.xsic.xsic.utils.LogUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,7 @@ public class TextEditView extends BaseView3 {
     private TextItem mTextItem = new TextItem();
     private TextItem mTempItem = new TextItem();
     private TextItem mInitItem = new TextItem();
-    private TextItem mCurTextItem = null;
+    private TextItem mCurTextItem = new TextItem();
 
     public TextEditView(Context context) {
         super(context);
@@ -119,17 +120,16 @@ public class TextEditView extends BaseView3 {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.save();
-        canvas.rotate(mTextItem.mRotate,mTextItem.mCenterX,mTextItem.mCenterY);
         if (mItemList!=null && mItemList.size()>0){
             for (TextItem drawItem : mItemList){
+                canvas.save();
+                canvas.rotate(drawItem.mRotate,drawItem.mCenterX,drawItem.mCenterY);
                 drawText(canvas,drawItem);
-                if (mIsShowController){
-                    drawControlRect(canvas,drawItem.mRect,drawItem.mBitmapSize,drawItem);
-                }
+                drawControlRectIfNeed(canvas,drawItem.mRect,drawItem.mBitmapSize,drawItem);
+                canvas.restore();
             }
         }
-        canvas.restore();
+
     }
 
     private void drawText(Canvas canvas,TextItem item){
@@ -143,34 +143,35 @@ public class TextEditView extends BaseView3 {
         canvas.drawText(item.mText,left,top,mTextPaint);
     }
 
-    private void drawControlRect(Canvas canvas, RectF dst, float size, TextItem item){
+    private void drawControlRectIfNeed(Canvas canvas, RectF dst, float size, TextItem item){
         dst.offset(item.mCenterX-dst.width()/2f,item.mCenterY - dst.height()/2f);
-        dst.left = (int) (dst.left - mTextItem.mGapX);
-        dst.top = (int) (dst.top - mTextItem.mGapY);
-        dst.right = (int) (dst.right + mTextItem.mGapX);
-        dst.bottom = (int) (dst.bottom + mTextItem.mGapY);
-        canvas.drawRect(dst,mRectPaint);
+        dst.left = (int) (dst.left - item.mGapX);
+        dst.top = (int) (dst.top - item.mGapY);
+        dst.right = (int) (dst.right + item.mGapX);
+        dst.bottom = (int) (dst.bottom + item.mGapY);
+        if (mIsShowController){
+            canvas.drawRect(dst,mRectPaint);
 
-
-        RectF topleft = new RectF(dst.left-size,dst.top-size,dst.left+size,dst.top+size);
-        RectF topright = new RectF(dst.right-size,dst.top-size,dst.right+size,dst.top+size);
-        RectF bottomright = new RectF(dst.right-size,dst.bottom-size,dst.right+size,dst.bottom+size);
-        RectF bottomleft = new RectF(dst.left-size,dst.bottom-size,dst.left+size,dst.bottom+size);
-        canvas.drawBitmap(mTopLeft,null,topleft,mBitmapPaint);
-        canvas.drawBitmap(mTopRight,null,topright,mBitmapPaint);
-        canvas.drawBitmap(mBottomRight,null,bottomright,mBitmapPaint);
-        canvas.drawBitmap(mBottomLeft,null,bottomleft,mBitmapPaint);
+            RectF topleft = new RectF(dst.left-size,dst.top-size,dst.left+size,dst.top+size);
+            RectF topright = new RectF(dst.right-size,dst.top-size,dst.right+size,dst.top+size);
+            RectF bottomright = new RectF(dst.right-size,dst.bottom-size,dst.right+size,dst.bottom+size);
+            RectF bottomleft = new RectF(dst.left-size,dst.bottom-size,dst.left+size,dst.bottom+size);
+            canvas.drawBitmap(mTopLeft,null,topleft,mBitmapPaint);
+            canvas.drawBitmap(mTopRight,null,topright,mBitmapPaint);
+            canvas.drawBitmap(mBottomRight,null,bottomright,mBitmapPaint);
+            canvas.drawBitmap(mBottomLeft,null,bottomleft,mBitmapPaint);
+        }
     }
 
     public void setImage(String filePath){
         super.setImage(BitmapFactory.decodeFile(filePath));
     }
 
-    private int getControlPointAt(float x, float y){
-        float l = mTextItem.mRect.centerX() - mTextItem.mRect.width()/2f;
-        float t = mTextItem.mRect.centerY() - mTextItem.mRect.height()/2f;
-        float r = mTextItem.mRect.centerX() + mTextItem.mRect.width()/2f;
-        float b = mTextItem.mRect.centerY() + mTextItem.mRect.height()/2f;
+    private int getControlPointAt(float x, float y, TextItem item){
+        float l = item.mRect.centerX() - item.mRect.width()/2f;
+        float t = item.mRect.centerY() - item.mRect.height()/2f;
+        float r = item.mRect.centerX() + item.mRect.width()/2f;
+        float b = item.mRect.centerY() + item.mRect.height()/2f;
         RectF rectF_TL = new RectF(l-TextItem.CONTROLLER_LENGTH,t-TextItem.CONTROLLER_LENGTH,
                 l+TextItem.CONTROLLER_LENGTH,t+TextItem.CONTROLLER_LENGTH);
         RectF rectF_TR = new RectF(r-TextItem.CONTROLLER_LENGTH,t-TextItem.CONTROLLER_LENGTH,
@@ -214,53 +215,58 @@ public class TextEditView extends BaseView3 {
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction() & event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
-                mEditType = getEditType(event.getX(),event.getY());
+                mCurTextItem = getCurTextItem(event.getX(),event.getY());
+                if (mCurTextItem==null) break;
+                mEditType = getEditType(event.getX(),event.getY(),mCurTextItem);
                 if (mEditType!=null){
-                    mEditType.onDown(mTextItem,event);
+                    mEditType.onDown(mCurTextItem,event);
                 }
-                mTempItem = mTextItem.clone();
+                mTempItem = mCurTextItem.clone();
                 initTranslate(event.getX(),event.getY());
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
+                if (mCurTextItem==null) return false;
                 mIsHandlingMorePoint = true;
-                mTempItem = mTextItem.clone();
+                mTempItem = mCurTextItem.clone();
                 initMorePointTranslate(mTempItem,event);
                 initMorePointScale(event);
                 initRotate(event.getX(0),event.getY(0),event.getX(1),event.getY(1));
                 break;
 
             case MotionEvent.ACTION_MOVE:
+                if (mCurTextItem==null) return false;
                 mIsShowController = false;
                 if (event.getPointerCount() > 1){
-                    mTextItem.set(mTempItem);
-                    morePointTranslate(mTextItem,event);
-                    morePointScale(mTextItem,event);
-                    rotate(mTextItem,event.getX(0),event.getY(0),event.getX(1),event.getY(1));
-                    if (mTextItem.mScaleX > TextItem.MAX_SCALE){
-                        mTextItem.mScaleX = TextItem.MAX_SCALE;
-                        mTextItem.mScaleY = TextItem.MAX_SCALE;
-                    }else if (mTextItem.mScaleX < TextItem.MIN_SCALE){
-                        mTextItem.mScaleX = TextItem.MIN_SCALE;
-                        mTextItem.mScaleY = TextItem.MIN_SCALE;
+                    mCurTextItem.set(mTempItem);
+                    morePointTranslate(mCurTextItem,event);
+                    morePointScale(mCurTextItem,event);
+                    rotate(mCurTextItem,event.getX(0),event.getY(0),event.getX(1),event.getY(1));
+                    if (mCurTextItem.mScaleX > TextItem.MAX_SCALE){
+                        mCurTextItem.mScaleX = TextItem.MAX_SCALE;
+                        mCurTextItem.mScaleY = TextItem.MAX_SCALE;
+                    }else if (mCurTextItem.mScaleX < TextItem.MIN_SCALE){
+                        mCurTextItem.mScaleX = TextItem.MIN_SCALE;
+                        mCurTextItem.mScaleY = TextItem.MIN_SCALE;
                     }
-                    postMatrix(mTextItem);
+                    postMatrix(mCurTextItem);
                 }else {
                     if (mIsHandlingMorePoint) break;
                     if (mEditType!=null){
-                        mTextItem.set(mTempItem);
-                        mEditType.onMove(mTextItem,event);
+                        mCurTextItem.set(mTempItem);
+                        mEditType.onMove(mCurTextItem,event);
                     }else {
-                        if (!isPointAtText(event.getX(),event.getY(),mTextItem)) break;
-                        mTextItem.set(mTempItem);
-                        translate(mTextItem,event.getX(),event.getY());
-                        postMatrix(mTextItem);
+                        if (!isPointAtText(event.getX(),event.getY(),mCurTextItem)) break;
+                        mCurTextItem.set(mTempItem);
+                        translate(mCurTextItem,event.getX(),event.getY());
+                        postMatrix(mCurTextItem);
                     }
                 }
                 break;
 
             case MotionEvent.ACTION_UP:
-                mIsShowController = isPointAtRectF(mTextItem.mRect,event.getX(),event.getY());
+                if (mCurTextItem==null) return false;
+                mIsShowController = isPointAtRectF(mCurTextItem.mRect,event.getX(),event.getY());
                 mIsHandlingMorePoint = false;
                 break;
 
@@ -268,15 +274,13 @@ public class TextEditView extends BaseView3 {
                 break;
         }
         invalidate();
+        for (TextItem i:mItemList){
+            i.debug();
+        }
         return true;
     }
 
     private boolean isPointAtText(float x, float y, TextItem item){
-        item.mRect.offset(item.mCenterX-item.mRect.width()/2f,item.mCenterY - item.mRect.height()/2f);
-        item.mRect.left = (int) (item.mRect.left - mTextItem.mGapX);
-        item.mRect.top = (int) (item.mRect.top - mTextItem.mGapY);
-        item.mRect.right = (int) (item.mRect.right + mTextItem.mGapX);
-        item.mRect.bottom = (int) (item.mRect.bottom + mTextItem.mGapY);
         return item.mRect.contains(x, y);
     }
 
@@ -299,8 +303,8 @@ public class TextEditView extends BaseView3 {
         return null;
     }
 
-    private IEdit getEditType(float x, float y){
-        mCurController = getControlPointAt(x, y);
+    private IEdit getEditType(float x, float y, TextItem item){
+        mCurController = getControlPointAt(x, y, item);
         if (mCurController == TextItem.DELETE){
             return new OpsDelete();
         }else if (mCurController == TextItem.ADD){
